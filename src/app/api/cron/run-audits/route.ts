@@ -141,37 +141,68 @@ async function handleCron(request: NextRequest) {
       targetEngines,
     });
 
-    // Save outputs to `results`, insert citations, and inspect drops
-    for (const evaluation of evaluationResults) {
-      const { data: insertedResult } = await supabase.from('results').insert({
-        prompt_id: prompt.id,
-        engine: evaluation.engine,
-        visibility_score: evaluation.visibilityScore,
-        brand_mentioned: evaluation.brandMentioned,
-        sentiment: evaluation.sentiment,
-        sentiment_score: evaluation.sentimentScore,
-        raw_text: evaluation.rawText,
-        cited_urls: evaluation.citedUrls,
-        ranking_position: evaluation.rankingPosition,
-      }).select('id').single();
+    // Bulk insert outputs to `results`
+    const resultsToInsert = evaluationResults.map((evaluation) => ({
+      prompt_id: prompt.id,
+      engine: evaluation.engine,
+      visibility_score: evaluation.visibilityScore,
+      brand_mentioned: evaluation.brandMentioned,
+      sentiment: evaluation.sentiment,
+      sentiment_score: evaluation.sentimentScore,
+      raw_text: evaluation.rawText,
+      cited_urls: evaluation.citedUrls,
+      ranking_position: evaluation.rankingPosition,
+    }));
 
-      // Normalize & insert individual citations into public.citations
+    let insertedResults: { id: string; engine: string }[] | null = null;
+    if (resultsToInsert.length > 0) {
+      const { data } = await supabase
+        .from('results')
+        .insert(resultsToInsert)
+        .select('id, engine');
+      insertedResults = data;
+    }
+
+    const resultIdMap = new Map<string, string>();
+    insertedResults?.forEach((res) => {
+      if (res.id && res.engine) {
+        resultIdMap.set(res.engine, res.id);
+      }
+    });
+
+    // Bulk insert citations into public.citations
+    const citationRows: Array<{
+      project_id: string;
+      run_id: string | null;
+      engine: string;
+      url: string;
+      domain: string;
+      source_type: ReturnType<typeof categorizeSource>;
+    }> = [];
+
+    for (const evaluation of evaluationResults) {
       if (evaluation.citedUrls && evaluation.citedUrls.length > 0) {
-        const citationRows = evaluation.citedUrls.map((rawUrl) => {
+        const runId = resultIdMap.get(evaluation.engine) || null;
+        for (const rawUrl of evaluation.citedUrls) {
           const domain = extractDomain(rawUrl);
-          return {
+          citationRows.push({
             project_id: project.id,
-            run_id: insertedResult?.id || null,
+            run_id: runId,
             engine: evaluation.engine,
             url: rawUrl,
             domain: domain || 'unknown.com',
             source_type: categorizeSource(domain, rawUrl),
-          };
-        });
-
-        await supabase.from('citations').insert(citationRows);
+          });
+        }
       }
+    }
 
+    if (citationRows.length > 0) {
+      await supabase.from('citations').insert(citationRows);
+    }
+
+    // Inspect drops and send alerts
+    for (const evaluation of evaluationResults) {
       summary.resultsCreated++;
 
       // Check for significant drop (> 15%)
