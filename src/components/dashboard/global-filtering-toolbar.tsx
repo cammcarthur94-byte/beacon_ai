@@ -2,8 +2,6 @@
 
 import * as React from 'react';
 import { Calendar, Cpu, Users, RotateCcw, X, Filter } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { EngineBadge } from '@/components/ui/engine-badge';
 import { SentimentRangeSlider } from './sentiment-range-slider';
 import { cn } from '@/lib/utils';
@@ -18,51 +16,72 @@ const ALL_ENGINES = [
   { id: 'google_ai_mode', label: 'AI Mode' },
 ];
 
-interface GlobalFilteringToolbarProps {
-  dateRange: '7d' | '30d' | '90d';
-  onDateRangeChange: (range: '7d' | '30d' | '90d') => void;
+export type DateRangePreset = '7d' | '30d' | '90d';
+export type SentimentCategory = 'all' | 'positive' | 'neutral' | 'negative';
 
+export interface DateFilterOptions {
+  dateRange: DateRangePreset;
+  onDateRangeChange: (range: DateRangePreset) => void;
+}
+
+export interface EngineFilterOptions {
   selectedEngines: string[];
   onToggleEngine: (engineId: string) => void;
   onClearEngines: () => void;
+}
 
+export interface SentimentFilterOptions {
   sentimentRange: [number, number];
   onSentimentRangeChange: (range: [number, number]) => void;
+  selectedCategory: SentimentCategory;
+  onClearCategory: () => void;
+}
 
+export interface CompetitorFilterOptions {
   competitors: CompetitorMeta[];
   selectedCompetitors: string[];
   onToggleCompetitor: (competitorId: string) => void;
+}
 
-  selectedCitationDomain: string | null;
-  onClearCitationDomain: () => void;
+export interface CitationFilterOptions {
+  selectedDomain: string | null;
+  onClearDomain: () => void;
+}
 
-  selectedSentimentCategory: 'all' | 'positive' | 'neutral' | 'negative';
-  onClearSentimentCategory: () => void;
-
+export interface GlobalFilteringToolbarProps {
+  dateFilter: DateFilterOptions;
+  engineFilter: EngineFilterOptions;
+  sentimentFilter: SentimentFilterOptions;
+  competitorFilter: CompetitorFilterOptions;
+  citationFilter: CitationFilterOptions;
   onResetAllFilters: () => void;
   totalFilteredPromptsCount: number;
 }
 
 export function GlobalFilteringToolbar({
-  dateRange,
-  onDateRangeChange,
-  selectedEngines,
-  onToggleEngine,
-  onClearEngines,
-  sentimentRange,
-  onSentimentRangeChange,
-  competitors,
-  selectedCompetitors,
-  onToggleCompetitor,
-  selectedCitationDomain,
-  onClearCitationDomain,
-  selectedSentimentCategory,
-  onClearSentimentCategory,
+  dateFilter,
+  engineFilter,
+  sentimentFilter,
+  competitorFilter,
+  citationFilter,
   onResetAllFilters,
   totalFilteredPromptsCount,
 }: GlobalFilteringToolbarProps) {
+  const { dateRange, onDateRangeChange } = dateFilter;
+  const { selectedEngines, onToggleEngine, onClearEngines } = engineFilter;
+  const {
+    sentimentRange,
+    onSentimentRangeChange,
+    selectedCategory: selectedSentimentCategory,
+    onClearCategory: onClearSentimentCategory,
+  } = sentimentFilter;
+  const { competitors, selectedCompetitors, onToggleCompetitor } = competitorFilter;
+  const { selectedDomain: selectedCitationDomain, onClearDomain: onClearCitationDomain } =
+    citationFilter;
+
   const isDateFiltered = dateRange !== '30d';
-  const isEngineFiltered = selectedEngines.length > 0 && selectedEngines.length < ALL_ENGINES.length;
+  const isEngineFiltered =
+    selectedEngines.length > 0 && selectedEngines.length < ALL_ENGINES.length;
   const isSentimentSliderFiltered = sentimentRange[0] !== -100 || sentimentRange[1] !== 100;
   const isSentimentCategoryFiltered = selectedSentimentCategory !== 'all';
   const isCitationFiltered = Boolean(selectedCitationDomain);
