@@ -12,6 +12,7 @@ export interface AddressBarCitationProps {
   showExternalLink?: boolean;
   className?: string;
   truncate?: boolean;
+  maxPathWidth?: string;
 }
 
 interface CitationUrlOptions {
@@ -57,6 +58,7 @@ export function AddressBarCitation(props: AddressBarCitationProps) {
     showExternalLink = true,
     className = '',
     truncate = true,
+    maxPathWidth = 'max-w-[130px] sm:max-w-[150px]',
   } = props;
 
   const [hasError, setHasError] = React.useState(false);
@@ -71,7 +73,7 @@ export function AddressBarCitation(props: AddressBarCitationProps) {
       href={targetUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-50 border border-zinc-200/90 text-zinc-800 shadow-2xs hover:bg-zinc-100 hover:border-zinc-300 transition-all text-xs group whitespace-nowrap ${
+      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-50 border border-zinc-200/90 text-zinc-800 shadow-2xs hover:bg-zinc-100 hover:border-zinc-300 transition-all text-xs group whitespace-nowrap ${
         size === 'md' ? 'h-8 px-3' : 'h-7'
       } ${className}`}
       title={`Visit ${targetUrl}`}
@@ -96,10 +98,10 @@ export function AddressBarCitation(props: AddressBarCitationProps) {
         )}
       </div>
 
-      {/* Domain / Address text - zero cut off when truncate is false */}
+      {/* Domain / Address text - shortened with tooltip */}
       <span
         className={`font-medium text-zinc-900 group-hover:text-emerald-700 transition-colors ${
-          truncate ? 'truncate max-w-[200px] sm:max-w-[280px]' : 'whitespace-nowrap'
+          truncate ? `truncate ${maxPathWidth}` : 'whitespace-nowrap'
         }`}
       >
         {displayPath}

@@ -523,10 +523,10 @@ export function CitationsLedgerTable({
           <Table className="min-w-[1050px] w-full font-sans">
             <TableHeader>
               <TableRow className="bg-zinc-50/70 border-b border-zinc-200">
-                {/* Column 1: Referring Domain (20%) - Centered */}
+                {/* Column 1: Referring Domain (22%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('domain')}
-                  className="w-[20%] min-w-[180px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                  className="w-[22%] min-w-[180px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Referring Domain</span>
@@ -534,10 +534,10 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 2: Source Category (15%) - Centered */}
+                {/* Column 2: Source Category (16%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('sourceType')}
-                  className="w-[15%] min-w-[150px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                  className="w-[16%] min-w-[150px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Source Category</span>
@@ -545,15 +545,15 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 3: Citing Engines (12%) - Centered */}
-                <TableHead className="w-[12%] min-w-[110px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
+                {/* Column 3: Citing Engines (13%) - Centered */}
+                <TableHead className="w-[13%] min-w-[110px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
                   Citing Engines
                 </TableHead>
 
-                {/* Column 4: Mentions (10%) - Centered */}
+                {/* Column 4: Mentions (11%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('totalMentions')}
-                  className="w-[10%] min-w-[90px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                  className="w-[11%] min-w-[90px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Mentions</span>
@@ -561,10 +561,10 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 5: Prompts Cited (14%) - Centered */}
+                {/* Column 5: Prompts Cited (15%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('promptsCount')}
-                  className="w-[14%] min-w-[130px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                  className="w-[15%] min-w-[130px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Prompts Cited</span>
@@ -572,15 +572,15 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 6: Recent Evidence URL (20%) - Centered */}
-                <TableHead className="w-[20%] min-w-[280px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
+                {/* Column 6: Recent Evidence URL (13%) - Centered, shortened */}
+                <TableHead className="w-[13%] min-w-[150px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
                   Most Recent URL
                 </TableHead>
 
-                {/* Column 7: Last Grounded (9%) - Centered */}
+                {/* Column 7: Last Grounded (10%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('lastCitedAt')}
-                  className="w-[9%] min-w-[90px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold text-center py-3.5 group whitespace-nowrap"
+                  className="w-[10%] min-w-[90px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold text-center py-3.5 group whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Last Grounded</span>
@@ -704,14 +704,15 @@ export function CitationsLedgerTable({
                         </div>
                       </TableCell>
 
-                      {/* Column 6: Most Recent Evidence URL - Centered, zero text cutoff */}
+                      {/* Column 6: Most Recent Evidence URL - Centered, shortened */}
                       <TableCell className="py-3.5 text-center whitespace-nowrap font-sans">
-                        <div className="flex items-center justify-center max-w-full">
+                        <div className="flex items-center justify-center">
                           <AddressBarCitation
                             url={row.recentUrl}
                             size="sm"
                             showExternalLink={true}
-                            truncate={false}
+                            truncate={true}
+                            maxPathWidth="max-w-[130px] sm:max-w-[150px]"
                           />
                         </div>
                       </TableCell>
