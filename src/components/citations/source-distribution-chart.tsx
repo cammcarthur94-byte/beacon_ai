@@ -252,11 +252,12 @@ export function SourceDistributionChart({
                   type="button"
                   onClick={() => onToggleSourceType?.(item.sourceType)}
                   title={`${isSelected ? 'Remove' : 'Add'} ${meta.label} ${isSelected ? 'from' : 'to'} filter`}
+                  style={isSelected ? { borderWidth: 2, borderColor: meta.color } : undefined}
                   className={cn(
                     'flex w-full items-center justify-between text-xs py-1.5 px-2.5 rounded-lg transition-all duration-150 cursor-pointer text-left',
                     isSelected
-                      ? 'bg-slate-100 ring-2 ring-slate-900 font-semibold shadow-2xs'
-                      : 'hover:bg-slate-50 border border-transparent hover:border-slate-200',
+                      ? 'bg-slate-50 font-bold shadow-xs'
+                      : 'hover:bg-slate-50 border-2 border-transparent hover:border-slate-200',
                     isFiltered && !isSelected && 'opacity-40'
                   )}
                 >

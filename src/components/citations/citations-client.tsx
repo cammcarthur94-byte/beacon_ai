@@ -182,10 +182,10 @@ export function CitationsClient({
                 key={item.id}
                 type="button"
                 onClick={() => setDateRange(item.id)}
-                className={`text-xs px-3 py-1.5 rounded-md transition-all cursor-pointer font-medium ${
+                className={`text-xs px-3 py-1.5 rounded-md transition-all cursor-pointer font-medium border-2 ${
                   dateRange === item.id
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+                    ? 'border-emerald-500 bg-emerald-50/60 text-emerald-950 font-bold shadow-xs'
+                    : 'border-transparent text-slate-600 hover:text-slate-950 hover:bg-slate-100'
                 }`}
               >
                 {item.label}

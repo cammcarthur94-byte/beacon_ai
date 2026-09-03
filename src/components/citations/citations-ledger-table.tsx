@@ -263,8 +263,8 @@ export function CitationsLedgerTable({
               setCurrentPage(1);
             }}
             className={cn(
-              "pl-8 pr-7 h-8.5 text-xs bg-white text-zinc-900 placeholder:text-zinc-400 shadow-2xs font-sans transition-all",
-              searchTerm ? "border-emerald-500 ring-1 ring-emerald-500/30 bg-emerald-50/10 font-medium" : "border-zinc-200"
+              "pl-8 pr-7 h-8.5 text-xs bg-white text-zinc-900 placeholder:text-zinc-400 shadow-2xs font-sans transition-all border-2",
+              searchTerm ? "border-emerald-500 bg-emerald-50/10 font-medium" : "border-zinc-200"
             )}
           />
           {searchTerm && (
@@ -283,7 +283,7 @@ export function CitationsLedgerTable({
 
         {/* Right: Extended Filters - begins right above Citing Engines and ends at the end of the table */}
         <div className="w-full lg:flex-1 flex items-center justify-between gap-2.5 flex-wrap sm:flex-nowrap text-xs">
-          {/* Source Category Segmented Pills (Multi-select toggling) - with prominent active states */}
+          {/* Source Category Segmented Pills (Multi-select toggling) - with category-specific colored borders */}
           <div className="flex-1 flex items-center rounded-xl border border-slate-200 bg-slate-100 p-1 shadow-2xs font-sans min-w-0">
             <button
               type="button"
@@ -292,21 +292,21 @@ export function CitationsLedgerTable({
                 setCurrentPage(1);
               }}
               className={cn(
-                'flex-1 text-center py-1.5 px-2 rounded-lg text-[11px] transition-all cursor-pointer whitespace-nowrap font-medium',
+                'flex-1 text-center py-1.5 px-2 rounded-lg text-[11px] transition-all cursor-pointer whitespace-nowrap font-medium border-2',
                 !isSourceFiltered
-                  ? 'bg-slate-900 text-white font-bold shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  ? 'border-slate-900 bg-white text-slate-950 font-bold shadow-xs'
+                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
               )}
             >
               All Sources
             </button>
             {(
               [
-                { id: 'news', label: 'News' },
-                { id: 'forum', label: 'Forums' },
-                { id: 'blog', label: 'Blogs' },
-                { id: 'documentation', label: 'Docs' },
-                { id: 'social', label: 'Social' },
+                { id: 'news', label: 'News', activeBorder: 'border-blue-500 bg-blue-50/70 text-blue-950', dotColor: 'bg-blue-500' },
+                { id: 'forum', label: 'Forums', activeBorder: 'border-amber-500 bg-amber-50/70 text-amber-950', dotColor: 'bg-amber-500' },
+                { id: 'blog', label: 'Blogs', activeBorder: 'border-purple-500 bg-purple-50/70 text-purple-950', dotColor: 'bg-purple-500' },
+                { id: 'documentation', label: 'Docs', activeBorder: 'border-emerald-500 bg-emerald-50/70 text-emerald-950', dotColor: 'bg-emerald-500' },
+                { id: 'social', label: 'Social', activeBorder: 'border-teal-500 bg-teal-50/70 text-teal-950', dotColor: 'bg-teal-500' },
               ] as const
             ).map((filter) => {
               const isSelected = activeSourceTypes?.includes(filter.id);
@@ -319,14 +319,14 @@ export function CitationsLedgerTable({
                     setCurrentPage(1);
                   }}
                   className={cn(
-                    'flex-1 inline-flex items-center justify-center py-1.5 px-2 rounded-lg text-[11px] transition-all cursor-pointer whitespace-nowrap font-medium',
+                    'flex-1 inline-flex items-center justify-center py-1.5 px-2 rounded-lg text-[11px] transition-all cursor-pointer whitespace-nowrap font-medium border-2',
                     isSelected
-                      ? 'bg-emerald-600 text-white font-bold shadow-xs shadow-emerald-600/30 ring-1 ring-emerald-600'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                      ? cn(filter.activeBorder, 'font-bold shadow-xs')
+                      : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                   )}
                 >
                   {isSelected && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-white mr-1 shrink-0" />
+                    <span className={cn('h-1.5 w-1.5 rounded-full mr-1 shrink-0', filter.dotColor)} />
                   )}
                   <span>{filter.label}</span>
                 </button>
@@ -334,16 +334,16 @@ export function CitationsLedgerTable({
             })}
           </div>
 
-          {/* Engine Dropdown Filter with prominent selected state */}
+          {/* Engine Dropdown Filter with category-specific colored border */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
                 className={cn(
-                  "h-8.5 text-xs gap-1.5 cursor-pointer shrink-0 shadow-2xs font-sans transition-all",
+                  "h-8.5 text-xs gap-1.5 cursor-pointer shrink-0 shadow-2xs font-sans transition-all border-2",
                   selectedEngine !== 'all'
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-900 font-bold ring-1 ring-emerald-500/40"
+                    ? "border-emerald-500 bg-emerald-50/70 text-emerald-950 font-bold shadow-xs"
                     : "border-zinc-200 bg-white text-zinc-700 font-medium"
                 )}
               >
@@ -378,21 +378,21 @@ export function CitationsLedgerTable({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Mentions Volume Filter with prominent selected state */}
+          {/* Mentions Volume Filter with category-specific colored border */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
                 className={cn(
-                  "h-8.5 text-xs gap-1.5 cursor-pointer shrink-0 shadow-2xs font-sans transition-all",
+                  "h-8.5 text-xs gap-1.5 cursor-pointer shrink-0 shadow-2xs font-sans transition-all border-2",
                   mentionsFilter !== 'all'
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-900 font-bold ring-1 ring-emerald-500/40"
+                    ? "border-indigo-500 bg-indigo-50/70 text-indigo-950 font-bold shadow-xs"
                     : "border-zinc-200 bg-white text-zinc-700 font-medium"
                 )}
               >
                 {mentionsFilter !== 'all' ? (
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse shrink-0" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-pulse shrink-0" />
                 ) : (
                   <Layers className="h-3.5 w-3.5 text-zinc-400" />
                 )}
@@ -442,13 +442,13 @@ export function CitationsLedgerTable({
       {/* 3. DATA TABLE (All Centered Alignment, Engine Logos, Standout Category Badges) */}
       <CardContent className="p-0">
         <div className="overflow-x-auto">
-          <Table className="w-full">
+          <Table className="min-w-[1050px] w-full font-sans">
             <TableHeader>
               <TableRow className="bg-zinc-50/70 border-b border-zinc-200">
-                {/* Column 1: Referring Domain (20%) - Centered */}
+                {/* Column 1: Referring Domain (22%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('domain')}
-                  className="w-[20%] min-w-[170px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center"
+                  className="w-[22%] min-w-[190px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Referring Domain</span>
@@ -456,10 +456,10 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 2: Source Category (15%) - Centered */}
+                {/* Column 2: Source Category (18%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('sourceType')}
-                  className="w-[15%] min-w-[150px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center"
+                  className="w-[18%] min-w-[170px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Source Category</span>
@@ -467,15 +467,15 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 3: Citing Engines (15%) - Centered */}
-                <TableHead className="w-[15%] min-w-[130px] text-xs font-semibold py-3.5 text-center">
+                {/* Column 3: Citing Engines (14%) - Centered */}
+                <TableHead className="w-[14%] min-w-[120px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
                   Citing Engines
                 </TableHead>
 
                 {/* Column 4: Mentions (12%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('totalMentions')}
-                  className="w-[12%] min-w-[100px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center"
+                  className="w-[12%] min-w-[100px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Mentions</span>
@@ -483,25 +483,20 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 5: Recent Evidence URL (22%) - Centered */}
-                <TableHead className="w-[22%] min-w-[200px] text-xs font-semibold py-3.5 text-center">
+                {/* Column 5: Recent Evidence URL (24%) - Centered */}
+                <TableHead className="w-[24%] min-w-[340px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
                   Most Recent URL
                 </TableHead>
 
-                {/* Column 6: Last Grounded (8%) - Centered */}
+                {/* Column 6: Last Grounded (10%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('lastCitedAt')}
-                  className="w-[8%] min-w-[90px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold text-center py-3.5 group"
+                  className="w-[10%] min-w-[100px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold text-center py-3.5 group whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Last Grounded</span>
                     {getSortIcon('lastCitedAt')}
                   </div>
-                </TableHead>
-
-                {/* Column 7: Deep Dive Action (8%) - Centered */}
-                <TableHead className="w-[8%] min-w-[90px] text-center text-xs font-semibold py-3.5">
-                  Deep Dive
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -509,7 +504,7 @@ export function CitationsLedgerTable({
             <TableBody>
               {paginatedRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-16 text-zinc-500 text-xs">
+                  <TableCell colSpan={6} className="text-center py-16 text-zinc-500 text-xs font-sans">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Filter className="h-6 w-6 text-zinc-400" />
                       <span className="font-medium text-zinc-700">
@@ -519,7 +514,7 @@ export function CitationsLedgerTable({
                         <button
                           type="button"
                           onClick={resetAllFilters}
-                          className="text-xs text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer mt-1"
+                          className="text-xs text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer mt-1 font-sans"
                         >
                           Clear all filters
                         </button>
@@ -546,22 +541,22 @@ export function CitationsLedgerTable({
                       key={row.domain}
                       className="group hover:bg-zinc-50/70 transition-colors border-b border-zinc-100 last:border-0"
                     >
-                      {/* Column 1: Referring Domain - Centered */}
-                      <TableCell className="py-3.5 text-center font-medium text-zinc-950">
+                      {/* Column 1: Referring Domain - Centered, zero text cutoff */}
+                      <TableCell className="py-3.5 text-center font-medium text-zinc-950 whitespace-nowrap font-sans">
                         <div className="flex items-center justify-center gap-2.5">
                           <DomainFavicon domain={row.domain} size="sm" />
-                          <span className="font-medium text-xs text-zinc-900 truncate max-w-[170px]">
+                          <span className="font-medium text-xs text-zinc-900 whitespace-nowrap font-sans">
                             {row.domain}
                           </span>
                         </div>
                       </TableCell>
 
-                      {/* Column 2: Source Category - Centered & Standout */}
-                      <TableCell className="py-3.5 text-center">
+                      {/* Column 2: Source Category - Centered & Standout, zero text cutoff */}
+                      <TableCell className="py-3.5 text-center whitespace-nowrap font-sans">
                         <div className="flex items-center justify-center">
                           <span
                             className={cn(
-                              'inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs border font-semibold',
+                              'inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs border font-semibold whitespace-nowrap font-sans',
                               meta.badgeClass
                             )}
                           >
@@ -571,8 +566,8 @@ export function CitationsLedgerTable({
                         </div>
                       </TableCell>
 
-                      {/* Column 3: Citing Engines - Logos instead of words, Centered */}
-                      <TableCell className="py-3.5 text-center">
+                      {/* Column 3: Citing Engines - Centered Logos */}
+                      <TableCell className="py-3.5 text-center whitespace-nowrap">
                         <div className="flex items-center justify-center gap-1.5 flex-wrap">
                           {engines.map((eng) => (
                             <EngineFaviconLogo key={eng} engine={eng} />
@@ -581,7 +576,7 @@ export function CitationsLedgerTable({
                       </TableCell>
 
                       {/* Column 4: Mentions (with visual bar) - Centered */}
-                      <TableCell className="py-3.5 text-center">
+                      <TableCell className="py-3.5 text-center whitespace-nowrap font-sans">
                         <div className="flex items-center justify-center gap-2.5">
                           <span className="font-bold text-xs text-zinc-950 tabular-nums">
                             {row.totalMentions}
@@ -595,33 +590,24 @@ export function CitationsLedgerTable({
                         </div>
                       </TableCell>
 
-                      {/* Column 5: Most Recent Evidence URL - Centered */}
-                      <TableCell className="py-3.5 text-center">
+                      {/* Column 5: Most Recent Evidence URL - Centered, zero text cutoff */}
+                      <TableCell className="py-3.5 text-center whitespace-nowrap font-sans">
                         <div className="flex items-center justify-center max-w-full">
-                          <AddressBarCitation url={row.recentUrl} size="sm" showExternalLink={true} />
+                          <AddressBarCitation
+                            url={row.recentUrl}
+                            size="sm"
+                            showExternalLink={true}
+                            truncate={false}
+                          />
                         </div>
                       </TableCell>
 
-                      {/* Column 6: Timestamp - Centered */}
-                      <TableCell className="py-3.5 text-center text-xs text-zinc-600 font-medium tabular-nums">
+                      {/* Column 6: Timestamp - Centered, zero text cutoff */}
+                      <TableCell className="py-3.5 text-center text-xs text-zinc-600 font-medium tabular-nums whitespace-nowrap font-sans">
                         {new Date(row.lastCitedAt).toLocaleDateString(undefined, {
                           month: 'short',
                           day: 'numeric',
                         })}
-                      </TableCell>
-
-                      {/* Column 7: Actions - Centered */}
-                      <TableCell className="py-3.5 text-center">
-                        <div className="flex items-center justify-center">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setInspectedDomain(row)}
-                            className="h-7 px-2.5 text-xs text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 font-medium cursor-pointer"
-                          >
-                            Deep Dive ({row.allCitations?.length || row.totalMentions})
-                          </Button>
-                        </div>
                       </TableCell>
                     </TableRow>
                   );

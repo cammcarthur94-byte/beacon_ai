@@ -11,6 +11,7 @@ export interface AddressBarCitationProps {
   size?: 'sm' | 'md';
   showExternalLink?: boolean;
   className?: string;
+  truncate?: boolean;
 }
 
 interface CitationUrlOptions {
@@ -30,8 +31,7 @@ function resolveCitationDetails(options: CitationUrlOptions) {
   let displayPath = cleanDomain;
   if (url) {
     try {
-      const full = url.startsWith('http') ? url : `https://${url}`;
-      const parsed = new URL(full);
+      const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
       const host = parsed.hostname.replace(/^www\./i, '');
       const path = parsed.pathname === '/' ? '' : parsed.pathname;
       displayPath = `${host}${path}`;
@@ -56,6 +56,7 @@ export function AddressBarCitation(props: AddressBarCitationProps) {
     size = 'sm',
     showExternalLink = true,
     className = '',
+    truncate = true,
   } = props;
 
   const [hasError, setHasError] = React.useState(false);
@@ -70,7 +71,7 @@ export function AddressBarCitation(props: AddressBarCitationProps) {
       href={targetUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-50 border border-zinc-200/90 text-zinc-800 shadow-2xs hover:bg-zinc-100 hover:border-zinc-300 transition-all text-xs group max-w-full ${
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-50 border border-zinc-200/90 text-zinc-800 shadow-2xs hover:bg-zinc-100 hover:border-zinc-300 transition-all text-xs group whitespace-nowrap ${
         size === 'md' ? 'h-8 px-3' : 'h-7'
       } ${className}`}
       title={`Visit ${targetUrl}`}
@@ -95,8 +96,12 @@ export function AddressBarCitation(props: AddressBarCitationProps) {
         )}
       </div>
 
-      {/* Domain / Address text */}
-      <span className="truncate max-w-[200px] sm:max-w-[280px] font-medium text-zinc-900 group-hover:text-emerald-700 transition-colors">
+      {/* Domain / Address text - zero cut off when truncate is false */}
+      <span
+        className={`font-medium text-zinc-900 group-hover:text-emerald-700 transition-colors ${
+          truncate ? 'truncate max-w-[200px] sm:max-w-[280px]' : 'whitespace-nowrap'
+        }`}
+      >
         {displayPath}
       </span>
 
