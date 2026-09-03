@@ -32,7 +32,6 @@ export async function POST(req: NextRequest) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !serviceKey || supabaseUrl.includes('placeholder')) {
-    console.log(`[Stripe Webhook Dev] Received event: ${event.type}. Skipping database update.`);
     return NextResponse.json({ received: true, simulated: true });
   }
 
