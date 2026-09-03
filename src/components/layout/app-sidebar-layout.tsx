@@ -84,13 +84,6 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
       badge: 'New',
     },
     {
-      title: 'Reports',
-      href: '/reports',
-      icon: FileText,
-      active: pathname.startsWith('/reports'),
-      badge: 'Executive',
-    },
-    {
       title: 'AI Co-worker',
       href: '/consultant',
       icon: Bot,
