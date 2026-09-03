@@ -251,9 +251,9 @@ export function CitationsLedgerTable({
       </CardHeader>
 
       {/* 2. DEDICATED INLINE FILTER TOOLBAR */}
-      <div className="p-4 bg-zinc-50/70 border-b border-zinc-200 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
-        {/* Left: Search input */}
-        <div className="relative w-full xl:max-w-xs">
+      <div className="p-3.5 sm:p-4 bg-zinc-50/70 border-b border-zinc-200 flex flex-col lg:flex-row items-center gap-3 sm:gap-4 font-sans">
+        {/* Left: Search input - spans above Columns 1 & 2 (Referring Domain & Source Category, 35%) */}
+        <div className="relative w-full lg:w-[35%] lg:min-w-[260px] shrink-0">
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
           <Input
             placeholder="Filter referring domains (e.g. reddit, runnersworld)..."
@@ -262,7 +262,7 @@ export function CitationsLedgerTable({
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="pl-8 pr-7 h-8 text-xs bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
+            className="pl-8 pr-7 h-8.5 text-xs bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400 shadow-2xs font-sans"
           />
           {searchTerm && (
             <button
@@ -278,10 +278,10 @@ export function CitationsLedgerTable({
           )}
         </div>
 
-        {/* Center & Right: Filter Pills & Dropdowns */}
-        <div className="flex items-center gap-2 flex-wrap text-xs">
-          {/* Source Category Segmented Pills (Multi-select toggling) */}
-          <div className="flex items-center rounded-md border border-slate-200 bg-white p-0.5 shadow-2xs font-sans">
+        {/* Right: Extended Filters - begins right above Citing Engines and ends at the end of the table */}
+        <div className="w-full lg:flex-1 flex items-center justify-between gap-2.5 flex-wrap sm:flex-nowrap text-xs">
+          {/* Source Category Segmented Pills (Multi-select toggling) - extended lengthwise */}
+          <div className="flex-1 flex items-center rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs font-sans min-w-0">
             <button
               type="button"
               onClick={() => {
@@ -289,7 +289,7 @@ export function CitationsLedgerTable({
                 setCurrentPage(1);
               }}
               className={cn(
-                'px-2.5 py-1 rounded text-[11px] transition-all cursor-pointer whitespace-nowrap font-medium',
+                'flex-1 text-center py-1.5 px-2 rounded-md text-[11px] transition-all cursor-pointer whitespace-nowrap font-medium',
                 !isSourceFiltered
                   ? 'bg-slate-900 text-white font-semibold shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -316,7 +316,7 @@ export function CitationsLedgerTable({
                     setCurrentPage(1);
                   }}
                   className={cn(
-                    'px-2.5 py-1 rounded text-[11px] transition-all cursor-pointer whitespace-nowrap font-medium',
+                    'flex-1 text-center py-1.5 px-2 rounded-md text-[11px] transition-all cursor-pointer whitespace-nowrap font-medium',
                     isSelected
                       ? 'bg-slate-900 text-white font-semibold shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -334,7 +334,7 @@ export function CitationsLedgerTable({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 text-xs border-zinc-200 bg-white text-zinc-700 gap-1.5 cursor-pointer"
+                className="h-8.5 text-xs border-zinc-200 bg-white text-zinc-700 gap-1.5 cursor-pointer shrink-0 shadow-2xs font-sans font-medium"
               >
                 <Cpu className="h-3.5 w-3.5 text-zinc-400" />
                 <span>
@@ -342,7 +342,7 @@ export function CitationsLedgerTable({
                 </span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-48 font-sans">
               <DropdownMenuLabel>Filter by Citing Engine</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => { setSelectedEngine('all'); setCurrentPage(1); }}>
@@ -369,7 +369,7 @@ export function CitationsLedgerTable({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 text-xs border-zinc-200 bg-white text-zinc-700 gap-1.5 cursor-pointer"
+                className="h-8.5 text-xs border-zinc-200 bg-white text-zinc-700 gap-1.5 cursor-pointer shrink-0 shadow-2xs font-sans font-medium"
               >
                 <Layers className="h-3.5 w-3.5 text-zinc-400" />
                 <span>
@@ -377,7 +377,7 @@ export function CitationsLedgerTable({
                 </span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-48 font-sans">
               <DropdownMenuLabel>Filter by Mentions Volume</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => { setMentionsFilter('all'); setCurrentPage(1); }}>
@@ -400,13 +400,14 @@ export function CitationsLedgerTable({
             <button
               type="button"
               onClick={resetAllFilters}
-              className="text-[11px] text-zinc-500 hover:text-zinc-900 underline cursor-pointer ml-1"
+              className="text-[11px] text-zinc-500 hover:text-zinc-900 underline cursor-pointer shrink-0"
             >
               Reset
             </button>
           )}
 
-          <span className="text-[11px] text-zinc-400 ml-auto xl:ml-2">
+          {/* Total Count ending at table edge */}
+          <span className="text-[11px] text-zinc-400 shrink-0 whitespace-nowrap pl-1 font-sans">
             ({sortedRows.length} shown)
           </span>
         </div>
