@@ -60,13 +60,13 @@ function CustomDonutTooltip({ active, payload }: { active?: boolean; payload?: T
   return null;
 }
 
-export function SentimentDonutChart({
-  data,
-  selectedCategory = 'all',
-  onSelectCategory,
-  netScore = 87,
-  brandName = 'Brand',
-}: SentimentDonutChartProps) {
+export function SentimentDonutChart(props: SentimentDonutChartProps) {
+  const {
+    data,
+    selectedCategory = 'all',
+    onSelectCategory,
+    netScore = 87,
+  } = props;
   // Reference image color palette:
   // Green (#84C373) for Positive, Sky Blue (#4FA3E3) for Neutral, Warm Orange (#EE8A30) for Critical
   const normalizedData = React.useMemo(() => {
