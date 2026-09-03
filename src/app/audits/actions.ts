@@ -255,7 +255,7 @@ export async function togglePromptStatus(promptId: string, isCurrentlyActive: bo
     const raw = cookieStore.get('beacon_demo_prompts')?.value;
     if (raw) {
       const list = JSON.parse(raw);
-      const updated = list.map((p: any) =>
+      const updated = list.map((p: { id: string; is_active: boolean }) =>
         p.id === promptId ? { ...p, is_active: !isCurrentlyActive } : p
       );
       cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), { path: '/' });
@@ -283,7 +283,7 @@ export async function deletePromptAudit(promptId: string) {
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
     const raw = cookieStore.get('beacon_demo_prompts')?.value;
     if (raw) {
-      const list = JSON.parse(raw).filter((p: any) => p.id !== promptId);
+      const list = JSON.parse(raw).filter((p: { id: string }) => p.id !== promptId);
       cookieStore.set('beacon_demo_prompts', JSON.stringify(list), { path: '/' });
     }
     revalidatePath('/audits');
@@ -298,7 +298,6 @@ export async function deletePromptAudit(promptId: string) {
 }
 
 export async function triggerInstantRun(promptId: string) {
-  const cookieStore = await cookies();
   const supabase = await createClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
@@ -330,7 +329,13 @@ export async function triggerInstantRun(promptId: string) {
     return { error: 'Prompt not found' };
   }
 
-  const project: any = prompt.projects;
+  const project = prompt.projects as unknown as {
+    id: string;
+    name: string;
+    domain: string;
+    tier: string;
+    brand_kit?: { competitors?: Array<{ name: string; domain: string }> };
+  };
   const hasGoogleAiAccess = isTierEligibleForGoogleAi(project.tier);
   let enginesToRun = (prompt.target_engines || ['chatgpt', 'gemini', 'claude', 'perplexity']) as string[];
 
