@@ -141,9 +141,9 @@ async function handleCron(request: NextRequest) {
       targetEngines,
     });
 
-    // Save outputs to `results`, insert citations, and inspect drops
-    for (const evaluation of evaluationResults) {
-      const { data: insertedResult } = await supabase.from('results').insert({
+    // Save outputs to `results` in bulk, insert citations in bulk, and inspect drops
+    if (evaluationResults.length > 0) {
+      const resultsToInsert = evaluationResults.map((evaluation) => ({
         prompt_id: prompt.id,
         engine: evaluation.engine,
         visibility_score: evaluation.visibilityScore,
@@ -153,74 +153,95 @@ async function handleCron(request: NextRequest) {
         raw_text: evaluation.rawText,
         cited_urls: evaluation.citedUrls,
         ranking_position: evaluation.rankingPosition,
-      }).select('id').single();
+      }));
 
-      // Normalize & insert individual citations into public.citations
-      if (evaluation.citedUrls && evaluation.citedUrls.length > 0) {
-        const citationRows = evaluation.citedUrls.map((rawUrl) => {
-          const domain = extractDomain(rawUrl);
-          return {
-            project_id: project.id,
-            run_id: insertedResult?.id || null,
+      const { data: insertedResults } = await supabase
+        .from('results')
+        .insert(resultsToInsert)
+        .select('id, engine');
+
+      const allCitationRows: {
+        project_id: string;
+        run_id: string | null;
+        engine: string;
+        url: string;
+        domain: string;
+        source_type: any;
+      }[] = [];
+
+      for (let i = 0; i < evaluationResults.length; i++) {
+        const evaluation = evaluationResults[i];
+        const insertedResultId = insertedResults?.[i]?.id || null;
+
+        // Normalize & prepare individual citations into public.citations
+        if (evaluation.citedUrls && evaluation.citedUrls.length > 0) {
+          for (const rawUrl of evaluation.citedUrls) {
+            const citationDomain = extractDomain(rawUrl);
+            allCitationRows.push({
+              project_id: project.id,
+              run_id: insertedResultId,
+              engine: evaluation.engine,
+              url: rawUrl,
+              domain: citationDomain || 'unknown.com',
+              source_type: categorizeSource(citationDomain, rawUrl),
+            });
+          }
+        }
+
+        summary.resultsCreated++;
+
+        // Check for significant drop (> 15%)
+        const previousResult = prevScoreMap.get(evaluation.engine);
+        const previousScore = previousResult?.score;
+        const lostCitationBlock =
+          previousResult !== undefined &&
+          (previousResult.brandMentioned || previousResult.citedUrls.length > 0) &&
+          !evaluation.brandMentioned &&
+          evaluation.citedUrls.length === 0;
+        if (
+          previousScore !== undefined &&
+          (previousScore - evaluation.visibilityScore >= 15 || lostCitationBlock)
+        ) {
+          summary.alertsTriggered++;
+          const topCompetitorName = competitors[0]?.name || 'a competitor';
+          const recipientEmail = project.users?.email || 'user@example.com';
+
+          // 1. Resend email alert
+          await sendVisibilityDropAlert({
+            toEmail: recipientEmail,
+            brandName,
+            queryText: prompt.query_text,
             engine: evaluation.engine,
-            url: rawUrl,
-            domain: domain || 'unknown.com',
-            source_type: categorizeSource(domain, rawUrl),
-          };
-        });
+            previousScore,
+            newScore: evaluation.visibilityScore,
+            promptId: prompt.id,
+          });
 
-        await supabase.from('citations').insert(citationRows);
+          // 2. Alert-to-Chat Pipeline: Proactive agent coworker message
+          const proactiveAgentMessage = `Heads up. We just lost citations on the "${prompt.query_text}" tracker. ${topCompetitorName} took our spot on ${evaluation.engine}. Want me to rewrite ours stronger and update it?`;
+
+          await supabase.from('chat_messages').insert({
+            project_id: project.id,
+            sender: 'agent',
+            content: proactiveAgentMessage,
+            metadata: {
+              alert_unread: true,
+              prompt_id: prompt.id,
+              prompt_query_text: prompt.query_text,
+              engine: evaluation.engine,
+              alert_kind: lostCitationBlock ? 'lost_citation_block' : 'visibility_drop',
+              previous_score: previousScore,
+              new_score: evaluation.visibilityScore,
+              drop: previousScore - evaluation.visibilityScore,
+              competitor: topCompetitorName,
+              query_text: prompt.query_text,
+            },
+          });
+        }
       }
 
-      summary.resultsCreated++;
-
-      // Check for significant drop (> 15%)
-      const previousResult = prevScoreMap.get(evaluation.engine);
-      const previousScore = previousResult?.score;
-      const lostCitationBlock =
-        previousResult !== undefined &&
-        (previousResult.brandMentioned || previousResult.citedUrls.length > 0) &&
-        !evaluation.brandMentioned &&
-        evaluation.citedUrls.length === 0;
-      if (
-        previousScore !== undefined &&
-        (previousScore - evaluation.visibilityScore >= 15 || lostCitationBlock)
-      ) {
-        summary.alertsTriggered++;
-        const topCompetitorName = competitors[0]?.name || 'a competitor';
-        const recipientEmail = project.users?.email || 'user@example.com';
-
-        // 1. Resend email alert
-        await sendVisibilityDropAlert({
-          toEmail: recipientEmail,
-          brandName,
-          queryText: prompt.query_text,
-          engine: evaluation.engine,
-          previousScore,
-          newScore: evaluation.visibilityScore,
-          promptId: prompt.id,
-        });
-
-        // 2. Alert-to-Chat Pipeline: Proactive agent coworker message
-        const proactiveAgentMessage = `Heads up. We just lost citations on the "${prompt.query_text}" tracker. ${topCompetitorName} took our spot on ${evaluation.engine}. Want me to rewrite ours stronger and update it?`;
-
-        await supabase.from('chat_messages').insert({
-          project_id: project.id,
-          sender: 'agent',
-          content: proactiveAgentMessage,
-          metadata: {
-            alert_unread: true,
-            prompt_id: prompt.id,
-            prompt_query_text: prompt.query_text,
-            engine: evaluation.engine,
-            alert_kind: lostCitationBlock ? 'lost_citation_block' : 'visibility_drop',
-            previous_score: previousScore,
-            new_score: evaluation.visibilityScore,
-            drop: previousScore - evaluation.visibilityScore,
-            competitor: topCompetitorName,
-            query_text: prompt.query_text,
-          },
-        });
+      if (allCitationRows.length > 0) {
+        await supabase.from('citations').insert(allCitationRows);
       }
     }
 
