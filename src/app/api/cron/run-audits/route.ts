@@ -90,8 +90,27 @@ async function handleCron(request: NextRequest) {
     alertsTriggered: 0,
   };
 
+  type DuePrompt = {
+    id: string;
+    query_text: string;
+    frequency: string;
+    target_engines: string[] | null;
+    projects: {
+      id: string;
+      name: string;
+      domain: string;
+      tier?: string;
+      brand_kit?: {
+        competitors?: { name: string; domain: string }[];
+      };
+      users?: {
+        email?: string;
+      } | null;
+    } | null;
+  };
+
   // 3. Process each due prompt
-  for (const prompt of duePrompts as any[]) {
+  for (const prompt of duePrompts as unknown as DuePrompt[]) {
     const project = prompt.projects;
     if (!project) continue;
 

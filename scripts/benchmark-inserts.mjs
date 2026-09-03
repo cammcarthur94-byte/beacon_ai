@@ -3,7 +3,7 @@ import { performance } from 'node:perf_hooks';
 // Simulate database network latency in milliseconds
 const DB_LATENCY_MS = 15;
 
-async function mockInsertSequential(evaluationResults, projectId, promptId) {
+async function mockInsertSequential(evaluationResults) {
   const start = performance.now();
   let resultsCreated = 0;
   const insertedResultIds = [];
@@ -91,7 +91,7 @@ async function runBenchmark() {
   // Measure Sequential
   const seqStart = performance.now();
   for (let p = 0; p < numPrompts; p++) {
-    await mockInsertSequential(mockEvaluations, 'proj_123', `prompt_${p}`);
+    await mockInsertSequential(mockEvaluations);
   }
   const seqTotalDuration = performance.now() - seqStart;
 
