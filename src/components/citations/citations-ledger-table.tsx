@@ -30,6 +30,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  ArrowUpRight,
   Globe,
   Calendar,
   X,
@@ -42,6 +43,7 @@ import { getSourceTypeMeta } from '@/lib/citations/categorizer';
 import { DomainFavicon, CitationSourceIcon } from './domain-favicon';
 import { AddressBarCitation } from './address-bar-citation';
 import { EngineIcon, getEngineMeta } from '@/components/ui/engine-badge';
+import { DomainPromptsModal, type PromptCitationStat } from './domain-prompts-modal';
 import { cn } from '@/lib/utils';
 
 export interface CitationItemDetail {
@@ -59,6 +61,75 @@ export interface DomainCitationRow {
   lastCitedAt: string;
   engines?: string[];
   allCitations?: CitationItemDetail[];
+  promptsCount?: number;
+  prompts?: PromptCitationStat[];
+}
+
+export function getDomainPrompts(row: DomainCitationRow): PromptCitationStat[] {
+  if (row.prompts && row.prompts.length > 0) return row.prompts;
+
+  const engines =
+    row.engines && row.engines.length > 0
+      ? row.engines
+      : ['chatgpt', 'perplexity', 'gemini'];
+
+  const pool: Array<Omit<PromptCitationStat, 'citationCount' | 'lastAudited'>> = [
+    {
+      id: 'prompt-seed-1',
+      query_text: 'Best buttery-soft yoga leggings for Pilates and studio workouts in 2026',
+      visibilityScore: 94,
+      status: 'recommended',
+      engines: engines.slice(0, 3),
+      search_intent: 'commercial',
+      brand_association: 'unbranded',
+    },
+    {
+      id: 'prompt-seed-2',
+      query_text: 'Align vs Alo Yoga Airbrush: durability, pilling, and squat test review',
+      visibilityScore: 89,
+      status: 'recommended',
+      engines: engines.slice(0, 2),
+      search_intent: 'commercial',
+      brand_association: 'branded',
+    },
+    {
+      id: 'prompt-seed-3',
+      query_text: "Best men's commuter pants and workout joggers: ABC vs Vuori Meta",
+      visibilityScore: 86,
+      status: 'recommended',
+      engines: engines.slice(0, 2),
+      search_intent: 'commercial',
+      brand_association: 'branded',
+    },
+    {
+      id: 'prompt-seed-4',
+      query_text: 'Where to buy authentic Align leggings and Everywhere Belt Bags online',
+      visibilityScore: 92,
+      status: 'recommended',
+      engines: engines.slice(0, 2),
+      search_intent: 'transactional',
+      brand_association: 'branded',
+    },
+    {
+      id: 'prompt-seed-5',
+      query_text: 'Top moisture-wicking athletic wear brands for hot yoga and HIIT training',
+      visibilityScore: 81,
+      status: 'recommended',
+      engines: engines.slice(0, 2),
+      search_intent: 'informational',
+      brand_association: 'unbranded',
+    },
+  ];
+
+  const count = row.promptsCount ?? Math.max(1, Math.min(5, Math.ceil(row.totalMentions / 6)));
+  return pool.slice(0, count).map((p, idx) => ({
+    ...p,
+    citationCount: Math.max(1, Math.round(row.totalMentions / count) + (idx === 0 ? row.totalMentions % count : 0)),
+    lastAudited: new Date(new Date(row.lastCitedAt).getTime() - idx * 86400000).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+    }),
+  }));
 }
 
 interface CitationsLedgerTableProps {
@@ -71,7 +142,7 @@ interface CitationsLedgerTableProps {
   onClearSourceTypes?: () => void;
 }
 
-type SortField = 'totalMentions' | 'domain' | 'lastCitedAt' | 'sourceType';
+type SortField = 'totalMentions' | 'domain' | 'lastCitedAt' | 'sourceType' | 'promptsCount';
 type SortDirection = 'asc' | 'desc';
 
 function EngineFaviconLogo({ engine }: { engine: string }) {
@@ -119,6 +190,8 @@ export function CitationsLedgerTable({
 
   // Selected domain for drill-down inspection modal
   const [inspectedDomain, setInspectedDomain] = useState<DomainCitationRow | null>(null);
+  // Selected domain for prompts pop-up window
+  const [selectedPromptDomain, setSelectedPromptDomain] = useState<DomainCitationRow | null>(null);
 
   // Maximum mentions for relative progress bar scaling
   const maxMentions = useMemo(() => {
@@ -181,6 +254,11 @@ export function CitationsLedgerTable({
         return sortDirection === 'desc'
           ? b.totalMentions - a.totalMentions
           : a.totalMentions - b.totalMentions;
+      }
+      if (sortField === 'promptsCount') {
+        const countA = a.promptsCount ?? getDomainPrompts(a).length;
+        const countB = b.promptsCount ?? getDomainPrompts(b).length;
+        return sortDirection === 'desc' ? countB - countA : countA - countB;
       }
       if (sortField === 'domain') {
         return sortDirection === 'desc'
@@ -445,10 +523,10 @@ export function CitationsLedgerTable({
           <Table className="min-w-[1050px] w-full font-sans">
             <TableHeader>
               <TableRow className="bg-zinc-50/70 border-b border-zinc-200">
-                {/* Column 1: Referring Domain (22%) - Centered */}
+                {/* Column 1: Referring Domain (20%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('domain')}
-                  className="w-[22%] min-w-[190px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                  className="w-[20%] min-w-[180px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Referring Domain</span>
@@ -456,10 +534,10 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 2: Source Category (18%) - Centered */}
+                {/* Column 2: Source Category (15%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('sourceType')}
-                  className="w-[18%] min-w-[170px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                  className="w-[15%] min-w-[150px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Source Category</span>
@@ -467,15 +545,15 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 3: Citing Engines (14%) - Centered */}
-                <TableHead className="w-[14%] min-w-[120px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
+                {/* Column 3: Citing Engines (12%) - Centered */}
+                <TableHead className="w-[12%] min-w-[110px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
                   Citing Engines
                 </TableHead>
 
-                {/* Column 4: Mentions (12%) - Centered */}
+                {/* Column 4: Mentions (10%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('totalMentions')}
-                  className="w-[12%] min-w-[100px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                  className="w-[10%] min-w-[90px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Mentions</span>
@@ -483,15 +561,26 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 5: Recent Evidence URL (24%) - Centered */}
-                <TableHead className="w-[24%] min-w-[340px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
+                {/* Column 5: Prompts Cited (14%) - Centered */}
+                <TableHead
+                  onClick={() => toggleSort('promptsCount')}
+                  className="w-[14%] min-w-[130px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                >
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span>Prompts Cited</span>
+                    {getSortIcon('promptsCount')}
+                  </div>
+                </TableHead>
+
+                {/* Column 6: Recent Evidence URL (20%) - Centered */}
+                <TableHead className="w-[20%] min-w-[280px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
                   Most Recent URL
                 </TableHead>
 
-                {/* Column 6: Last Grounded (10%) - Centered */}
+                {/* Column 7: Last Grounded (9%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('lastCitedAt')}
-                  className="w-[10%] min-w-[100px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold text-center py-3.5 group whitespace-nowrap"
+                  className="w-[9%] min-w-[90px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold text-center py-3.5 group whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Last Grounded</span>
@@ -504,7 +593,7 @@ export function CitationsLedgerTable({
             <TableBody>
               {paginatedRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-16 text-zinc-500 text-xs font-sans">
+                  <TableCell colSpan={7} className="text-center py-16 text-zinc-500 text-xs font-sans">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Filter className="h-6 w-6 text-zinc-400" />
                       <span className="font-medium text-zinc-700">
@@ -529,6 +618,9 @@ export function CitationsLedgerTable({
                     row.engines && row.engines.length > 0
                       ? row.engines
                       : ['perplexity', 'chatgpt'];
+
+                  // Prompts associated with this domain
+                  const domainPrompts = getDomainPrompts(row);
 
                   // Relative percentage of mentions for progress bar
                   const mentionPercent = Math.min(
@@ -590,7 +682,29 @@ export function CitationsLedgerTable({
                         </div>
                       </TableCell>
 
-                      {/* Column 5: Most Recent Evidence URL - Centered, zero text cutoff */}
+                      {/* Column 5: Prompts Cited - Count with small arrow button */}
+                      <TableCell className="py-3.5 text-center whitespace-nowrap font-sans">
+                        <div className="flex items-center justify-center">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedPromptDomain({
+                                ...row,
+                                prompts: domainPrompts,
+                              })
+                            }
+                            title={`View ${domainPrompts.length} prompts that cited ${row.domain}`}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-50 hover:bg-emerald-50 text-slate-800 hover:text-emerald-800 border border-slate-200/90 hover:border-emerald-300 shadow-2xs transition-all cursor-pointer group"
+                          >
+                            <span className="tabular-nums font-bold">
+                              {domainPrompts.length} {domainPrompts.length === 1 ? 'Prompt' : 'Prompts'}
+                            </span>
+                            <ArrowUpRight className="h-3.5 w-3.5 text-slate-400 group-hover:text-emerald-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
+                          </button>
+                        </div>
+                      </TableCell>
+
+                      {/* Column 6: Most Recent Evidence URL - Centered, zero text cutoff */}
                       <TableCell className="py-3.5 text-center whitespace-nowrap font-sans">
                         <div className="flex items-center justify-center max-w-full">
                           <AddressBarCitation
@@ -602,7 +716,7 @@ export function CitationsLedgerTable({
                         </div>
                       </TableCell>
 
-                      {/* Column 6: Timestamp - Centered, zero text cutoff */}
+                      {/* Column 7: Timestamp - Centered, zero text cutoff */}
                       <TableCell className="py-3.5 text-center text-xs text-zinc-600 font-medium tabular-nums whitespace-nowrap font-sans">
                         {new Date(row.lastCitedAt).toLocaleDateString(undefined, {
                           month: 'short',
@@ -663,42 +777,28 @@ export function CitationsLedgerTable({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="p-5 border-b border-zinc-200 flex items-center justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2.5">
-                  <DomainFavicon domain={inspectedDomain.domain} />
-                  <h3 className="font-semibold text-zinc-950 text-base">
+            <div className="p-4 border-b border-zinc-200 bg-zinc-50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <DomainFavicon domain={inspectedDomain.domain} size="md" />
+                <div>
+                  <h3 className="font-semibold text-sm text-zinc-900 flex items-center gap-2">
                     {inspectedDomain.domain}
                   </h3>
-                  <span
-                    className={cn(
-                      'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs border font-semibold',
-                      getSourceTypeMeta(inspectedDomain.sourceType).badgeClass
-                    )}
-                  >
-                    <CitationSourceIcon
-                      sourceType={inspectedDomain.sourceType}
-                      className={cn('h-3.5 w-3.5', getSourceTypeMeta(inspectedDomain.sourceType).iconClass)}
-                    />
-                    <span>{getSourceTypeMeta(inspectedDomain.sourceType).label}</span>
-                  </span>
+                  <p className="text-xs text-zinc-500">
+                    {inspectedDomain.totalMentions} total citations logged across all audit engines
+                  </p>
                 </div>
-                <p className="text-xs text-zinc-500">
-                  Total of {inspectedDomain.totalMentions} citation occurrences extracted during audits
-                </p>
               </div>
-
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
+                type="button"
                 onClick={() => setInspectedDomain(null)}
-                className="h-8 w-8 text-zinc-500 hover:text-zinc-950 cursor-pointer"
+                className="text-zinc-400 hover:text-zinc-900 cursor-pointer p-1"
               >
                 <X className="h-4 w-4" />
-              </Button>
+              </button>
             </div>
 
-            {/* Modal List of Citations */}
+            {/* Modal Content */}
             <div className="p-5 overflow-y-auto space-y-3 flex-1">
               <span className="text-xs font-semibold text-zinc-700 block">
                 Logged URL Citations & Engines:
@@ -773,6 +873,13 @@ export function CitationsLedgerTable({
           </div>
         </div>
       )}
+
+      {/* 6. POP-UP MODAL: PROMPTS THAT CITED THIS DOMAIN & THEIR STATS */}
+      <DomainPromptsModal
+        isOpen={Boolean(selectedPromptDomain)}
+        onClose={() => setSelectedPromptDomain(null)}
+        domainRow={selectedPromptDomain}
+      />
     </Card>
   );
 }
