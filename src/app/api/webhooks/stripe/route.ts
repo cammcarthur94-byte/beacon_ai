@@ -56,7 +56,6 @@ export async function POST(req: NextRequest) {
             updated_at: new Date().toISOString(),
           })
           .eq('id', projectId);
-        console.log(`Project ${projectId} upgraded to ${targetTier} (Limit: ${auditLimit})`);
       }
       break;
     }
