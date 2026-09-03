@@ -23,15 +23,26 @@ export interface SourceDistributionDataPoint {
   percentage: number;
 }
 
-interface SourceDistributionChartProps {
-  data: SourceDistributionDataPoint[];
-  totalCitations: number;
+export interface SourceDistributionFilterOptions {
   /** Source types currently filtering the Citations page (empty = all). */
-  activeSourceTypes: CitationSourceType[];
+  activeSourceTypes?: CitationSourceType[];
   /** Toggles a source type in/out of the multi-selection set. */
-  onToggleSourceType: (sourceType: CitationSourceType) => void;
+  onToggleSourceType?: (sourceType: CitationSourceType) => void;
   /** Clears all active source filters. */
-  onClearAll: () => void;
+  onClearAll?: () => void;
+}
+
+export interface SourceDistributionChartProps {
+  data?: SourceDistributionDataPoint[];
+  totalCitations?: number;
+  /** Options for source type filtering and multi-selection. */
+  filterOptions?: SourceDistributionFilterOptions;
+  /** Deprecated: use `filterOptions.activeSourceTypes` instead. */
+  activeSourceTypes?: CitationSourceType[];
+  /** Deprecated: use `filterOptions.onToggleSourceType` instead. */
+  onToggleSourceType?: (sourceType: CitationSourceType) => void;
+  /** Deprecated: use `filterOptions.onClearAll` instead. */
+  onClearAll?: () => void;
 }
 
 interface DonutTooltipPayload {
@@ -85,25 +96,34 @@ function CustomDonutTooltip({
 export function SourceDistributionChart({
   data = [],
   totalCitations = 0,
-  activeSourceTypes = [],
-  onToggleSourceType,
-  onClearAll,
+  filterOptions,
+  activeSourceTypes: flatActiveSourceTypes,
+  onToggleSourceType: flatOnToggleSourceType,
+  onClearAll: flatOnClearAll,
 }: SourceDistributionChartProps) {
-  const safeActiveSourceTypes = activeSourceTypes || [];
+  const activeSourceTypes = filterOptions?.activeSourceTypes ?? flatActiveSourceTypes ?? [];
+  const onToggleSourceType = filterOptions?.onToggleSourceType ?? flatOnToggleSourceType;
+  const onClearAll = filterOptions?.onClearAll ?? flatOnClearAll;
+  const safeActiveSourceTypes = activeSourceTypes;
   const isFiltered = safeActiveSourceTypes.length > 0;
   const singleActiveMeta =
     safeActiveSourceTypes.length === 1 ? getSourceTypeMeta(safeActiveSourceTypes[0]) : null;
 
-  const handleSliceClick = (entryOrIndex: any, secondArg?: any) => {
+  const handleSliceClick = (entryOrIndex: unknown, secondArg?: unknown) => {
+    const entry =
+      typeof entryOrIndex === 'object' && entryOrIndex !== null
+        ? (entryOrIndex as { sourceType?: CitationSourceType; payload?: { sourceType?: CitationSourceType }; name?: CitationSourceType })
+        : undefined;
+
     const resolvedType: CitationSourceType | undefined =
-      entryOrIndex?.sourceType ||
-      entryOrIndex?.payload?.sourceType ||
-      entryOrIndex?.name ||
-      (typeof secondArg === 'number' && data[secondArg]?.sourceType) ||
-      (typeof entryOrIndex === 'number' && data[entryOrIndex]?.sourceType);
+      entry?.sourceType ||
+      entry?.payload?.sourceType ||
+      entry?.name ||
+      (typeof secondArg === 'number' ? data[secondArg]?.sourceType : undefined) ||
+      (typeof entryOrIndex === 'number' ? data[entryOrIndex]?.sourceType : undefined);
 
     if (resolvedType) {
-      onToggleSourceType(resolvedType);
+      onToggleSourceType?.(resolvedType);
     }
   };
 
@@ -191,7 +211,7 @@ export function SourceDistributionChart({
                         style={{ cursor: 'pointer' }}
                         onClick={(e) => {
                           e?.stopPropagation?.();
-                          onToggleSourceType(entry.sourceType);
+                          onToggleSourceType?.(entry.sourceType);
                         }}
                       />
                     );
@@ -230,7 +250,7 @@ export function SourceDistributionChart({
                 <button
                   key={item.sourceType}
                   type="button"
-                  onClick={() => onToggleSourceType(item.sourceType)}
+                  onClick={() => onToggleSourceType?.(item.sourceType)}
                   title={`${isSelected ? 'Remove' : 'Add'} ${meta.label} ${isSelected ? 'from' : 'to'} filter`}
                   className={cn(
                     'flex w-full items-center justify-between text-xs py-1.5 px-2.5 rounded-lg transition-all duration-150 cursor-pointer text-left',
