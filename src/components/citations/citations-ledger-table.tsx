@@ -254,7 +254,7 @@ export function CitationsLedgerTable({
       <div className="p-3.5 sm:p-4 bg-zinc-50/70 border-b border-zinc-200 flex flex-col lg:flex-row items-center gap-3 sm:gap-4 font-sans">
         {/* Left: Search input - spans above Columns 1 & 2 (Referring Domain & Source Category, 35%) */}
         <div className="relative w-full lg:w-[35%] lg:min-w-[260px] shrink-0">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
+          <Search className={cn("absolute left-2.5 top-2.5 h-3.5 w-3.5 transition-colors", searchTerm ? "text-emerald-600" : "text-zinc-400")} />
           <Input
             placeholder="Filter referring domains (e.g. reddit, runnersworld)..."
             value={searchTerm}
@@ -262,7 +262,10 @@ export function CitationsLedgerTable({
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="pl-8 pr-7 h-8.5 text-xs bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400 shadow-2xs font-sans"
+            className={cn(
+              "pl-8 pr-7 h-8.5 text-xs bg-white text-zinc-900 placeholder:text-zinc-400 shadow-2xs font-sans transition-all",
+              searchTerm ? "border-emerald-500 ring-1 ring-emerald-500/30 bg-emerald-50/10 font-medium" : "border-zinc-200"
+            )}
           />
           {searchTerm && (
             <button
@@ -280,8 +283,8 @@ export function CitationsLedgerTable({
 
         {/* Right: Extended Filters - begins right above Citing Engines and ends at the end of the table */}
         <div className="w-full lg:flex-1 flex items-center justify-between gap-2.5 flex-wrap sm:flex-nowrap text-xs">
-          {/* Source Category Segmented Pills (Multi-select toggling) - extended lengthwise */}
-          <div className="flex-1 flex items-center rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs font-sans min-w-0">
+          {/* Source Category Segmented Pills (Multi-select toggling) - with prominent active states */}
+          <div className="flex-1 flex items-center rounded-xl border border-slate-200 bg-slate-100 p-1 shadow-2xs font-sans min-w-0">
             <button
               type="button"
               onClick={() => {
@@ -289,10 +292,10 @@ export function CitationsLedgerTable({
                 setCurrentPage(1);
               }}
               className={cn(
-                'flex-1 text-center py-1.5 px-2 rounded-md text-[11px] transition-all cursor-pointer whitespace-nowrap font-medium',
+                'flex-1 text-center py-1.5 px-2 rounded-lg text-[11px] transition-all cursor-pointer whitespace-nowrap font-medium',
                 !isSourceFiltered
-                  ? 'bg-slate-900 text-white font-semibold shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-slate-900 text-white font-bold shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
               )}
             >
               All Sources
@@ -316,27 +319,39 @@ export function CitationsLedgerTable({
                     setCurrentPage(1);
                   }}
                   className={cn(
-                    'flex-1 text-center py-1.5 px-2 rounded-md text-[11px] transition-all cursor-pointer whitespace-nowrap font-medium',
+                    'flex-1 inline-flex items-center justify-center py-1.5 px-2 rounded-lg text-[11px] transition-all cursor-pointer whitespace-nowrap font-medium',
                     isSelected
-                      ? 'bg-slate-900 text-white font-semibold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      ? 'bg-emerald-600 text-white font-bold shadow-xs shadow-emerald-600/30 ring-1 ring-emerald-600'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                   )}
                 >
-                  {filter.label}
+                  {isSelected && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-white mr-1 shrink-0" />
+                  )}
+                  <span>{filter.label}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Engine Dropdown Filter */}
+          {/* Engine Dropdown Filter with prominent selected state */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8.5 text-xs border-zinc-200 bg-white text-zinc-700 gap-1.5 cursor-pointer shrink-0 shadow-2xs font-sans font-medium"
+                className={cn(
+                  "h-8.5 text-xs gap-1.5 cursor-pointer shrink-0 shadow-2xs font-sans transition-all",
+                  selectedEngine !== 'all'
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-900 font-bold ring-1 ring-emerald-500/40"
+                    : "border-zinc-200 bg-white text-zinc-700 font-medium"
+                )}
               >
-                <Cpu className="h-3.5 w-3.5 text-zinc-400" />
+                {selectedEngine !== 'all' ? (
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse shrink-0" />
+                ) : (
+                  <Cpu className="h-3.5 w-3.5 text-zinc-400" />
+                )}
                 <span>
                   Engine: {selectedEngine === 'all' ? 'All' : selectedEngine}
                 </span>
@@ -363,15 +378,24 @@ export function CitationsLedgerTable({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Mentions Volume Filter */}
+          {/* Mentions Volume Filter with prominent selected state */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8.5 text-xs border-zinc-200 bg-white text-zinc-700 gap-1.5 cursor-pointer shrink-0 shadow-2xs font-sans font-medium"
+                className={cn(
+                  "h-8.5 text-xs gap-1.5 cursor-pointer shrink-0 shadow-2xs font-sans transition-all",
+                  mentionsFilter !== 'all'
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-900 font-bold ring-1 ring-emerald-500/40"
+                    : "border-zinc-200 bg-white text-zinc-700 font-medium"
+                )}
               >
-                <Layers className="h-3.5 w-3.5 text-zinc-400" />
+                {mentionsFilter !== 'all' ? (
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse shrink-0" />
+                ) : (
+                  <Layers className="h-3.5 w-3.5 text-zinc-400" />
+                )}
                 <span>
                   Volume: {mentionsFilter === 'all' ? 'All' : mentionsFilter}
                 </span>
@@ -397,13 +421,15 @@ export function CitationsLedgerTable({
 
           {/* Reset Filters button if any filter applied */}
           {hasActiveFilters && (
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={resetAllFilters}
-              className="text-[11px] text-zinc-500 hover:text-zinc-900 underline cursor-pointer shrink-0"
+              className="h-8.5 px-2.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 rounded-lg inline-flex items-center gap-1 cursor-pointer shrink-0 shadow-2xs font-sans"
             >
-              Reset
-            </button>
+              <X className="h-3.5 w-3.5" />
+              <span>Clear</span>
+            </Button>
           )}
 
           {/* Total Count ending at table edge */}
