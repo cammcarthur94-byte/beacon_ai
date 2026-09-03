@@ -41,24 +41,24 @@ function generateMockEvaluations(count: number): EvaluationResult[] {
 class MockSupabaseClient {
   queryCount = 0;
 
-  async insertResult(row: any) {
+  async insertResult(row: Record<string, unknown>) {
     this.queryCount++;
     await new Promise((resolve) => setTimeout(resolve, DB_NETWORK_LATENCY_MS));
     return { data: { id: `res-${Math.random().toString(36).substring(2, 9)}`, ...row } };
   }
 
-  async insertResultsBatch(rows: any[]) {
+  async insertResultsBatch(rows: Record<string, unknown>[]) {
     this.queryCount++;
     await new Promise((resolve) => setTimeout(resolve, DB_NETWORK_LATENCY_MS));
     return {
       data: rows.map((row) => ({
         id: `res-${Math.random().toString(36).substring(2, 9)}`,
-        engine: row.engine,
+        engine: row.engine as string,
       })),
     };
   }
 
-  async insertCitationsBatch(rows: any[]) {
+  async insertCitationsBatch(rows: Record<string, unknown>[]) {
     this.queryCount++;
     await new Promise((resolve) => setTimeout(resolve, DB_NETWORK_LATENCY_MS));
     return { data: rows };
@@ -86,7 +86,7 @@ async function runUnbatched(evaluations: EvaluationResult[], supabase: MockSupab
       const citationRows = ev.citedUrls.map((rawUrl) => {
         return {
           project_id: 'proj-123',
-          run_id: insertedRes?.id || null,
+          run_id: (insertedRes as { id: string } | null)?.id || null,
           engine: ev.engine,
           url: rawUrl,
           domain: 'example.com',
