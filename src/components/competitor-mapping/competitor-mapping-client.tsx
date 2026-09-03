@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -35,6 +35,7 @@ import {
   X,
   ExternalLink,
   ChevronDown,
+  ChevronUp,
   ArrowRight,
   ShieldCheck,
   Zap,
@@ -59,6 +60,7 @@ export function CompetitorMappingClient() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [insightsExpanded, setInsightsExpanded] = useState(true);
 
   const fetchData = async () => {
     setLoading(true);
@@ -140,13 +142,13 @@ export function CompetitorMappingClient() {
   };
 
   return (
-    <div className="space-y-8 font-sans pb-16">
-      {/* Page Header */}
+    <div className="space-y-6 font-sans pb-16">
+      {/* ── 1. STREAMLINED PAGE HEADER & PRIMARY ACTION ──────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-              Competitor Product & Feature Mapping
+              Competitor Product &amp; Feature Mapping
             </h1>
             <Badge className="bg-purple-50 text-purple-700 border-purple-200 text-xs font-semibold px-2.5 py-0.5">
               Automated AEO Matrix
@@ -158,34 +160,35 @@ export function CompetitorMappingClient() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRunCrawl}
-            disabled={crawling}
-            className="h-9 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium"
-          >
-            <RefreshCw className={cn('h-3.5 w-3.5 mr-2 text-slate-500', crawling && 'animate-spin')} />
-            {crawling ? 'Crawling Catalogs...' : 'Run AI Crawl & Sync'}
-          </Button>
-
+        {/* Consolidated action buttons: Primary filled "Run AI Crawl & Sync" + Secondary outline "Ask Sentinel" */}
+        <div className="flex items-center gap-2.5 shrink-0">
           <Link href="/consultant">
             <Button
+              variant="outline"
               size="sm"
-              className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm"
+              className="h-9 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium cursor-pointer"
             >
-              <Sparkles className="h-3.5 w-3.5 mr-2" />
+              <Sparkles className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
               Ask Sentinel Analysis
             </Button>
           </Link>
+
+          <Button
+            size="sm"
+            onClick={handleRunCrawl}
+            disabled={crawling}
+            className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+          >
+            <RefreshCw className={cn('h-3.5 w-3.5 mr-1.5 text-white', crawling && 'animate-spin')} />
+            {crawling ? 'Crawling Catalogs...' : 'Run AI Crawl & Sync'}
+          </Button>
         </div>
       </div>
 
-      {/* KPI Overview Cards */}
+      {/* ── 2. KPI OVERVIEW CARDS ────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Tracked Competitors */}
-        <Card className="border border-slate-200/90 shadow-sm rounded-xl bg-white hover:shadow-md transition-shadow">
+        <Card className="border border-slate-200/90 shadow-2xs rounded-xl bg-white hover:shadow-xs transition-shadow">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
@@ -210,7 +213,7 @@ export function CompetitorMappingClient() {
         </Card>
 
         {/* Card 2: Parity Score */}
-        <Card className="border border-slate-200/90 shadow-sm rounded-xl bg-white hover:shadow-md transition-shadow">
+        <Card className="border border-slate-200/90 shadow-2xs rounded-xl bg-white hover:shadow-xs transition-shadow">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
@@ -235,7 +238,7 @@ export function CompetitorMappingClient() {
         </Card>
 
         {/* Card 3: High Risk Gaps */}
-        <Card className="border border-slate-200/90 shadow-sm rounded-xl bg-white hover:shadow-md transition-shadow">
+        <Card className="border border-slate-200/90 shadow-2xs rounded-xl bg-white hover:shadow-xs transition-shadow">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
@@ -260,7 +263,7 @@ export function CompetitorMappingClient() {
         </Card>
 
         {/* Card 4: AI Citation Disparity */}
-        <Card className="border border-slate-200/90 shadow-sm rounded-xl bg-white hover:shadow-md transition-shadow">
+        <Card className="border border-slate-200/90 shadow-2xs rounded-xl bg-white hover:shadow-xs transition-shadow">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
@@ -282,96 +285,129 @@ export function CompetitorMappingClient() {
         </Card>
       </div>
 
-      {/* AI Recommendations Action Cards */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-emerald-600" />
-            AI Grounding Recommendations (Close the Parity Gap)
-          </h2>
-          <span className="text-xs text-slate-500">Generated by Sentinel Crawler</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {data?.recommendations?.map((rec) => (
-            <div
-              key={rec.id}
-              className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all flex flex-col justify-between"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                    {rec.category}
-                  </span>
-                  <Badge
-                    className={cn(
-                      'text-[10px] font-bold px-2 py-0.5',
-                      rec.impact === 'Critical'
-                        ? 'bg-rose-50 text-rose-700 border-rose-200'
-                        : 'bg-amber-50 text-amber-700 border-amber-200'
-                    )}
-                  >
-                    {rec.impact} Priority
-                  </Badge>
-                </div>
-                <h3 className="text-xs font-bold text-slate-900 leading-snug">{rec.title}</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">{rec.description}</p>
-              </div>
-
-              <div className="pt-4 mt-2 border-t border-slate-100">
-                <Link
-                  href={`/consultant?q=${encodeURIComponent(
-                    `Sentinel, execute this competitor parity recommendation: "${rec.title}". ${rec.promptQuery}`
-                  )}`}
-                >
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full text-xs font-semibold h-8 text-emerald-700 border-emerald-300 bg-emerald-50/60 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all justify-between"
-                  >
-                    <span>{rec.actionLabel}</span>
-                    <ArrowRight className="h-3 w-3" />
-                  </Button>
-                </Link>
-              </div>
+      {/* ── 3. COLLAPSIBLE "ACTIONABLE INSIGHTS" PANEL ───────────── */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden transition-all">
+        <div
+          onClick={() => setInsightsExpanded(!insightsExpanded)}
+          className="p-4 bg-gradient-to-r from-emerald-50/40 via-white to-slate-50/40 border-b border-slate-100 flex items-center justify-between cursor-pointer select-none hover:bg-slate-50/60 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
+              <Sparkles className="h-4 w-4" />
             </div>
-          ))}
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+                  Actionable Grounding Insights
+                </h2>
+                <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-bold px-2 py-0.5">
+                  {data?.recommendations?.length || 3} Recommendations
+                </Badge>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Prioritized opportunities identified by Sentinel Crawler to outrank rivals in LLM grounding
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-slate-500 hidden sm:inline">
+              {insightsExpanded ? 'Collapse' : 'Expand Insights'}
+            </span>
+            <div className="h-7 w-7 rounded-md bg-slate-100 flex items-center justify-center text-slate-600">
+              {insightsExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </div>
+          </div>
         </div>
+
+        {insightsExpanded && (
+          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-3.5 bg-slate-50/30">
+            {data?.recommendations?.map((rec) => (
+              <div
+                key={rec.id}
+                className="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      {rec.category}
+                    </span>
+                    <Badge
+                      className={cn(
+                        'text-[10px] font-semibold px-2 py-0.5',
+                        rec.impact === 'Critical'
+                          ? 'bg-rose-50 text-rose-700 border-rose-200'
+                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                      )}
+                    >
+                      {rec.impact} Priority
+                    </Badge>
+                  </div>
+                  <h3 className="text-xs font-bold text-slate-900 leading-snug">{rec.title}</h3>
+                  <p className="text-[11px] text-slate-600 leading-relaxed line-clamp-2">
+                    {rec.description}
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100">
+                  <Link
+                    href={`/consultant?q=${encodeURIComponent(
+                      `Sentinel, execute this competitor parity recommendation: "${rec.title}". ${rec.promptQuery}`
+                    )}`}
+                  >
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full text-xs font-semibold h-7.5 text-emerald-700 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all justify-between px-2.5 cursor-pointer"
+                    >
+                      <span className="truncate">{rec.actionLabel}</span>
+                      <ArrowRight className="h-3 w-3 shrink-0 ml-1" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-4">
+      {/* ── 4. UNIFIED FILTER BAR & SEARCH TOOLBAR ───────────────── */}
+      <div className="bg-white border border-slate-200 rounded-xl p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Search bar */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <Input
               type="text"
-              placeholder="Search features, materials, specs..."
+              placeholder="Search features, specifications, fabrics..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9.5 text-xs bg-slate-50/70 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white"
+              className="pl-9 h-8.5 text-xs bg-slate-50/70 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white font-sans"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
 
-          {/* Status Dropdown */}
-          <div className="flex items-center gap-2.5">
+          {/* Controls: Parity Dropdown & Clear Filters */}
+          <div className="flex items-center gap-2 flex-wrap">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
                   className={cn(
-                    'h-9 text-xs font-medium border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
-                    selectedStatus !== 'all' && 'border-emerald-500 text-emerald-700 bg-emerald-50/50 ring-1 ring-emerald-500'
+                    'h-8.5 text-xs font-medium border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-sans',
+                    selectedStatus !== 'all' && 'border-emerald-500 text-emerald-700 bg-emerald-50/50 ring-1 ring-emerald-500 font-semibold'
                   )}
                 >
                   <Filter className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
@@ -419,27 +455,32 @@ export function CompetitorMappingClient() {
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="h-9 px-2 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                className="h-8.5 px-2.5 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 rounded-lg font-medium cursor-pointer"
               >
-                Clear all ({activeFiltersCount})
+                <X className="h-3 w-3 mr-1" />
+                Clear filters ({activeFiltersCount})
               </Button>
             )}
+
+            <span className="text-xs text-slate-400 pl-1">
+              ({filteredFeatures.length} matching)
+            </span>
           </div>
         </div>
 
         {/* Category Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-0.5 scrollbar-none">
-          <span className="text-xs font-semibold text-slate-500 mr-1 flex items-center shrink-0">
-            <Layers className="h-3 w-3 mr-1 text-slate-400" />
+        <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-slate-100 scrollbar-none">
+          <span className="text-xs font-semibold text-slate-400 mr-1 flex items-center shrink-0">
+            <Layers className="h-3.5 w-3.5 mr-1 text-slate-400" />
             Category:
           </span>
 
           <button
             onClick={() => setSelectedCategory('all')}
             className={cn(
-              'px-3 py-1 text-xs font-medium rounded-full transition-all border shrink-0',
+              'px-2.5 py-1 text-xs font-medium rounded-full transition-all border shrink-0 cursor-pointer',
               selectedCategory === 'all'
-                ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-2xs font-semibold'
                 : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
             )}
           >
@@ -453,9 +494,9 @@ export function CompetitorMappingClient() {
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={cn(
-                  'px-3 py-1 text-xs font-medium rounded-full transition-all border shrink-0',
+                  'px-2.5 py-1 text-xs font-medium rounded-full transition-all border shrink-0 cursor-pointer',
                   isSelected
-                    ? 'bg-purple-50 text-purple-800 border-purple-600 ring-1 ring-purple-600 font-semibold'
+                    ? 'bg-purple-50 text-purple-800 border-purple-600 ring-1 ring-purple-600 font-semibold shadow-2xs'
                     : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                 )}
               >
@@ -466,12 +507,12 @@ export function CompetitorMappingClient() {
         </div>
       </div>
 
-      {/* Feature Parity & Comparison Matrix Table */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      {/* ── 5. FEATURE PARITY & COMPARISON MATRIX TABLE ──────────── */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h3 className="text-sm font-semibold text-slate-900">
-              Feature Parity & Grounding Breakdown ({filteredFeatures.length} Tracked Features)
+              Feature Parity &amp; Grounding Breakdown ({filteredFeatures.length} Tracked Features)
             </h3>
             <p className="text-xs text-slate-500">
               Cross-referenced from public product schemas, technical specs, and multi-engine citation frequencies
@@ -487,7 +528,7 @@ export function CompetitorMappingClient() {
             <TableHeader className="bg-slate-50/80 border-b border-slate-200">
               <TableRow>
                 <TableHead className="w-[240px] text-xs font-semibold text-slate-600 py-3.5 pl-6">
-                  Feature & Specification
+                  Feature &amp; Specification
                 </TableHead>
                 <TableHead className="w-[110px] text-xs font-semibold text-slate-600 text-center">
                   Parity Status
@@ -495,13 +536,13 @@ export function CompetitorMappingClient() {
                 <TableHead className="w-[260px] text-xs font-semibold text-slate-600">
                   {data?.brandName || 'Our Brand'} Positioning
                 </TableHead>
-                <TableHead className="min-w-[320px] text-xs font-semibold text-slate-600">
+                <TableHead className="min-w-[340px] text-xs font-semibold text-slate-600">
                   Competitor Catalog Coverage
                 </TableHead>
                 <TableHead className="w-[160px] text-xs font-semibold text-slate-600 text-center">
                   AI Citation Share
                 </TableHead>
-                <TableHead className="w-[140px] text-xs font-semibold text-slate-600 text-right pr-6">
+                <TableHead className="w-[130px] text-xs font-semibold text-slate-600 text-right pr-6">
                   Action
                 </TableHead>
               </TableRow>
@@ -586,28 +627,49 @@ export function CompetitorMappingClient() {
                         </p>
                       </TableCell>
 
-                      {/* Competitor Coverage */}
+                      {/* Competitor Coverage with Micro-Progress Bar beneath */}
                       <TableCell className="py-4 align-top">
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                           {feat.competitors.map((comp) => (
                             <div
                               key={comp.name}
-                              className="flex items-start gap-2 text-xs bg-slate-50/60 p-2 rounded border border-slate-200/60"
+                              className="bg-slate-50/70 p-2.5 rounded-lg border border-slate-200/70 space-y-1.5"
                             >
-                              <span className="font-semibold text-slate-800 shrink-0 w-20">
-                                {comp.name}:
-                              </span>
-                              <span
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-bold text-xs text-slate-800 shrink-0">
+                                  {comp.name}
+                                </span>
+                                <span className="text-[10px] font-mono font-semibold text-slate-600 bg-white px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
+                                  {comp.citationShare}% SOV
+                                </span>
+                              </div>
+
+                              <p
                                 className={cn(
-                                  'text-[11px] flex-1',
+                                  'text-[11px] leading-relaxed',
                                   comp.hasFeature ? 'text-slate-600' : 'text-slate-400 italic'
                                 )}
                               >
                                 {comp.detail}
-                              </span>
-                              <span className="text-[10px] font-mono text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
-                                {comp.citationShare}% SOV
-                              </span>
+                              </p>
+
+                              {/* Dedicated mini horizontal progress bar directly beneath the competitor text */}
+                              <div className="w-full h-1.5 bg-slate-200/70 rounded-full overflow-hidden">
+                                <div
+                                  className={cn(
+                                    'h-full rounded-full transition-all',
+                                    comp.citationShare >= 45
+                                      ? 'bg-amber-500'
+                                      : comp.citationShare >= 25
+                                      ? 'bg-indigo-500'
+                                      : comp.citationShare > 0
+                                      ? 'bg-slate-400'
+                                      : 'bg-transparent'
+                                  )}
+                                  style={{ width: `${comp.citationShare}%` }}
+                                  title={`${comp.name} AI Citation Share: ${comp.citationShare}%`}
+                                />
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -651,7 +713,7 @@ export function CompetitorMappingClient() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-8 px-2.5 text-xs text-purple-700 border-purple-200 bg-purple-50/50 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all font-medium"
+                            className="h-8 px-2.5 text-xs text-purple-700 border-purple-200 bg-purple-50/50 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all font-medium cursor-pointer"
                           >
                             <Sparkles className="h-3 w-3 mr-1" />
                             Bridge Gap
