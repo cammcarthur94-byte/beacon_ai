@@ -176,6 +176,15 @@ export async function createPromptAudit(formData: FormData) {
       targetEngines: finalTargetEngines,
     });
 
+    const allCitationRows: {
+      project_id: string;
+      run_id: string | null;
+      engine: string;
+      url: string;
+      domain: string;
+      source_type: string;
+    }[] = [];
+
     for (const ev of evaluations) {
       const { data: insertedRes } = await supabase.from('results').insert({
         prompt_id: insertedPrompt.id,
@@ -201,8 +210,12 @@ export async function createPromptAudit(formData: FormData) {
             source_type: categorizeSource(domain, rawUrl),
           };
         });
-        await supabase.from('citations').insert(citationRows);
+        allCitationRows.push(...citationRows);
       }
+    }
+
+    if (allCitationRows.length > 0) {
+      await supabase.from('citations').insert(allCitationRows);
     }
 
     const now = new Date();
@@ -332,6 +345,15 @@ export async function triggerInstantRun(promptId: string) {
     targetEngines: enginesToRun,
   });
 
+  const allCitationRows: {
+    project_id: string;
+    run_id: string | null;
+    engine: string;
+    url: string;
+    domain: string;
+    source_type: string;
+  }[] = [];
+
   for (const ev of evaluations) {
     const { data: insertedRes } = await supabase.from('results').insert({
       prompt_id: prompt.id,
@@ -357,8 +379,12 @@ export async function triggerInstantRun(promptId: string) {
           source_type: categorizeSource(domain, rawUrl),
         };
       });
-      await supabase.from('citations').insert(citationRows);
+      allCitationRows.push(...citationRows);
     }
+  }
+
+  if (allCitationRows.length > 0) {
+    await supabase.from('citations').insert(allCitationRows);
   }
 
   await supabase

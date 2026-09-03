@@ -141,6 +141,16 @@ async function handleCron(request: NextRequest) {
       targetEngines,
     });
 
+    // Accumulate all citation rows for batch insertion
+    const allCitationRows: {
+      project_id: string;
+      run_id: string | null;
+      engine: string;
+      url: string;
+      domain: string;
+      source_type: string;
+    }[] = [];
+
     // Save outputs to `results`, insert citations, and inspect drops
     for (const evaluation of evaluationResults) {
       const { data: insertedResult } = await supabase.from('results').insert({
@@ -155,7 +165,7 @@ async function handleCron(request: NextRequest) {
         ranking_position: evaluation.rankingPosition,
       }).select('id').single();
 
-      // Normalize & insert individual citations into public.citations
+      // Normalize & collect individual citations for batch insertion into public.citations
       if (evaluation.citedUrls && evaluation.citedUrls.length > 0) {
         const citationRows = evaluation.citedUrls.map((rawUrl) => {
           const domain = extractDomain(rawUrl);
@@ -169,7 +179,7 @@ async function handleCron(request: NextRequest) {
           };
         });
 
-        await supabase.from('citations').insert(citationRows);
+        allCitationRows.push(...citationRows);
       }
 
       summary.resultsCreated++;
@@ -222,6 +232,10 @@ async function handleCron(request: NextRequest) {
           },
         });
       }
+    }
+
+    if (allCitationRows.length > 0) {
+      await supabase.from('citations').insert(allCitationRows);
     }
 
     // 4. Update prompt's last_run_at and compute next_run_at
