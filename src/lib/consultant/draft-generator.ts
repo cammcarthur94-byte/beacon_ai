@@ -21,7 +21,7 @@ export interface DraftRewriteResult {
 }
 
 function slugify(value: string): string {
-  return value
+  return (value || '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
@@ -33,12 +33,24 @@ function slugify(value: string): string {
  * industry context so consumer brands never receive B2B SaaS boilerplate.
  */
 export function generateDraftRewrite(request: DraftRewriteRequest): DraftRewriteResult {
-  const { topic, competitorName, missingEntities, brandName, brandDomain, brandKit } = request;
-  const industry = brandKit.industry;
-  const offerings = brandKit.core_offerings;
-  const audience = brandKit.target_audience;
-  const tone = brandKit.tone_of_voice;
-  const competitor = competitorName.trim().length > 0 ? competitorName.trim() : 'the competing brand';
+  const req = request || ({} as DraftRewriteRequest);
+  const topic = req.topic || 'Category Positioning';
+  const competitorName = req.competitorName || '';
+  const missingEntities = Array.isArray(req.missingEntities) ? req.missingEntities : [];
+  const brandName = req.brandName || 'Our Brand';
+  const brandDomain = req.brandDomain || 'example.com';
+  const brandKit = req.brandKit || ({} as BrandKit);
+
+  const industry = brandKit.industry || 'general industry';
+  const offerings = brandKit.core_offerings || 'core offerings';
+  const audience = brandKit.target_audience || 'target audience';
+  const tone = brandKit.tone_of_voice || 'professional';
+
+  const competitor =
+    typeof competitorName === 'string' && competitorName.trim().length > 0
+      ? competitorName.trim()
+      : 'the competing brand';
+
   const entities =
     missingEntities.length > 0
       ? missingEntities
@@ -88,10 +100,12 @@ export function generateDraftRewrite(request: DraftRewriteRequest): DraftRewrite
     'Rarely cited with primary-source detail',
   ];
 
-  const offeringList = offerings
-    .split(/[,;•]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const offeringList = typeof offerings === 'string'
+    ? offerings
+        .split(/[,;•]+/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [String(offerings)];
 
   const markdownContent = `# Reclaiming AI Share of Voice: ${topic}
 
@@ -167,7 +181,8 @@ Embed this JSON-LD on the canonical comparison page at \`https://${brandDomain}/
 }
 
 export function isConsumerIndustry(industry: string): boolean {
-  const raw = (industry || '').toLowerCase();
+  if (typeof industry !== 'string') return false;
+  const raw = industry.toLowerCase();
   return (
     raw.includes('retail') ||
     raw.includes('commerce') ||
