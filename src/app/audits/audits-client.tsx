@@ -143,10 +143,6 @@ function getAssociationBadgeMeta(association: BrandAssociation) {
   };
 }
 
-function getIntentBadgeClass(intent: SearchIntent) {
-  return getIntentBadgeMeta(intent).className;
-}
-
 interface AuditsClientViewProps {
   initialPrompts: AuditPromptItem[];
   project?: {
