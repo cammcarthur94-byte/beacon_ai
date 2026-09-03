@@ -629,193 +629,222 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
       {/* PROMPTS TABLE */}
       <Card className="border-slate-200 bg-white shadow-xs overflow-hidden">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50/90 border-b border-slate-200">
-                <TableHead className="w-[380px] font-semibold text-xs text-slate-700 px-4 sm:px-6 py-3.5">
-                  Tracking Phrase
-                </TableHead>
-                <TableHead className="font-semibold text-xs text-slate-700 py-3.5">Frequency</TableHead>
-                <TableHead className="font-semibold text-xs text-slate-700 py-3.5">Target Engines</TableHead>
-                <TableHead className="font-semibold text-xs text-slate-700 py-3.5">Status</TableHead>
-                <TableHead className="font-semibold text-xs text-slate-700 py-3.5">Last Audit Scan</TableHead>
-                <TableHead className="font-semibold text-xs text-slate-700 py-3.5">Next Scheduled</TableHead>
-                <TableHead className="text-right font-semibold text-xs text-slate-700 py-3.5 pr-4 sm:pr-6">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPrompts.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-slate-500 text-xs font-mono">
-                    No active audit prompts match your filter criteria.
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table className="min-w-[1050px]">
+              <TableHeader>
+                <TableRow className="bg-slate-50/90 border-b border-slate-200">
+                  <TableHead className="w-[360px] min-w-[300px] font-semibold text-xs text-slate-700 px-5 sm:px-6 py-4 font-sans">
+                    Tracking Phrase
+                  </TableHead>
+                  <TableHead className="w-[120px] min-w-[110px] font-semibold text-xs text-slate-700 py-4 font-sans whitespace-nowrap">
+                    Frequency
+                  </TableHead>
+                  <TableHead className="min-w-[210px] font-semibold text-xs text-slate-700 py-4 font-sans whitespace-nowrap">
+                    Target Engines
+                  </TableHead>
+                  <TableHead className="w-[110px] min-w-[100px] font-semibold text-xs text-slate-700 py-4 font-sans whitespace-nowrap">
+                    Status
+                  </TableHead>
+                  <TableHead className="w-[180px] min-w-[180px] font-semibold text-xs text-slate-700 py-4 font-sans whitespace-nowrap">
+                    Last Audit Scan
+                  </TableHead>
+                  <TableHead className="w-[160px] min-w-[160px] font-semibold text-xs text-slate-700 py-4 font-sans whitespace-nowrap">
+                    Next Scheduled
+                  </TableHead>
+                  <TableHead className="w-[120px] min-w-[120px] text-right font-semibold text-xs text-slate-700 py-4 font-sans pr-5 sm:pr-6 whitespace-nowrap">
+                    Actions
+                  </TableHead>
                 </TableRow>
-              ) : (
-                filteredPrompts.map((p) => {
-                  const isRunningThis = runningPromptId === p.id;
-                  const intent = p.search_intent || 'informational';
-                  const association = p.brand_association || 'unbranded';
-                  const intentMeta = getIntentBadgeMeta(intent);
-                  const assocMeta = getAssociationBadgeMeta(association);
+              </TableHeader>
+              <TableBody>
+                {filteredPrompts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-12 text-slate-500 text-xs font-sans">
+                      No active audit prompts match your filter criteria.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredPrompts.map((p) => {
+                    const isRunningThis = runningPromptId === p.id;
+                    const intent = p.search_intent || 'informational';
+                    const association = p.brand_association || 'unbranded';
+                    const intentMeta = getIntentBadgeMeta(intent);
+                    const assocMeta = getAssociationBadgeMeta(association);
 
-                  return (
-                    <TableRow key={p.id} className="group hover:bg-slate-50/60 transition-colors border-b border-slate-200/80">
-                      {/* Tracking Phrase with stacked distinct Intent & Association Badges beneath */}
-                      <TableCell className="py-4 px-4 sm:px-6 align-top">
-                        <div className="flex flex-col space-y-2.5">
-                          <Link
-                            href={`/audits/${p.id}`}
-                            className="hover:underline inline-flex items-start gap-1.5 text-slate-900 hover:text-emerald-700 transition-colors font-medium text-sm leading-snug group/link"
-                          >
-                            <span>&ldquo;{p.query_text}&rdquo;</span>
-                            <ArrowUpRight className="h-3.5 w-3.5 text-slate-400 group-hover/link:text-emerald-600 transition-colors shrink-0 mt-0.5" />
-                          </Link>
-
-                          {/* Bold, prominent, highly legible Intent & Association Badges */}
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span
-                              className={cn(
-                                'inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-md border shadow-2xs',
-                                intentMeta.className
-                              )}
+                    return (
+                      <TableRow key={p.id} className="group hover:bg-slate-50/70 transition-colors border-b border-slate-200/80">
+                        {/* Tracking Phrase with stacked distinct Intent & Association Badges beneath */}
+                        <TableCell className="py-4.5 px-5 sm:px-6 align-middle font-sans">
+                          <div className="flex flex-col space-y-2">
+                            <Link
+                              href={`/audits/${p.id}`}
+                              className="hover:underline inline-flex items-center gap-1.5 text-slate-900 hover:text-emerald-700 transition-colors font-semibold text-sm leading-snug group/link font-sans"
                             >
-                              <span className={cn('h-2 w-2 rounded-full shrink-0', intentMeta.dotColor)} />
-                              <span>{intentMeta.label}</span>
-                            </span>
-                            <span
-                              className={cn(
-                                'inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-md border shadow-2xs',
-                                assocMeta.className
-                              )}
-                            >
-                              <span className={cn('h-2 w-2 rounded-full shrink-0', assocMeta.dotColor)} />
-                              <span>{assocMeta.label}</span>
-                            </span>
-                          </div>
-                        </div>
-                      </TableCell>
+                              <span>&ldquo;{p.query_text}&rdquo;</span>
+                              <ArrowUpRight className="h-3.5 w-3.5 text-slate-400 group-hover/link:text-emerald-600 transition-colors shrink-0" />
+                            </Link>
 
-                      {/* Frequency */}
-                      <TableCell className="py-4 align-top">
-                        <Badge
-                          variant="outline"
-                          className="text-[11px] font-mono capitalize border-slate-200 bg-slate-50 text-slate-700 font-medium"
-                        >
-                          {p.frequency}
-                        </Badge>
-                      </TableCell>
-
-                      {/* Target Engines with Official SVG Brand Logos */}
-                      <TableCell className="py-4 align-top">
-                        <div className="flex flex-wrap items-center gap-1.5 max-w-xs">
-                          {p.target_engines?.map((eng) => {
-                            const meta = getEngineMeta(eng);
-                            return (
+                            {/* Bold, prominent, highly legible Intent & Association Badges */}
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span
-                                key={eng}
                                 className={cn(
-                                  'inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium border shadow-2xs transition-colors',
-                                  meta.colorClass
+                                  'inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold rounded-md border shadow-2xs font-sans',
+                                  intentMeta.className
                                 )}
                               >
-                                <EngineIcon engine={eng} size={12} className={meta.iconColor} />
-                                <span className="leading-none text-slate-800 font-medium">{meta.label}</span>
+                                <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', intentMeta.dotColor)} />
+                                <span>{intentMeta.label}</span>
                               </span>
-                            );
-                          })}
-                        </div>
-                      </TableCell>
-
-                      {/* Status */}
-                      <TableCell className="py-4 align-top">
-                        {p.is_active ? (
-                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border bg-emerald-50 border-emerald-200 text-emerald-700">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span>Active</span>
+                              <span
+                                className={cn(
+                                  'inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold rounded-md border shadow-2xs font-sans',
+                                  assocMeta.className
+                                )}
+                              >
+                                <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', assocMeta.dotColor)} />
+                                <span>{assocMeta.label}</span>
+                              </span>
+                            </div>
                           </div>
-                        ) : (
-                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border bg-slate-100 border-slate-200 text-slate-500">
-                            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                            <span>Paused</span>
+                        </TableCell>
+
+                        {/* Frequency */}
+                        <TableCell className="py-4.5 align-middle font-sans whitespace-nowrap">
+                          <Badge
+                            variant="outline"
+                            className="text-xs font-sans capitalize border-slate-200 bg-slate-50 text-slate-700 font-medium px-2.5 py-1"
+                          >
+                            {p.frequency}
+                          </Badge>
+                        </TableCell>
+
+                        {/* Target Engines with Official SVG Brand Logos */}
+                        <TableCell className="py-4.5 align-middle font-sans">
+                          <div className="flex flex-wrap items-center gap-1.5 max-w-xs">
+                            {p.target_engines?.map((eng) => {
+                              const meta = getEngineMeta(eng);
+                              return (
+                                <span
+                                  key={eng}
+                                  className={cn(
+                                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-sans font-medium border shadow-2xs transition-colors whitespace-nowrap',
+                                    meta.colorClass
+                                  )}
+                                >
+                                  <EngineIcon engine={eng} size={12} className={meta.iconColor} />
+                                  <span className="leading-none text-slate-800 font-sans font-medium">{meta.label}</span>
+                                </span>
+                              );
+                            })}
                           </div>
-                        )}
-                      </TableCell>
+                        </TableCell>
 
-                      {/* Last Audit Scan */}
-                      <TableCell className="py-4 align-top font-mono text-xs text-slate-700">
-                        {p.last_run_at ? (
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                            <span>{new Date(p.last_run_at).toLocaleDateString()}</span>
+                        {/* Status */}
+                        <TableCell className="py-4.5 align-middle font-sans whitespace-nowrap">
+                          {p.is_active ? (
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-sans font-medium border bg-emerald-50 border-emerald-200 text-emerald-700 shadow-2xs">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              <span>Active</span>
+                            </div>
+                          ) : (
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-sans font-medium border bg-slate-100 border-slate-200 text-slate-500 shadow-2xs">
+                              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                              <span>Paused</span>
+                            </div>
+                          )}
+                        </TableCell>
+
+                        {/* Last Audit Scan */}
+                        <TableCell className="py-4.5 align-middle font-sans text-xs text-slate-700 whitespace-nowrap">
+                          {p.last_run_at ? (
+                            <div className="flex items-center gap-2 text-slate-700 font-sans font-medium whitespace-nowrap">
+                              <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                              <span>
+                                {new Date(p.last_run_at).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 font-sans">—</span>
+                          )}
+                        </TableCell>
+
+                        {/* Next Scheduled */}
+                        <TableCell className="py-4.5 align-middle font-sans text-xs text-slate-600 whitespace-nowrap">
+                          {p.is_active ? (
+                            <div className="flex items-center gap-2 text-slate-600 font-sans font-medium whitespace-nowrap">
+                              <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                              <span>
+                                {new Date(p.next_run_at).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 font-sans">—</span>
+                          )}
+                        </TableCell>
+
+                        {/* Actions */}
+                        <TableCell className="py-4.5 align-middle text-right pr-5 sm:pr-6 whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1">
+                            {/* Run Now Button */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={isPending || isRunningThis}
+                              onClick={() => handleRunNow(p.id)}
+                              title="Run Audit Now"
+                              className="h-8 w-8 text-slate-500 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
+                            >
+                              {isRunningThis ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-900" />
+                              ) : (
+                                <Play className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+
+                            {/* Pause / Resume Button */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={isPending}
+                              onClick={() => handleToggleActive(p.id, p.is_active)}
+                              title={p.is_active ? 'Pause Tracking' : 'Resume Tracking'}
+                              className="h-8 w-8 text-slate-500 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
+                            >
+                              {p.is_active ? (
+                                <Pause className="h-3.5 w-3.5" />
+                              ) : (
+                                <Play className="h-3.5 w-3.5 text-emerald-600" />
+                              )}
+                            </Button>
+
+                            {/* Delete Prompt Button */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={isPending}
+                              onClick={() => handleDelete(p.id)}
+                              title="Delete Prompt"
+                              className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
                           </div>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </TableCell>
-
-                      {/* Next Scheduled */}
-                      <TableCell className="py-4 align-top font-mono text-xs text-slate-600">
-                        {p.is_active ? (
-                          <span>{new Date(p.next_run_at).toLocaleDateString()}</span>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </TableCell>
-
-                      {/* Actions */}
-                      <TableCell className="py-4 align-top text-right pr-4 sm:pr-6">
-                        <div className="flex items-center justify-end gap-1">
-                          {/* Run Now Button */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={isPending || isRunningThis}
-                            onClick={() => handleRunNow(p.id)}
-                            title="Run Audit Now"
-                            className="h-8 w-8 text-slate-500 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
-                          >
-                            {isRunningThis ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-900" />
-                            ) : (
-                              <Play className="h-3.5 w-3.5" />
-                            )}
-                          </Button>
-
-                          {/* Pause / Resume Button */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={isPending}
-                            onClick={() => handleToggleActive(p.id, p.is_active)}
-                            title={p.is_active ? 'Pause Tracking' : 'Resume Tracking'}
-                            className="h-8 w-8 text-slate-500 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
-                          >
-                            {p.is_active ? (
-                              <Pause className="h-3.5 w-3.5" />
-                            ) : (
-                              <Play className="h-3.5 w-3.5 text-emerald-600" />
-                            )}
-                          </Button>
-
-                          {/* Delete Prompt Button */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={isPending}
-                            onClick={() => handleDelete(p.id)}
-                            title="Delete Prompt"
-                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
