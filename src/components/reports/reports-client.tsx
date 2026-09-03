@@ -12,7 +12,7 @@ import type { ExecutiveReportData } from '@/lib/schemas/executive-report';
 import { toast } from 'sonner';
 import { Radio } from 'lucide-react';
 
-interface ReportsClientProps {
+export interface ReportsClientOptions {
   initialReport: ExecutiveReportData;
   initialDateRange?: '7d' | '30d' | 'all';
   brandName: string;
@@ -20,13 +20,19 @@ interface ReportsClientProps {
   generatedAt?: string;
 }
 
-export function ReportsClient({
-  initialReport,
-  initialDateRange = '30d',
-  brandName,
-  domain,
-  generatedAt: initialGeneratedAt,
-}: ReportsClientProps) {
+export interface ReportsClientProps {
+  options: ReportsClientOptions;
+}
+
+export function ReportsClient({ options }: ReportsClientProps) {
+  const {
+    initialReport,
+    initialDateRange = '30d',
+    brandName,
+    domain,
+    generatedAt: initialGeneratedAt,
+  } = options;
+
   const [report, setReport] = useState<ExecutiveReportData>(initialReport);
   const [dateRange, setDateRange] = useState<'7d' | '30d' | 'all'>(initialDateRange);
   const [generatedAt, setGeneratedAt] = useState<string | undefined>(initialGeneratedAt);

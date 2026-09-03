@@ -171,11 +171,13 @@ export default async function ReportsPage() {
     <AppSidebarLayout project={project}>
       <div className="p-6 lg:p-10 max-w-7xl w-full mx-auto print:p-0 print:max-w-none">
         <ReportsClient
-          initialReport={latestReportData}
-          initialDateRange="30d"
-          brandName={project.name}
-          domain={project.domain}
-          generatedAt={generatedAt}
+          options={{
+            initialReport: latestReportData,
+            initialDateRange: '30d',
+            brandName: project.name,
+            domain: project.domain,
+            generatedAt,
+          }}
         />
       </div>
     </AppSidebarLayout>
