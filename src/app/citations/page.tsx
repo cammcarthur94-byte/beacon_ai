@@ -1,6 +1,5 @@
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
 import { AppSidebarLayout } from '@/components/layout/app-sidebar-layout';
 import { CitationsClient } from '@/components/citations/citations-client';
 import type { CitationSourceType, BrandKit } from '@/types/database.types';
@@ -236,19 +235,19 @@ export default async function CitationsPage() {
           sourceType: 'news',
           totalMentions: 34,
           recentUrl: `https://womenshealthmag.com/fitness/best-yoga-leggings-tested-and-reviewed`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 90).toISOString(),
           engines: ['chatgpt', 'perplexity', 'gemini'],
           allCitations: [
             {
               id: 'c-wh-1',
               url: `https://womenshealthmag.com/fitness/best-yoga-leggings-tested-and-reviewed`,
-              createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 90).toISOString(),
               engine: 'Perplexity',
             },
             {
               id: 'c-wh-2',
               url: `https://womenshealthmag.com/fitness/lululemon-align-vs-alo-airbrush`,
-              createdAt: new Date(Date.now() - 1000 * 60 * 1440 * 2).toISOString(),
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 2).toISOString(),
               engine: 'ChatGPT',
             },
           ],
@@ -258,19 +257,19 @@ export default async function CitationsPage() {
           sourceType: 'forum',
           totalMentions: 28,
           recentUrl: `https://reddit.com/r/lululemon/comments/align_pant_nulu_durability_review_2026`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 180).toISOString(),
           engines: ['perplexity', 'chatgpt'],
           allCitations: [
             {
               id: 'c-rd-1',
               url: `https://reddit.com/r/lululemon/comments/align_pant_nulu_durability_review_2026`,
-              createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 180).toISOString(),
               engine: 'Perplexity',
             },
             {
               id: 'c-rd-2',
               url: `https://reddit.com/r/xxfitness/comments/squat_proof_leggings_recommendations`,
-              createdAt: new Date(Date.now() - 1000 * 60 * 1440 * 3).toISOString(),
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 3).toISOString(),
               engine: 'ChatGPT',
             },
           ],
@@ -280,13 +279,13 @@ export default async function CitationsPage() {
           sourceType: 'news',
           totalMentions: 24,
           recentUrl: `https://thestrategist.com/article/best-high-waisted-workout-leggings-review`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 420).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 420).toISOString(),
           engines: ['gemini', 'chatgpt', 'claude'],
           allCitations: [
             {
               id: 'c-st-1',
               url: `https://thestrategist.com/article/best-high-waisted-workout-leggings-review`,
-              createdAt: new Date(Date.now() - 1000 * 60 * 420).toISOString(),
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 420).toISOString(),
               engine: 'Gemini',
             },
           ],
@@ -296,7 +295,7 @@ export default async function CitationsPage() {
           sourceType: 'news',
           totalMentions: 20,
           recentUrl: `https://gq.com/story/best-mens-athletic-pants-and-joggers-roundup`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 720).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 720).toISOString(),
           engines: ['perplexity', 'gemini'],
         },
         {
@@ -304,7 +303,7 @@ export default async function CitationsPage() {
           sourceType: 'news',
           totalMentions: 17,
           recentUrl: `https://runnersworld.com/gear/best-sweat-wicking-running-tights`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440).toISOString(),
           engines: ['chatgpt', 'claude'],
         },
         {
@@ -312,7 +311,7 @@ export default async function CitationsPage() {
           sourceType: 'social',
           totalMentions: 15,
           recentUrl: `https://youtube.com/watch?v=leggings-squat-test-and-wear-review`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440 * 2).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 2).toISOString(),
           engines: ['perplexity', 'chatgpt'],
         },
         {
@@ -320,7 +319,7 @@ export default async function CitationsPage() {
           sourceType: 'news',
           totalMentions: 12,
           recentUrl: `https://shape.com/fitness/gear/pilates-instructors-favorite-leggings`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440 * 3).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 3).toISOString(),
           engines: ['claude', 'gemini'],
         },
         {
@@ -328,7 +327,7 @@ export default async function CitationsPage() {
           sourceType: 'blog',
           totalMentions: 10,
           recentUrl: `https://byrdie.com/best-athleisure-brands-everyday-wear`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440 * 4).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 4).toISOString(),
           engines: ['perplexity', 'gemini'],
         },
         {
@@ -336,7 +335,7 @@ export default async function CitationsPage() {
           sourceType: 'news',
           totalMentions: 8,
           recentUrl: `https://retaildive.com/news/lululemon-athleisure-market-share-and-expansion`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440 * 5).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 5).toISOString(),
           engines: ['chatgpt', 'claude'],
         },
         {
@@ -344,7 +343,7 @@ export default async function CitationsPage() {
           sourceType: 'forum',
           totalMentions: 6,
           recentUrl: `https://quora.com/Are-Lululemon-Align-leggings-worth-the-money`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440 * 6).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 6).toISOString(),
           engines: ['perplexity'],
         },
         {
@@ -352,13 +351,13 @@ export default async function CitationsPage() {
           sourceType: 'documentation',
           totalMentions: 5,
           recentUrl: `https://patents.google.com/patent/US9234567B2/en-breathable-technical-fabric`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440 * 7).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 7).toISOString(),
           engines: ['perplexity', 'gemini'],
           allCitations: [
             {
               id: 'c-pt-1',
               url: `https://patents.google.com/patent/US9234567B2/en-breathable-technical-fabric`,
-              createdAt: new Date(Date.now() - 1000 * 60 * 1440 * 7).toISOString(),
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 7).toISOString(),
               engine: 'Perplexity',
             },
           ],
@@ -368,13 +367,13 @@ export default async function CitationsPage() {
           sourceType: 'documentation',
           totalMentions: 3,
           recentUrl: `https://developer.lululemon.com/documentation/apparel-sizing-specifications`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440 * 8).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 8).toISOString(),
           engines: ['chatgpt'],
           allCitations: [
             {
               id: 'c-dev-1',
               url: `https://developer.lululemon.com/documentation/apparel-sizing-specifications`,
-              createdAt: new Date(Date.now() - 1000 * 60 * 1440 * 8).toISOString(),
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 8).toISOString(),
               engine: 'ChatGPT',
             },
           ],
@@ -413,19 +412,19 @@ export default async function CitationsPage() {
           sourceType: 'news',
           totalMentions: 28,
           recentUrl: `https://techcrunch.com/2026/01/enterprise-aeo-platforms-${brandName.toLowerCase()}`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 180).toISOString(),
           engines: ['perplexity', 'chatgpt'],
           allCitations: [
             {
               id: 'c-tc-1',
               url: `https://techcrunch.com/2026/01/enterprise-aeo-platforms-${brandName.toLowerCase()}`,
-              createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 180).toISOString(),
               engine: 'Perplexity',
             },
             {
               id: 'c-tc-2',
               url: `https://techcrunch.com/2026/02/the-future-of-generative-engine-optimization/`,
-              createdAt: new Date(Date.now() - 1000 * 60 * 1440 * 3).toISOString(),
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 3).toISOString(),
               engine: 'ChatGPT',
             },
           ],
@@ -435,19 +434,19 @@ export default async function CitationsPage() {
           sourceType: 'forum',
           totalMentions: 22,
           recentUrl: `https://reddit.com/r/SaaS/comments/best_tools_to_track_chatgpt_citations`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 340).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 340).toISOString(),
           engines: ['perplexity', 'gemini'],
           allCitations: [
             {
               id: 'c-rd-1',
               url: `https://reddit.com/r/SaaS/comments/best_tools_to_track_chatgpt_citations`,
-              createdAt: new Date(Date.now() - 1000 * 60 * 340).toISOString(),
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 340).toISOString(),
               engine: 'Perplexity',
             },
             {
               id: 'c-rd-2',
               url: `https://reddit.com/r/SEO/comments/aeo_vs_geo_rankings_in_2026`,
-              createdAt: new Date(Date.now() - 1000 * 60 * 1440 * 2).toISOString(),
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 2).toISOString(),
               engine: 'Gemini',
             },
           ],
@@ -457,13 +456,13 @@ export default async function CitationsPage() {
           sourceType: 'news',
           totalMentions: 19,
           recentUrl: `https://forbes.com/sites/technology/how-enterprises-reclaim-brand-voice-in-ai/`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 720).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 720).toISOString(),
           engines: ['claude', 'chatgpt'],
           allCitations: [
             {
               id: 'c-fb-1',
               url: `https://forbes.com/sites/technology/how-enterprises-reclaim-brand-voice-in-ai/`,
-              createdAt: new Date(Date.now() - 1000 * 60 * 720).toISOString(),
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 720).toISOString(),
               engine: 'Claude',
             },
           ],
@@ -473,7 +472,7 @@ export default async function CitationsPage() {
           sourceType: 'blog',
           totalMentions: 14,
           recentUrl: `https://medium.com/@growth_aeo/the-state-of-answer-engine-prominence-${brandName.toLowerCase()}`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440).toISOString(),
           engines: ['perplexity', 'claude'],
         },
         {
@@ -481,7 +480,7 @@ export default async function CitationsPage() {
           sourceType: 'news',
           totalMentions: 12,
           recentUrl: `https://theverge.com/2026/how-search-engines-cite-authoritative-sources`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440 * 2).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 2).toISOString(),
           engines: ['gemini', 'perplexity'],
         },
         {
@@ -489,7 +488,7 @@ export default async function CitationsPage() {
           sourceType: 'forum',
           totalMentions: 10,
           recentUrl: `https://news.ycombinator.com/item?id=38914210`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440 * 3).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 3).toISOString(),
           engines: ['perplexity', 'chatgpt'],
         },
         {
@@ -497,7 +496,7 @@ export default async function CitationsPage() {
           sourceType: 'blog',
           totalMentions: 8,
           recentUrl: `https://technewsletter.substack.com/p/the-shift-from-serp-to-conversational-agents`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440 * 4).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 4).toISOString(),
           engines: ['claude'],
         },
         {
@@ -505,7 +504,7 @@ export default async function CitationsPage() {
           sourceType: 'social',
           totalMentions: 6,
           recentUrl: `https://twitter.com/ai_insights/status/1749201840192`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440 * 5).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 5).toISOString(),
           engines: ['gemini'],
         },
         {
@@ -513,7 +512,7 @@ export default async function CitationsPage() {
           sourceType: 'forum',
           totalMentions: 5,
           recentUrl: `https://quora.com/What-is-the-best-AEO-software-in-2026`,
-          lastCitedAt: new Date(Date.now() - 1000 * 60 * 1440 * 6).toISOString(),
+          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 6).toISOString(),
           engines: ['perplexity'],
         },
       ];
