@@ -143,6 +143,35 @@ function getAssociationBadgeMeta(association: BrandAssociation) {
   };
 }
 
+function EngineFaviconBadge({ engine }: { engine: string }) {
+  const meta = getEngineMeta(engine);
+  const [hasError, setHasError] = React.useState(false);
+
+  return (
+    <span
+      title={meta.label}
+      className={cn(
+        'inline-flex items-center justify-center h-7 w-7 rounded-lg border border-slate-200/90 bg-white p-1 shadow-2xs transition-all hover:scale-115 hover:border-slate-300 hover:shadow-xs cursor-pointer',
+        meta.badgeClass
+      )}
+    >
+      {!hasError ? (
+        <img
+          src={`https://www.google.com/s2/favicons?domain=${meta.domain}&sz=64`}
+          alt={meta.label}
+          width={16}
+          height={16}
+          loading="lazy"
+          className="h-4 w-4 object-contain"
+          onError={() => setHasError(true)}
+        />
+      ) : (
+        <EngineIcon engine={engine} size={14} className={meta.iconColor} />
+      )}
+    </span>
+  );
+}
+
 interface AuditsClientViewProps {
   initialPrompts: AuditPromptItem[];
   project?: {
@@ -633,25 +662,25 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
             <Table className="min-w-[1050px]">
               <TableHeader>
                 <TableRow className="bg-slate-50/90 border-b border-slate-200">
-                  <TableHead className="w-[360px] min-w-[300px] font-semibold text-xs text-slate-700 px-5 sm:px-6 py-4 font-sans">
+                  <TableHead className="w-[360px] min-w-[300px] font-semibold text-xs text-slate-700 px-5 sm:px-6 py-4 font-sans text-center">
                     Tracking Phrase
                   </TableHead>
-                  <TableHead className="w-[120px] min-w-[110px] font-semibold text-xs text-slate-700 py-4 font-sans whitespace-nowrap">
+                  <TableHead className="w-[120px] min-w-[110px] font-semibold text-xs text-slate-700 py-4 font-sans text-center whitespace-nowrap">
                     Frequency
                   </TableHead>
-                  <TableHead className="min-w-[210px] font-semibold text-xs text-slate-700 py-4 font-sans whitespace-nowrap">
+                  <TableHead className="min-w-[180px] font-semibold text-xs text-slate-700 py-4 font-sans text-center whitespace-nowrap">
                     Target Engines
                   </TableHead>
-                  <TableHead className="w-[110px] min-w-[100px] font-semibold text-xs text-slate-700 py-4 font-sans whitespace-nowrap">
+                  <TableHead className="w-[110px] min-w-[100px] font-semibold text-xs text-slate-700 py-4 font-sans text-center whitespace-nowrap">
                     Status
                   </TableHead>
-                  <TableHead className="w-[180px] min-w-[180px] font-semibold text-xs text-slate-700 py-4 font-sans whitespace-nowrap">
+                  <TableHead className="w-[180px] min-w-[180px] font-semibold text-xs text-slate-700 py-4 font-sans text-center whitespace-nowrap">
                     Last Audit Scan
                   </TableHead>
-                  <TableHead className="w-[160px] min-w-[160px] font-semibold text-xs text-slate-700 py-4 font-sans whitespace-nowrap">
+                  <TableHead className="w-[160px] min-w-[160px] font-semibold text-xs text-slate-700 py-4 font-sans text-center whitespace-nowrap">
                     Next Scheduled
                   </TableHead>
-                  <TableHead className="w-[120px] min-w-[120px] text-right font-semibold text-xs text-slate-700 py-4 font-sans pr-5 sm:pr-6 whitespace-nowrap">
+                  <TableHead className="w-[120px] min-w-[120px] text-center font-semibold text-xs text-slate-700 py-4 font-sans whitespace-nowrap">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -673,19 +702,19 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
 
                     return (
                       <TableRow key={p.id} className="group hover:bg-slate-50/70 transition-colors border-b border-slate-200/80">
-                        {/* Tracking Phrase with stacked distinct Intent & Association Badges beneath */}
-                        <TableCell className="py-4.5 px-5 sm:px-6 align-middle font-sans">
-                          <div className="flex flex-col space-y-2">
+                        {/* Tracking Phrase - Centered */}
+                        <TableCell className="py-4.5 px-5 sm:px-6 align-middle font-sans text-center">
+                          <div className="flex flex-col items-center justify-center space-y-2 text-center">
                             <Link
                               href={`/audits/${p.id}`}
-                              className="hover:underline inline-flex items-center gap-1.5 text-slate-900 hover:text-emerald-700 transition-colors font-semibold text-sm leading-snug group/link font-sans"
+                              className="hover:underline inline-flex items-center justify-center gap-1.5 text-slate-900 hover:text-emerald-700 transition-colors font-semibold text-sm leading-snug group/link font-sans text-center"
                             >
                               <span>&ldquo;{p.query_text}&rdquo;</span>
                               <ArrowUpRight className="h-3.5 w-3.5 text-slate-400 group-hover/link:text-emerald-600 transition-colors shrink-0" />
                             </Link>
 
-                            {/* Bold, prominent, highly legible Intent & Association Badges */}
-                            <div className="flex items-center gap-2 flex-wrap">
+                            {/* Bold, prominent Intent & Association Badges - Centered */}
+                            <div className="flex items-center justify-center gap-2 flex-wrap">
                               <span
                                 className={cn(
                                   'inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold rounded-md border shadow-2xs font-sans',
@@ -708,56 +737,48 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
                           </div>
                         </TableCell>
 
-                        {/* Frequency */}
-                        <TableCell className="py-4.5 align-middle font-sans whitespace-nowrap">
-                          <Badge
-                            variant="outline"
-                            className="text-xs font-sans capitalize border-slate-200 bg-slate-50 text-slate-700 font-medium px-2.5 py-1"
-                          >
-                            {p.frequency}
-                          </Badge>
-                        </TableCell>
-
-                        {/* Target Engines with Official SVG Brand Logos */}
-                        <TableCell className="py-4.5 align-middle font-sans">
-                          <div className="flex flex-wrap items-center gap-1.5 max-w-xs">
-                            {p.target_engines?.map((eng) => {
-                              const meta = getEngineMeta(eng);
-                              return (
-                                <span
-                                  key={eng}
-                                  className={cn(
-                                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-sans font-medium border shadow-2xs transition-colors whitespace-nowrap',
-                                    meta.colorClass
-                                  )}
-                                >
-                                  <EngineIcon engine={eng} size={12} className={meta.iconColor} />
-                                  <span className="leading-none text-slate-800 font-sans font-medium">{meta.label}</span>
-                                </span>
-                              );
-                            })}
+                        {/* Frequency - Centered */}
+                        <TableCell className="py-4.5 align-middle font-sans text-center whitespace-nowrap">
+                          <div className="flex items-center justify-center">
+                            <Badge
+                              variant="outline"
+                              className="text-xs font-sans capitalize border-slate-200 bg-slate-50 text-slate-700 font-medium px-2.5 py-1"
+                            >
+                              {p.frequency}
+                            </Badge>
                           </div>
                         </TableCell>
 
-                        {/* Status */}
-                        <TableCell className="py-4.5 align-middle font-sans whitespace-nowrap">
-                          {p.is_active ? (
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-sans font-medium border bg-emerald-50 border-emerald-200 text-emerald-700 shadow-2xs">
-                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                              <span>Active</span>
-                            </div>
-                          ) : (
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-sans font-medium border bg-slate-100 border-slate-200 text-slate-500 shadow-2xs">
-                              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                              <span>Paused</span>
-                            </div>
-                          )}
+                        {/* Target Engines - High Quality Favicon Logos, Centered */}
+                        <TableCell className="py-4.5 align-middle font-sans text-center">
+                          <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                            {p.target_engines?.map((eng) => (
+                              <EngineFaviconBadge key={eng} engine={eng} />
+                            ))}
+                          </div>
                         </TableCell>
 
-                        {/* Last Audit Scan */}
-                        <TableCell className="py-4.5 align-middle font-sans text-xs text-slate-700 whitespace-nowrap">
+                        {/* Status - Centered */}
+                        <TableCell className="py-4.5 align-middle font-sans text-center whitespace-nowrap">
+                          <div className="flex items-center justify-center">
+                            {p.is_active ? (
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-sans font-medium border bg-emerald-50 border-emerald-200 text-emerald-700 shadow-2xs">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <span>Active</span>
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-sans font-medium border bg-slate-100 border-slate-200 text-slate-500 shadow-2xs">
+                                <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                                <span>Paused</span>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        {/* Last Audit Scan - Centered */}
+                        <TableCell className="py-4.5 align-middle font-sans text-xs text-slate-700 text-center whitespace-nowrap">
                           {p.last_run_at ? (
-                            <div className="flex items-center gap-2 text-slate-700 font-sans font-medium whitespace-nowrap">
+                            <div className="flex items-center justify-center gap-2 text-slate-700 font-sans font-medium whitespace-nowrap">
                               <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                               <span>
                                 {new Date(p.last_run_at).toLocaleDateString('en-US', {
@@ -772,10 +793,10 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
                           )}
                         </TableCell>
 
-                        {/* Next Scheduled */}
-                        <TableCell className="py-4.5 align-middle font-sans text-xs text-slate-600 whitespace-nowrap">
+                        {/* Next Scheduled - Centered */}
+                        <TableCell className="py-4.5 align-middle font-sans text-xs text-slate-600 text-center whitespace-nowrap">
                           {p.is_active ? (
-                            <div className="flex items-center gap-2 text-slate-600 font-sans font-medium whitespace-nowrap">
+                            <div className="flex items-center justify-center gap-2 text-slate-600 font-sans font-medium whitespace-nowrap">
                               <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                               <span>
                                 {new Date(p.next_run_at).toLocaleDateString('en-US', {
@@ -790,9 +811,9 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
                           )}
                         </TableCell>
 
-                        {/* Actions */}
-                        <TableCell className="py-4.5 align-middle text-right pr-5 sm:pr-6 whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-1">
+                        {/* Actions - Centered */}
+                        <TableCell className="py-4.5 align-middle text-center whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-1">
                             {/* Run Now Button */}
                             <Button
                               variant="ghost"

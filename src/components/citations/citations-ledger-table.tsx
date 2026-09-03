@@ -74,6 +74,35 @@ interface CitationsLedgerTableProps {
 type SortField = 'totalMentions' | 'domain' | 'lastCitedAt' | 'sourceType';
 type SortDirection = 'asc' | 'desc';
 
+function EngineFaviconLogo({ engine }: { engine: string }) {
+  const engineMeta = getEngineMeta(engine);
+  const [hasError, setHasError] = React.useState(false);
+
+  return (
+    <span
+      title={engineMeta.label}
+      className={cn(
+        'inline-flex items-center justify-center h-7 w-7 rounded-md border shadow-2xs transition-all hover:scale-115 hover:shadow-xs cursor-pointer p-1 bg-white border-slate-200/90',
+        engineMeta.badgeClass
+      )}
+    >
+      {!hasError ? (
+        <img
+          src={`https://www.google.com/s2/favicons?domain=${engineMeta.domain}&sz=64`}
+          alt={engineMeta.label}
+          width={16}
+          height={16}
+          loading="lazy"
+          className="h-4 w-4 object-contain"
+          onError={() => setHasError(true)}
+        />
+      ) : (
+        <EngineIcon engine={engine} size={14} className={engineMeta.iconColor} />
+      )}
+    </span>
+  );
+}
+
 export function CitationsLedgerTable({
   rows,
   activeSourceTypes,
@@ -518,21 +547,9 @@ export function CitationsLedgerTable({
                       {/* Column 3: Citing Engines - Logos instead of words, Centered */}
                       <TableCell className="py-3.5 text-center">
                         <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                          {engines.map((eng) => {
-                            const engineMeta = getEngineMeta(eng);
-                            return (
-                              <span
-                                key={eng}
-                                title={engineMeta.label}
-                                className={cn(
-                                  "inline-flex items-center justify-center h-7 w-7 rounded-md border shadow-2xs transition-all hover:scale-115 hover:shadow-xs cursor-pointer",
-                                  engineMeta.badgeClass
-                                )}
-                              >
-                                <EngineIcon engine={eng} size={15} className={engineMeta.iconColor} />
-                              </span>
-                            );
-                          })}
+                          {engines.map((eng) => (
+                            <EngineFaviconLogo key={eng} engine={eng} />
+                          ))}
                         </div>
                       </TableCell>
 
