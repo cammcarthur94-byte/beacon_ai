@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Printer,
-  Calendar,
   RefreshCw,
   Loader2,
   TrendingUp,
@@ -17,7 +16,7 @@ import {
 } from 'lucide-react';
 import type { ExecutiveReportData } from '@/lib/schemas/executive-report';
 
-interface ReportHeaderProps {
+export interface ReportHeaderProps {
   brandName: string;
   domain: string;
   dateRange: '7d' | '30d' | 'all';
@@ -29,17 +28,19 @@ interface ReportHeaderProps {
   bestEngineSov: number;
 }
 
-export function ReportHeader({
-  brandName,
-  domain,
-  dateRange,
-  onDateRangeChange,
-  onGenerateFresh,
-  isGenerating,
-  generatedAt,
-  periodDelta,
-  bestEngineSov,
-}: ReportHeaderProps) {
+export function ReportHeader(props: ReportHeaderProps) {
+  const {
+    brandName,
+    domain,
+    dateRange,
+    onDateRangeChange,
+    onGenerateFresh,
+    isGenerating,
+    generatedAt,
+    periodDelta,
+    bestEngineSov,
+  } = props;
+
   const handlePrint = () => {
     if (typeof window !== 'undefined') {
       window.print();
