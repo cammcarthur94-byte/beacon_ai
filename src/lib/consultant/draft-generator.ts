@@ -21,7 +21,7 @@ export interface DraftRewriteResult {
 }
 
 function slugify(value: string): string {
-  return value
+  return (value || '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
@@ -33,14 +33,33 @@ function slugify(value: string): string {
  * industry context so consumer brands never receive B2B SaaS boilerplate.
  */
 export function generateDraftRewrite(request: DraftRewriteRequest): DraftRewriteResult {
-  const { topic, competitorName, missingEntities, brandName, brandDomain, brandKit } = request;
-  const industry = brandKit.industry;
-  const offerings = brandKit.core_offerings;
-  const audience = brandKit.target_audience;
-  const tone = brandKit.tone_of_voice;
-  const competitor = competitorName.trim().length > 0 ? competitorName.trim() : 'the competing brand';
+  if (!request) {
+    throw new Error('DraftRewriteRequest is required');
+  }
+
+  if (!request.brandKit) {
+    throw new Error('brandKit is required');
+  }
+
+  const {
+    topic = 'Untitled Topic',
+    competitorName = '',
+    missingEntities = [],
+    brandName = 'Our Brand',
+    brandDomain = 'example.com',
+    brandKit,
+  } = request;
+
+  const industry = brandKit.industry || 'General';
+  const offerings = brandKit.core_offerings || 'Key products and services';
+  const audience = brandKit.target_audience || 'Target customers';
+  const tone = brandKit.tone_of_voice || 'Professional';
+  const competitor =
+    typeof competitorName === 'string' && competitorName.trim().length > 0
+      ? competitorName.trim()
+      : 'the competing brand';
   const entities =
-    missingEntities.length > 0
+    Array.isArray(missingEntities) && missingEntities.length > 0
       ? missingEntities
       : ["the competitor's unique proof points and verification detail"];
 
@@ -106,9 +125,12 @@ Across AI-generated answers on **ChatGPT**, **Google Gemini**, **Anthropic Claud
 
 ### Primary Verification Anchors
 
-${offeringList.length > 1
-  ? offeringList.map((item) => `- **${item}** — verified entity proof point grounding primary citations in ${industry}`).join('\n')
-  : `- **${offerings}** — documented primary authority in ${industry}`
+${
+  offeringList.length > 1
+    ? offeringList
+        .map((item) => `- **${item}** — verified entity proof point grounding primary citations in ${industry}`)
+        .join('\n')
+    : `- **${offerings}** — documented primary authority in ${industry}`
 }
 
 Establishing complete, verifiable entity coverage across these core products provides the algorithmic precondition for first-citation prominence.
