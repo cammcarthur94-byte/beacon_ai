@@ -42,31 +42,41 @@ export interface RecentAuditRun {
   timeAgo: string;
 }
 
-interface RecentActivityTableProps {
-  runs: RecentAuditRun[];
+export type ActivityStatusFilter = 'all' | 'mentioned' | 'missing';
+export type ActivityCitationFilter = 'all' | 'has_citations' | 'high_citations';
+
+export interface RecentActivityTableFilterOptions {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  statusFilter: 'all' | 'mentioned' | 'missing';
-  onStatusFilterChange: (status: 'all' | 'mentioned' | 'missing') => void;
-  citationFilter: 'all' | 'has_citations' | 'high_citations';
-  onCitationFilterChange: (filter: 'all' | 'has_citations' | 'high_citations') => void;
+  statusFilter: ActivityStatusFilter;
+  onStatusFilterChange: (status: ActivityStatusFilter) => void;
+  citationFilter: ActivityCitationFilter;
+  onCitationFilterChange: (filter: ActivityCitationFilter) => void;
   activeCitationDomainFilter: string | null;
   onClearCitationDomainFilter: () => void;
   onResetTableFilters: () => void;
 }
 
+export interface RecentActivityTableProps {
+  runs: RecentAuditRun[];
+  filters: RecentActivityTableFilterOptions;
+}
+
 export function RecentActivityTable({
   runs,
-  searchQuery,
-  onSearchChange,
-  statusFilter,
-  onStatusFilterChange,
-  citationFilter,
-  onCitationFilterChange,
-  activeCitationDomainFilter,
-  onClearCitationDomainFilter,
-  onResetTableFilters,
+  filters,
 }: RecentActivityTableProps) {
+  const {
+    searchQuery,
+    onSearchChange,
+    statusFilter,
+    onStatusFilterChange,
+    citationFilter,
+    onCitationFilterChange,
+    activeCitationDomainFilter,
+    onClearCitationDomainFilter,
+    onResetTableFilters,
+  } = filters;
   const getSentimentBadge = (sentiment: 'positive' | 'neutral' | 'negative') => {
     switch (sentiment) {
       case 'positive':

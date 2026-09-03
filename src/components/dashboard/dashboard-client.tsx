@@ -208,15 +208,17 @@ export function DashboardClientView({
       {/* 3. INTERACTIVE TELEMETRY TABLE */}
       <RecentActivityTable
         runs={filteredRuns}
-        searchQuery={tableSearchQuery}
-        onSearchChange={setTableSearchQuery}
-        statusFilter={tableStatusFilter}
-        onStatusFilterChange={setTableStatusFilter}
-        citationFilter={tableCitationFilter}
-        onCitationFilterChange={setTableCitationFilter}
-        activeCitationDomainFilter={selectedCitationDomain}
-        onClearCitationDomainFilter={() => setSelectedCitationDomain(null)}
-        onResetTableFilters={handleResetTableFilters}
+        filters={{
+          searchQuery: tableSearchQuery,
+          onSearchChange: setTableSearchQuery,
+          statusFilter: tableStatusFilter,
+          onStatusFilterChange: setTableStatusFilter,
+          citationFilter: tableCitationFilter,
+          onCitationFilterChange: setTableCitationFilter,
+          activeCitationDomainFilter: selectedCitationDomain,
+          onClearCitationDomainFilter: () => setSelectedCitationDomain(null),
+          onResetTableFilters: handleResetTableFilters,
+        }}
       />
     </div>
   );
