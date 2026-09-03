@@ -81,7 +81,6 @@ export default async function CitationsPage() {
   }
 
   const brandName = project.name || 'Lululemon';
-  const brandDomain = project.domain || 'lululemon.com';
   const rawIndustry = (project.brand_kit?.industry || '').toLowerCase();
   const isConsumerRetail =
     rawIndustry.includes('retail') ||
