@@ -8,43 +8,44 @@ import { CitationSourcesChart, type CitationDomainItem } from './citation-source
 import { EngineComparisonChart, type EngineVisibilityScore } from './engine-comparison-chart';
 import { SentimentDonutChart, type SentimentSliceData } from './sentiment-donut-chart';
 import { Link2, Cpu, HeartHandshake } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
-interface TopRightAnalyticsCardProps {
-  citationDomains: CitationDomainItem[];
+export interface CitationOptions {
+  domains: CitationDomainItem[];
   selectedDomain: string | null;
   onSelectDomain: (domain: string | null) => void;
+}
 
-  engineComparisonData: EngineVisibilityScore[];
+export interface EngineOptions {
+  comparisonData: EngineVisibilityScore[];
   selectedEngines: string[];
   onToggleEngine: (engineId: string) => void;
+}
 
-  sentimentData: SentimentSliceData[];
-  selectedSentimentCategory: 'all' | 'positive' | 'neutral' | 'negative';
-  onSelectSentimentCategory: (cat: 'all' | 'positive' | 'neutral' | 'negative') => void;
-  netSentimentScore: number;
+export interface SentimentOptions {
+  data: SentimentSliceData[];
+  selectedCategory: 'all' | 'positive' | 'neutral' | 'negative';
+  onSelectCategory: (cat: 'all' | 'positive' | 'neutral' | 'negative') => void;
+  netScore: number;
+}
 
+export interface TopRightAnalyticsCardOptions {
+  citation: CitationOptions;
+  engine: EngineOptions;
+  sentiment: SentimentOptions;
   brandName: string;
 }
 
-export function TopRightAnalyticsCard({
-  citationDomains,
-  selectedDomain,
-  onSelectDomain,
-  engineComparisonData,
-  selectedEngines,
-  onToggleEngine,
-  sentimentData,
-  selectedSentimentCategory,
-  onSelectSentimentCategory,
-  netSentimentScore,
-  brandName,
-}: TopRightAnalyticsCardProps) {
+export interface TopRightAnalyticsCardProps {
+  options: TopRightAnalyticsCardOptions;
+}
+
+export function TopRightAnalyticsCard({ options }: TopRightAnalyticsCardProps) {
+  const { citation, engine, sentiment, brandName } = options;
   const [activeTab, setActiveTab] = useState<string>('citations');
 
-  const isCitationFiltered = Boolean(selectedDomain);
-  const isEngineFiltered = selectedEngines.length > 0 && selectedEngines.length < 4;
-  const isSentimentFiltered = selectedSentimentCategory !== 'all';
+  const isCitationFiltered = Boolean(citation.selectedDomain);
+  const isEngineFiltered = engine.selectedEngines.length > 0 && engine.selectedEngines.length < 4;
+  const isSentimentFiltered = sentiment.selectedCategory !== 'all';
 
   return (
     <Card className="border-zinc-200 bg-white shadow-xs flex flex-col justify-between">
@@ -94,9 +95,9 @@ export function TopRightAnalyticsCard({
             {/* View 1: Citation Sources */}
             <TabsContent value="citations" className="mt-0 focus-visible:outline-hidden">
               <CitationSourcesChart
-                data={citationDomains}
-                selectedDomain={selectedDomain}
-                onSelectDomain={onSelectDomain}
+                data={citation.domains}
+                selectedDomain={citation.selectedDomain}
+                onSelectDomain={citation.onSelectDomain}
                 brandName={brandName}
               />
             </TabsContent>
@@ -104,20 +105,20 @@ export function TopRightAnalyticsCard({
             {/* View 2: Engine Visibility Benchmark */}
             <TabsContent value="engines" className="mt-0 focus-visible:outline-hidden">
               <EngineComparisonChart
-                data={engineComparisonData}
+                data={engine.comparisonData}
                 brandName={brandName}
-                selectedEngines={selectedEngines}
-                onToggleEngine={onToggleEngine}
+                selectedEngines={engine.selectedEngines}
+                onToggleEngine={engine.onToggleEngine}
               />
             </TabsContent>
 
             {/* View 3: Sentiment Donut Chart */}
             <TabsContent value="sentiment" className="mt-0 focus-visible:outline-hidden">
               <SentimentDonutChart
-                data={sentimentData}
-                selectedCategory={selectedSentimentCategory}
-                onSelectCategory={onSelectSentimentCategory}
-                netScore={netSentimentScore}
+                data={sentiment.data}
+                selectedCategory={sentiment.selectedCategory}
+                onSelectCategory={sentiment.onSelectCategory}
+                netScore={sentiment.netScore}
               />
             </TabsContent>
           </CardContent>
