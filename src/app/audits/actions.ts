@@ -8,7 +8,7 @@ import { generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
 import { executeMultiEngineAudit } from '@/lib/ai/engine-runner';
-import type { AuditFrequency, BrandKit, SearchIntent, BrandAssociation } from '@/types/database.types';
+import type { AuditFrequency, BrandKit, SearchIntent, BrandAssociation, CitationSourceType } from '@/types/database.types';
 import { extractDomain, categorizeSource } from '@/lib/citations/categorizer';
 import { checkTierAccess, isTierEligibleForGoogleAi } from '@/lib/billing/tier-access';
 
@@ -176,8 +176,8 @@ export async function createPromptAudit(formData: FormData) {
       targetEngines: finalTargetEngines,
     });
 
-    for (const ev of evaluations) {
-      const { data: insertedRes } = await supabase.from('results').insert({
+    if (evaluations.length > 0) {
+      const resultRows = evaluations.map((ev) => ({
         prompt_id: insertedPrompt.id,
         engine: ev.engine,
         visibility_score: ev.visibilityScore,
@@ -187,20 +187,40 @@ export async function createPromptAudit(formData: FormData) {
         raw_text: ev.rawText,
         cited_urls: ev.citedUrls,
         ranking_position: ev.rankingPosition,
-      }).select('id').single();
+      }));
 
-      if (ev.citedUrls && ev.citedUrls.length > 0) {
-        const citationRows = ev.citedUrls.map((rawUrl) => {
-          const domain = extractDomain(rawUrl);
-          return {
-            project_id: projectId,
-            run_id: insertedRes?.id || null,
-            engine: ev.engine,
-            url: rawUrl,
-            domain: domain || 'unknown.com',
-            source_type: categorizeSource(domain, rawUrl),
-          };
-        });
+      const { data: insertedResults } = await supabase
+        .from('results')
+        .insert(resultRows)
+        .select('id, engine');
+
+      const citationRows: Array<{
+        project_id: string;
+        run_id: string | null;
+        engine: string;
+        url: string;
+        domain: string;
+        source_type: CitationSourceType;
+      }> = [];
+
+      evaluations.forEach((ev, idx) => {
+        if (ev.citedUrls && ev.citedUrls.length > 0) {
+          const insertedResId = insertedResults?.[idx]?.id || null;
+          for (const rawUrl of ev.citedUrls) {
+            const domain = extractDomain(rawUrl);
+            citationRows.push({
+              project_id: projectId,
+              run_id: insertedResId,
+              engine: ev.engine,
+              url: rawUrl,
+              domain: domain || 'unknown.com',
+              source_type: categorizeSource(domain, rawUrl),
+            });
+          }
+        }
+      });
+
+      if (citationRows.length > 0) {
         await supabase.from('citations').insert(citationRows);
       }
     }
@@ -332,8 +352,8 @@ export async function triggerInstantRun(promptId: string) {
     targetEngines: enginesToRun,
   });
 
-  for (const ev of evaluations) {
-    const { data: insertedRes } = await supabase.from('results').insert({
+  if (evaluations.length > 0) {
+    const resultRows = evaluations.map((ev) => ({
       prompt_id: prompt.id,
       engine: ev.engine,
       visibility_score: ev.visibilityScore,
@@ -343,20 +363,40 @@ export async function triggerInstantRun(promptId: string) {
       raw_text: ev.rawText,
       cited_urls: ev.citedUrls,
       ranking_position: ev.rankingPosition,
-    }).select('id').single();
+    }));
 
-    if (ev.citedUrls && ev.citedUrls.length > 0) {
-      const citationRows = ev.citedUrls.map((rawUrl) => {
-        const domain = extractDomain(rawUrl);
-        return {
-          project_id: project.id,
-          run_id: insertedRes?.id || null,
-          engine: ev.engine,
-          url: rawUrl,
-          domain: domain || 'unknown.com',
-          source_type: categorizeSource(domain, rawUrl),
-        };
-      });
+    const { data: insertedResults } = await supabase
+      .from('results')
+      .insert(resultRows)
+      .select('id, engine');
+
+    const citationRows: Array<{
+      project_id: string;
+      run_id: string | null;
+      engine: string;
+      url: string;
+      domain: string;
+      source_type: CitationSourceType;
+    }> = [];
+
+    evaluations.forEach((ev, idx) => {
+      if (ev.citedUrls && ev.citedUrls.length > 0) {
+        const insertedResId = insertedResults?.[idx]?.id || null;
+        for (const rawUrl of ev.citedUrls) {
+          const domain = extractDomain(rawUrl);
+          citationRows.push({
+            project_id: project.id,
+            run_id: insertedResId,
+            engine: ev.engine,
+            url: rawUrl,
+            domain: domain || 'unknown.com',
+            source_type: categorizeSource(domain, rawUrl),
+          });
+        }
+      }
+    });
+
+    if (citationRows.length > 0) {
       await supabase.from('citations').insert(citationRows);
     }
   }
