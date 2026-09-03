@@ -21,7 +21,6 @@ import {
   Filter,
   X,
   Link2,
-  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -42,31 +41,41 @@ export interface RecentAuditRun {
   timeAgo: string;
 }
 
-interface RecentActivityTableProps {
-  runs: RecentAuditRun[];
+export type ActivityTableStatusFilter = 'all' | 'mentioned' | 'missing';
+export type ActivityTableCitationFilter = 'all' | 'has_citations' | 'high_citations';
+
+export interface RecentActivityTableFilterOptions {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  statusFilter: 'all' | 'mentioned' | 'missing';
-  onStatusFilterChange: (status: 'all' | 'mentioned' | 'missing') => void;
-  citationFilter: 'all' | 'has_citations' | 'high_citations';
-  onCitationFilterChange: (filter: 'all' | 'has_citations' | 'high_citations') => void;
+  statusFilter: ActivityTableStatusFilter;
+  onStatusFilterChange: (status: ActivityTableStatusFilter) => void;
+  citationFilter: ActivityTableCitationFilter;
+  onCitationFilterChange: (filter: ActivityTableCitationFilter) => void;
   activeCitationDomainFilter: string | null;
   onClearCitationDomainFilter: () => void;
   onResetTableFilters: () => void;
 }
 
+export interface RecentActivityTableProps {
+  runs: RecentAuditRun[];
+  filterOptions: RecentActivityTableFilterOptions;
+}
+
 export function RecentActivityTable({
   runs,
-  searchQuery,
-  onSearchChange,
-  statusFilter,
-  onStatusFilterChange,
-  citationFilter,
-  onCitationFilterChange,
-  activeCitationDomainFilter,
-  onClearCitationDomainFilter,
-  onResetTableFilters,
+  filterOptions,
 }: RecentActivityTableProps) {
+  const {
+    searchQuery,
+    onSearchChange,
+    statusFilter,
+    onStatusFilterChange,
+    citationFilter,
+    onCitationFilterChange,
+    activeCitationDomainFilter,
+    onClearCitationDomainFilter,
+    onResetTableFilters,
+  } = filterOptions;
   const getSentimentBadge = (sentiment: 'positive' | 'neutral' | 'negative') => {
     switch (sentiment) {
       case 'positive':
