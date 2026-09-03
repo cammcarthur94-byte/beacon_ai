@@ -33,12 +33,6 @@ export function SentimentRangeSlider({ value, onChange, className }: SentimentRa
     return `${val}`;
   };
 
-  const getSentimentLabel = (val: number) => {
-    if (val <= -40) return 'Critical';
-    if (val < 20) return 'Neutral';
-    return 'Positive';
-  };
-
   const isFiltered = minVal !== min || maxVal !== max;
 
   return (
