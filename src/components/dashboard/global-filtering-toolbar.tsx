@@ -65,7 +65,6 @@ export function GlobalFilteringToolbar({
   const isEngineFiltered = selectedEngines.length > 0 && selectedEngines.length < ALL_ENGINES.length;
   const isSentimentSliderFiltered = sentimentRange[0] !== -100 || sentimentRange[1] !== 100;
   const isSentimentCategoryFiltered = selectedSentimentCategory !== 'all';
-  const isCompetitorsFiltered = selectedCompetitors.length < competitors.length;
   const isCitationFiltered = Boolean(selectedCitationDomain);
 
   const activeFiltersCount =
