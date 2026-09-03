@@ -25,19 +25,22 @@ export async function signInWithEmail(
 
   // Fallback for local development if Supabase cloud isn't connected yet
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const cookieStore = await cookies();
-    cookieStore.set('beacon_demo_user', JSON.stringify({ email, id: 'demo-user-id' }), {
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
-    
-    // Check if demo project cookie exists
-    const demoProject = cookieStore.get('beacon_active_project');
-    if (!demoProject) {
-      redirect('/onboarding');
-    } else {
-      redirect('/dashboard');
+    if (process.env.NODE_ENV === 'development') {
+      const cookieStore = await cookies();
+      cookieStore.set('beacon_demo_user', JSON.stringify({ email, id: 'demo-user-id' }), {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      // Check if demo project cookie exists
+      const demoProject = cookieStore.get('beacon_active_project');
+      if (!demoProject) {
+        redirect('/onboarding');
+      } else {
+        redirect('/dashboard');
+      }
     }
+    return { error: 'Authentication service is not configured.' };
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -88,12 +91,15 @@ export async function signUpWithEmail(
 
   // Fallback for local development
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const cookieStore = await cookies();
-    cookieStore.set('beacon_demo_user', JSON.stringify({ email, fullName, id: 'demo-user-id' }), {
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
-    redirect('/onboarding');
+    if (process.env.NODE_ENV === 'development') {
+      const cookieStore = await cookies();
+      cookieStore.set('beacon_demo_user', JSON.stringify({ email, fullName, id: 'demo-user-id' }), {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      redirect('/onboarding');
+    }
+    return { error: 'Authentication service is not configured.' };
   }
 
   const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -127,13 +133,16 @@ export async function signInWithGoogle() {
   const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const cookieStore = await cookies();
-    cookieStore.set(
-      'beacon_demo_user',
-      JSON.stringify({ email: 'demo.founder@company.ai', fullName: 'Demo Founder', id: 'demo-user-id' }),
-      { path: '/', maxAge: 60 * 60 * 24 * 7 }
-    );
-    redirect('/onboarding');
+    if (process.env.NODE_ENV === 'development') {
+      const cookieStore = await cookies();
+      cookieStore.set(
+        'beacon_demo_user',
+        JSON.stringify({ email: 'demo.founder@company.ai', fullName: 'Demo Founder', id: 'demo-user-id' }),
+        { path: '/', maxAge: 60 * 60 * 24 * 7 }
+      );
+      redirect('/onboarding');
+    }
+    redirect(`/login?error=${encodeURIComponent('Authentication service is not configured.')}`);
   }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
