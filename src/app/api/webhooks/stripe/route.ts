@@ -75,7 +75,6 @@ export async function POST(req: NextRequest) {
         })
         .eq('stripe_customer_id', customerId);
 
-      console.log(`Subscription deleted for customer ${customerId}. Reverted to starter.`);
       break;
     }
 
