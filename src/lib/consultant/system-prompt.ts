@@ -23,7 +23,7 @@ export function normalizeEngineName(engine: string): string {
   return engine || 'AI search engines';
 }
 
-function describeCompetitors(brandKit: BrandKit): string {
+export function describeCompetitors(brandKit: BrandKit): string {
   const competitors = brandKit.competitors || [];
   if (competitors.length === 0) {
     return 'No named competitors on file - ask the user who their closest rivals are before benchmarking.';
