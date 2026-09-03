@@ -10,19 +10,21 @@ interface TabsContextValue {
 
 const TabsContext = React.createContext<TabsContextValue | undefined>(undefined);
 
+export interface TabsProps {
+  value?: string;
+  onValueChange?: (value: string) => void;
+  defaultValue?: string;
+  children: React.ReactNode;
+  className?: string;
+}
+
 export function Tabs({
   value,
   onValueChange,
   defaultValue,
   children,
   className,
-}: {
-  value?: string;
-  onValueChange?: (value: string) => void;
-  defaultValue?: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
+}: TabsProps) {
   const [currentValue, setCurrentValue] = React.useState(defaultValue || "");
   const activeValue = value !== undefined ? value : currentValue;
   const setActiveValue = onValueChange || setCurrentValue;
@@ -34,13 +36,12 @@ export function Tabs({
   );
 }
 
-export function TabsList({
-  children,
-  className,
-}: {
+export interface TabsListProps {
   children: React.ReactNode;
   className?: string;
-}) {
+}
+
+export function TabsList({ children, className }: TabsListProps) {
   return (
     <div
       className={cn(
@@ -53,17 +54,19 @@ export function TabsList({
   );
 }
 
+export interface TabsTriggerProps {
+  value: string;
+  children: React.ReactNode;
+  className?: string;
+  disabled?: boolean;
+}
+
 export function TabsTrigger({
   value,
   children,
   className,
   disabled = false,
-}: {
-  value: string;
-  children: React.ReactNode;
-  className?: string;
-  disabled?: boolean;
-}) {
+}: TabsTriggerProps) {
   const context = React.useContext(TabsContext);
   if (!context) throw new Error("TabsTrigger must be used within Tabs");
 
@@ -87,15 +90,13 @@ export function TabsTrigger({
   );
 }
 
-export function TabsContent({
-  value,
-  children,
-  className,
-}: {
+export interface TabsContentProps {
   value: string;
   children: React.ReactNode;
   className?: string;
-}) {
+}
+
+export function TabsContent({ value, children, className }: TabsContentProps) {
   const context = React.useContext(TabsContext);
   if (!context) throw new Error("TabsContent must be used within Tabs");
 
