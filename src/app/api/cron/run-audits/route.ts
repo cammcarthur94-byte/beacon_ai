@@ -142,6 +142,8 @@ async function handleCron(request: NextRequest) {
     });
 
     // Save outputs to `results`, insert citations, and inspect drops
+    const citationRowsToInsert: Database['public']['Tables']['citations']['Insert'][] = [];
+
     for (const evaluation of evaluationResults) {
       const { data: insertedResult } = await supabase.from('results').insert({
         prompt_id: prompt.id,
@@ -169,7 +171,7 @@ async function handleCron(request: NextRequest) {
           };
         });
 
-        await supabase.from('citations').insert(citationRows);
+        citationRowsToInsert.push(...citationRows);
       }
 
       summary.resultsCreated++;
@@ -222,6 +224,10 @@ async function handleCron(request: NextRequest) {
           },
         });
       }
+    }
+
+    if (citationRowsToInsert.length > 0) {
+      await supabase.from('citations').insert(citationRowsToInsert);
     }
 
     // 4. Update prompt's last_run_at and compute next_run_at
