@@ -522,7 +522,7 @@ export default async function CitationsPage() {
 
   return (
     <AppSidebarLayout project={project}>
-      <div className="p-6 lg:p-10 max-w-7xl w-full mx-auto">
+      <div className="p-6 lg:p-10 max-w-[1400px] w-full mx-auto">
         <CitationsClient
           initialMetrics={metrics}
           initialSourceDistribution={sourceDistribution}

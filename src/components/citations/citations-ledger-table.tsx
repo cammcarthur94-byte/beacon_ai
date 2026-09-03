@@ -169,7 +169,7 @@ interface CitationsLedgerTableProps {
   onClearSourceTypes?: () => void;
 }
 
-type SortField = 'totalMentions' | 'domain' | 'lastCitedAt' | 'sourceType' | 'promptsCount';
+type SortField = 'totalMentions' | 'domain' | 'lastCitedAt' | 'sourceType' | 'promptsCount' | 'sentiment';
 type SortDirection = 'asc' | 'desc';
 
 function EngineFaviconLogo({ engine }: { engine: string }) {
@@ -309,6 +309,13 @@ export function CitationsLedgerTable({
         return sortDirection === 'desc'
           ? b.sourceType.localeCompare(a.sourceType)
           : a.sourceType.localeCompare(b.sourceType);
+      }
+      if (sortField === 'sentiment') {
+        const sentA = getDomainSentiment(a);
+        const sentB = getDomainSentiment(b);
+        return sortDirection === 'desc'
+          ? sentB.localeCompare(sentA)
+          : sentA.localeCompare(sentB);
       }
       return 0;
     });
@@ -604,13 +611,13 @@ export function CitationsLedgerTable({
       {/* 3. DATA TABLE (All Centered Alignment, Engine Logos, Standout Category Badges) */}
       <CardContent className="p-0">
         <div className="overflow-x-auto">
-          <Table className="min-w-[1050px] w-full font-sans">
+          <Table className="min-w-[1180px] w-full font-sans">
             <TableHeader>
               <TableRow className="bg-zinc-50/70 border-b border-zinc-200">
-                {/* Column 1: Referring Domain (22%) - Centered */}
+                {/* Column 1: Referring Domain (18%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('domain')}
-                  className="w-[22%] min-w-[180px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                  className="w-[18%] min-w-[170px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Referring Domain</span>
@@ -618,10 +625,10 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 2: Source Category (16%) - Centered */}
+                {/* Column 2: Source Category (14%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('sourceType')}
-                  className="w-[16%] min-w-[150px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                  className="w-[14%] min-w-[140px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Source Category</span>
@@ -629,15 +636,26 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 3: Citing Engines (13%) - Centered */}
-                <TableHead className="w-[13%] min-w-[110px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
+                {/* Column 3: Citing Engines (11%) - Centered */}
+                <TableHead className="w-[11%] min-w-[110px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
                   Citing Engines
                 </TableHead>
 
-                {/* Column 4: Mentions (11%) - Centered */}
+                {/* Column 4: Sentiment (12%) - Centered */}
+                <TableHead
+                  onClick={() => toggleSort('sentiment')}
+                  className="w-[12%] min-w-[120px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                >
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span>Sentiment</span>
+                    {getSortIcon('sentiment')}
+                  </div>
+                </TableHead>
+
+                {/* Column 5: Mentions (10%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('totalMentions')}
-                  className="w-[11%] min-w-[90px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                  className="w-[10%] min-w-[90px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Mentions</span>
@@ -645,10 +663,10 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 5: Prompts Cited (15%) - Centered */}
+                {/* Column 6: Prompts Cited (13%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('promptsCount')}
-                  className="w-[15%] min-w-[130px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
+                  className="w-[13%] min-w-[120px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <span>Prompts Cited</span>
@@ -656,12 +674,12 @@ export function CitationsLedgerTable({
                   </div>
                 </TableHead>
 
-                {/* Column 6: Recent Evidence URL (13%) - Centered, shortened */}
-                <TableHead className="w-[13%] min-w-[150px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
+                {/* Column 7: Recent Evidence URL (12%) - Centered, shortened */}
+                <TableHead className="w-[12%] min-w-[140px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
                   Most Recent URL
                 </TableHead>
 
-                {/* Column 7: Last Grounded (10%) - Centered */}
+                {/* Column 8: Last Grounded (10%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('lastCitedAt')}
                   className="w-[10%] min-w-[90px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold text-center py-3.5 group whitespace-nowrap"
@@ -677,7 +695,7 @@ export function CitationsLedgerTable({
             <TableBody>
               {paginatedRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-16 text-zinc-500 text-xs font-sans">
+                  <TableCell colSpan={8} className="text-center py-16 text-zinc-500 text-xs font-sans">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Filter className="h-6 w-6 text-zinc-400" />
                       <span className="font-medium text-zinc-700">
@@ -718,34 +736,13 @@ export function CitationsLedgerTable({
                       key={row.domain}
                       className="group hover:bg-zinc-50/70 transition-colors border-b border-zinc-100 last:border-0"
                     >
-                      {/* Column 1: Referring Domain - Centered, zero text cutoff with sentiment */}
+                      {/* Column 1: Referring Domain - Centered, zero text cutoff */}
                       <TableCell className="py-3.5 text-center font-medium text-zinc-950 whitespace-nowrap font-sans">
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center justify-center gap-2.5">
                           <DomainFavicon domain={row.domain} size="sm" />
-                          <div className="flex flex-col items-start gap-0.5 text-left">
-                            <span className="font-medium text-xs text-zinc-900 whitespace-nowrap font-sans">
-                              {row.domain}
-                            </span>
-                            <span
-                              className={cn(
-                                "inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded border leading-none",
-                                domainSentiment === 'positive'
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                  : domainSentiment === 'cautionary'
-                                  ? "bg-amber-50 text-amber-700 border-amber-200"
-                                  : "bg-slate-50 text-slate-600 border-slate-200"
-                              )}
-                            >
-                              {domainSentiment === 'positive' ? (
-                                <Smile className="h-2.5 w-2.5 text-emerald-600" />
-                              ) : domainSentiment === 'cautionary' ? (
-                                <Frown className="h-2.5 w-2.5 text-amber-600" />
-                              ) : (
-                                <Meh className="h-2.5 w-2.5 text-slate-500" />
-                              )}
-                              <span className="capitalize">{domainSentiment}</span>
-                            </span>
-                          </div>
+                          <span className="font-medium text-xs text-zinc-900 whitespace-nowrap font-sans">
+                            {row.domain}
+                          </span>
                         </div>
                       </TableCell>
 
@@ -773,7 +770,32 @@ export function CitationsLedgerTable({
                         </div>
                       </TableCell>
 
-                      {/* Column 4: Mentions (with visual bar) - Centered */}
+                      {/* Column 4: Sentiment - Centered */}
+                      <TableCell className="py-3.5 text-center whitespace-nowrap font-sans">
+                        <div className="flex items-center justify-center">
+                          <span
+                            className={cn(
+                              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border shadow-2xs whitespace-nowrap font-sans',
+                              domainSentiment === 'positive'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : domainSentiment === 'cautionary'
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-slate-50 text-slate-700 border-slate-200'
+                            )}
+                          >
+                            {domainSentiment === 'positive' ? (
+                              <Smile className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                            ) : domainSentiment === 'cautionary' ? (
+                              <Frown className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                            ) : (
+                              <Meh className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                            )}
+                            <span className="capitalize">{domainSentiment}</span>
+                          </span>
+                        </div>
+                      </TableCell>
+
+                      {/* Column 5: Mentions (with visual bar) - Centered */}
                       <TableCell className="py-3.5 text-center whitespace-nowrap font-sans">
                         <div className="flex items-center justify-center gap-2.5">
                           <span className="font-bold text-xs text-zinc-950 tabular-nums">
