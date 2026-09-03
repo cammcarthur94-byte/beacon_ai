@@ -9,8 +9,6 @@ import { CitationsLedgerTable, type DomainCitationRow } from './citations-ledger
 import { Calendar, X } from 'lucide-react';
 import type { CitationSourceType } from '@/types/database.types';
 import { getSourceTypeMeta } from '@/lib/citations/categorizer';
-import { CitationSourceIcon } from './domain-favicon';
-
 interface CitationsClientProps {
   initialMetrics: CitationSummaryMetrics;
   initialSourceDistribution: SourceDistributionDataPoint[];
@@ -209,9 +207,11 @@ export function CitationsClient({
         <SourceDistributionChart
           data={initialSourceDistribution}
           totalCitations={filteredMetrics.totalCitations}
-          activeSourceTypes={activeSourceTypes}
-          onToggleSourceType={handleToggleSourceType}
-          onClearAll={handleClearSourceTypes}
+          filterOptions={{
+            activeSourceTypes,
+            onToggleSourceType: handleToggleSourceType,
+            onClearAll: handleClearSourceTypes,
+          }}
         />
         <CitationVelocityChart data={filteredVelocity} />
       </div>
