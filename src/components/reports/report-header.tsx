@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import type { ExecutiveReportData } from '@/lib/schemas/executive-report';
 
-interface ReportHeaderProps {
+export interface ReportHeaderOptions {
   brandName: string;
   domain: string;
   dateRange: '7d' | '30d' | 'all';
@@ -29,17 +29,23 @@ interface ReportHeaderProps {
   bestEngineSov: number;
 }
 
-export function ReportHeader({
-  brandName,
-  domain,
-  dateRange,
-  onDateRangeChange,
-  onGenerateFresh,
-  isGenerating,
-  generatedAt,
-  periodDelta,
-  bestEngineSov,
-}: ReportHeaderProps) {
+export interface ReportHeaderProps {
+  options: ReportHeaderOptions;
+}
+
+export function ReportHeader({ options }: ReportHeaderProps) {
+  const {
+    brandName,
+    domain,
+    dateRange,
+    onDateRangeChange,
+    onGenerateFresh,
+    isGenerating,
+    generatedAt,
+    periodDelta,
+    bestEngineSov,
+  } = options;
+
   const handlePrint = () => {
     if (typeof window !== 'undefined') {
       window.print();

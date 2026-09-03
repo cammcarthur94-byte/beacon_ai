@@ -75,15 +75,17 @@ export function ReportsClient({
 
       {/* 1. REPORT CONTROLS & HEADER WITH PERIOD-OVER-PERIOD DELTAS */}
       <ReportHeader
-        brandName={brandName}
-        domain={domain}
-        dateRange={dateRange}
-        onDateRangeChange={handleDateRangeChange}
-        onGenerateFresh={() => handleGenerate()}
-        isGenerating={isPending}
-        generatedAt={generatedAt}
-        periodDelta={report.periodDelta}
-        bestEngineSov={report.modelComparison.bestEngine.sov}
+        options={{
+          brandName,
+          domain,
+          dateRange,
+          onDateRangeChange: handleDateRangeChange,
+          onGenerateFresh: () => handleGenerate(),
+          isGenerating: isPending,
+          generatedAt,
+          periodDelta: report.periodDelta,
+          bestEngineSov: report.modelComparison.bestEngine.sov,
+        }}
       />
 
       {/* 2. EXECUTIVE CALLOUT BRIEF */}
