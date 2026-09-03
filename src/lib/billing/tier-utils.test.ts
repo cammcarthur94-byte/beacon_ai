@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { isTierEligibleForGoogleAi } from './tier-utils.ts';
+import { isTierEligibleForGoogleAi } from './tier-utils';
 
 describe('isTierEligibleForGoogleAi', () => {
   describe('eligible tiers', () => {

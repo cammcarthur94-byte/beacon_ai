@@ -203,6 +203,7 @@ export default async function CitationsPage() {
     });
   } else {
     // Rich industry-authentic simulated dataset for demo
+    const MOCK_BASE_TIME = Date.now();
     if (isConsumerRetail) {
       metrics = {
         totalCitations: 162,
