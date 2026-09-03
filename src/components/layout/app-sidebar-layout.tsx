@@ -21,6 +21,8 @@ import {
   X,
   ExternalLink,
   ArrowRight,
+  TrendingUp,
+  Target,
 } from 'lucide-react';
 
 interface AppSidebarLayoutProps {
@@ -81,7 +83,19 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
       href: '/citations',
       icon: Link2,
       active: pathname.startsWith('/citations'),
+    },
+    {
+      title: 'Authority Gap',
+      href: '/authority-gap',
+      icon: TrendingUp,
+      active: pathname.startsWith('/authority-gap'),
       badge: 'New',
+    },
+    {
+      title: 'Competitor Mapping',
+      href: '/competitor-mapping',
+      icon: Target,
+      active: pathname.startsWith('/competitor-mapping'),
     },
     {
       title: 'AI Co-worker',

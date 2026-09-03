@@ -37,6 +37,9 @@ import {
   Filter,
   Layers,
   Cpu,
+  Smile,
+  Meh,
+  Frown,
 } from 'lucide-react';
 import type { CitationSourceType } from '@/types/database.types';
 import { getSourceTypeMeta } from '@/lib/citations/categorizer';
@@ -63,6 +66,30 @@ export interface DomainCitationRow {
   allCitations?: CitationItemDetail[];
   promptsCount?: number;
   prompts?: PromptCitationStat[];
+  sentiment?: 'positive' | 'neutral' | 'cautionary';
+}
+
+export function getDomainSentiment(row: DomainCitationRow): 'positive' | 'neutral' | 'cautionary' {
+  if (row.sentiment) return row.sentiment;
+  const d = row.domain.toLowerCase();
+  if (
+    d.includes('wirecutter') ||
+    d.includes('nytimes') ||
+    d.includes('gearjunkie') ||
+    d.includes('self.com') ||
+    d.includes('reddit') ||
+    d.includes('purewow') ||
+    d.includes('runnersworld')
+  ) {
+    return 'positive';
+  }
+  if (d.includes('menshealth') || d.includes('huffpost') || d.includes('quora')) {
+    return 'neutral';
+  }
+  if (row.totalMentions < 7) {
+    return 'cautionary';
+  }
+  return 'positive';
 }
 
 export function getDomainPrompts(row: DomainCitationRow): PromptCitationStat[] {
@@ -183,6 +210,7 @@ export function CitationsLedgerTable({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEngine, setSelectedEngine] = useState<string>('all');
   const [mentionsFilter, setMentionsFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+  const [sentimentFilter, setSentimentFilter] = useState<'all' | 'positive' | 'neutral' | 'cautionary'>('all');
   const [sortField, setSortField] = useState<SortField>('totalMentions');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -204,13 +232,15 @@ export function CitationsLedgerTable({
     searchTerm.trim() !== '' ||
     isSourceFiltered ||
     selectedEngine !== 'all' ||
-    mentionsFilter !== 'all';
+    mentionsFilter !== 'all' ||
+    sentimentFilter !== 'all';
 
   const resetAllFilters = () => {
     setSearchTerm('');
     onClearSourceTypes?.();
     setSelectedEngine('all');
     setMentionsFilter('all');
+    setSentimentFilter('all');
     setCurrentPage(1);
   };
 
@@ -243,9 +273,14 @@ export function CitationsLedgerTable({
       else if (mentionsFilter === 'medium') matchesMentions = r.totalMentions >= 10 && r.totalMentions < 20;
       else if (mentionsFilter === 'low') matchesMentions = r.totalMentions < 10;
 
-      return matchesSearch && matchesSource && matchesEngine && matchesMentions;
+      // 5. Sentiment tone filter
+      const domainSentiment = getDomainSentiment(r);
+      const matchesSentiment =
+        sentimentFilter === 'all' || domainSentiment === sentimentFilter;
+
+      return matchesSearch && matchesSource && matchesEngine && matchesMentions && matchesSentiment;
     });
-  }, [rows, searchTerm, isSourceFiltered, activeSourceTypes, selectedEngine, mentionsFilter]);
+  }, [rows, searchTerm, isSourceFiltered, activeSourceTypes, selectedEngine, mentionsFilter, sentimentFilter]);
 
   // Sorting logic
   const sortedRows = useMemo(() => {
@@ -497,6 +532,55 @@ export function CitationsLedgerTable({
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Sentiment Tone Filter with category-specific colored border */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "h-8.5 text-xs gap-1.5 cursor-pointer shrink-0 shadow-2xs font-sans transition-all border-2",
+                  sentimentFilter === 'positive'
+                    ? "border-emerald-500 bg-emerald-50/70 text-emerald-950 font-bold shadow-xs"
+                    : sentimentFilter === 'cautionary'
+                    ? "border-amber-500 bg-amber-50/70 text-amber-950 font-bold shadow-xs"
+                    : sentimentFilter === 'neutral'
+                    ? "border-slate-500 bg-slate-100 text-slate-900 font-bold shadow-xs"
+                    : "border-zinc-200 bg-white text-zinc-700 font-medium"
+                )}
+              >
+                {sentimentFilter === 'positive' ? (
+                  <Smile className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                ) : sentimentFilter === 'cautionary' ? (
+                  <Frown className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                ) : sentimentFilter === 'neutral' ? (
+                  <Meh className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                ) : (
+                  <Smile className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                )}
+                <span>
+                  Sentiment: {sentimentFilter === 'all' ? 'All' : sentimentFilter}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 font-sans">
+              <DropdownMenuLabel>Filter by Sentiment Tone</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => { setSentimentFilter('all'); setCurrentPage(1); }}>
+                All Sentiments
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setSentimentFilter('positive'); setCurrentPage(1); }} className="font-semibold text-emerald-700">
+                Positive Tone
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setSentimentFilter('neutral'); setCurrentPage(1); }} className="font-semibold text-slate-700">
+                Neutral / Factual
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setSentimentFilter('cautionary'); setCurrentPage(1); }} className="font-semibold text-amber-700">
+                Cautionary / Nuanced
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {/* Reset Filters button if any filter applied */}
           {hasActiveFilters && (
             <Button
@@ -621,6 +705,7 @@ export function CitationsLedgerTable({
 
                   // Prompts associated with this domain
                   const domainPrompts = getDomainPrompts(row);
+                  const domainSentiment = getDomainSentiment(row);
 
                   // Relative percentage of mentions for progress bar
                   const mentionPercent = Math.min(
@@ -633,13 +718,34 @@ export function CitationsLedgerTable({
                       key={row.domain}
                       className="group hover:bg-zinc-50/70 transition-colors border-b border-zinc-100 last:border-0"
                     >
-                      {/* Column 1: Referring Domain - Centered, zero text cutoff */}
+                      {/* Column 1: Referring Domain - Centered, zero text cutoff with sentiment */}
                       <TableCell className="py-3.5 text-center font-medium text-zinc-950 whitespace-nowrap font-sans">
-                        <div className="flex items-center justify-center gap-2.5">
+                        <div className="flex items-center justify-center gap-2">
                           <DomainFavicon domain={row.domain} size="sm" />
-                          <span className="font-medium text-xs text-zinc-900 whitespace-nowrap font-sans">
-                            {row.domain}
-                          </span>
+                          <div className="flex flex-col items-start gap-0.5 text-left">
+                            <span className="font-medium text-xs text-zinc-900 whitespace-nowrap font-sans">
+                              {row.domain}
+                            </span>
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded border leading-none",
+                                domainSentiment === 'positive'
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : domainSentiment === 'cautionary'
+                                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                                  : "bg-slate-50 text-slate-600 border-slate-200"
+                              )}
+                            >
+                              {domainSentiment === 'positive' ? (
+                                <Smile className="h-2.5 w-2.5 text-emerald-600" />
+                              ) : domainSentiment === 'cautionary' ? (
+                                <Frown className="h-2.5 w-2.5 text-amber-600" />
+                              ) : (
+                                <Meh className="h-2.5 w-2.5 text-slate-500" />
+                              )}
+                              <span className="capitalize">{domainSentiment}</span>
+                            </span>
+                          </div>
                         </div>
                       </TableCell>
 

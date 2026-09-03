@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import { ModelGridMatrix } from './model-grid-matrix';
 import { ModelComparisonView } from './model-comparison-view';
 import { LowScoreStrategyCard } from './low-score-strategy-card';
+import { SentimentContextCard } from './sentiment-context-card';
 import { SentinelRemediationDrawer, type RemediationContext } from './sentinel-remediation-drawer';
 import { triggerInstantRun } from '@/app/audits/actions';
 import type { AuditRunDetail } from './raw-output-viewer';
@@ -290,6 +291,13 @@ export function AuditResultsClient({
           </button>
         </div>
       )}
+
+      {/* ── 3B. CITATION SENTIMENT & CONTEXT ANALYSIS ───────────── */}
+      <SentimentContextCard
+        runs={runs}
+        brandName={project.name}
+        onOpenSentinel={handleOpenSentinel}
+      />
 
       {/* ── 4. VIEW SWITCHER (GRID MATRIX VS MODEL COMPARISON) ──── */}
       <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
