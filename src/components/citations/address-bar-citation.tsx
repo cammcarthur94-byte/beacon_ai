@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Lock, ExternalLink, Globe } from 'lucide-react';
 import { extractDomain } from '@/lib/citations/categorizer';
 
-interface AddressBarCitationProps {
+export interface AddressBarCitationProps {
   url?: string;
   domain?: string;
   size?: 'sm' | 'md';
@@ -13,35 +13,57 @@ interface AddressBarCitationProps {
   className?: string;
 }
 
-export function AddressBarCitation({
-  url,
-  domain,
-  size = 'sm',
-  showExternalLink = true,
-  className = '',
-}: AddressBarCitationProps) {
-  const [hasError, setHasError] = React.useState(false);
+interface CitationUrlOptions {
+  url?: string;
+  domain?: string;
+}
 
-  const cleanDomain = React.useMemo(() => {
-    if (domain) return extractDomain(domain);
-    if (url) return extractDomain(url);
-    return 'example.com';
-  }, [domain, url]);
+function resolveCitationDetails(options: CitationUrlOptions) {
+  const { url, domain } = options;
 
-  const displayPath = React.useMemo(() => {
-    if (!url) return cleanDomain;
+  const cleanDomain = domain
+    ? extractDomain(domain)
+    : url
+    ? extractDomain(url)
+    : 'example.com';
+
+  let displayPath = cleanDomain;
+  if (url) {
     try {
       const full = url.startsWith('http') ? url : `https://${url}`;
       const parsed = new URL(full);
       const host = parsed.hostname.replace(/^www\./i, '');
       const path = parsed.pathname === '/' ? '' : parsed.pathname;
-      return `${host}${path}`;
+      displayPath = `${host}${path}`;
     } catch {
-      return url.replace(/^https?:\/\/(www\.)?/i, '');
+      displayPath = url.replace(/^https?:\/\/(www\.)?/i, '');
     }
-  }, [url, cleanDomain]);
+  }
 
-  const targetUrl = url ? (url.startsWith('http') ? url : `https://${url}`) : `https://${cleanDomain}`;
+  const targetUrl = url
+    ? url.startsWith('http')
+      ? url
+      : `https://${url}`
+    : `https://${cleanDomain}`;
+
+  return { cleanDomain, displayPath, targetUrl };
+}
+
+export function AddressBarCitation(props: AddressBarCitationProps) {
+  const {
+    url,
+    domain,
+    size = 'sm',
+    showExternalLink = true,
+    className = '',
+  } = props;
+
+  const [hasError, setHasError] = React.useState(false);
+
+  const { cleanDomain, displayPath, targetUrl } = React.useMemo(
+    () => resolveCitationDetails({ url, domain }),
+    [url, domain]
+  );
 
   return (
     <a
