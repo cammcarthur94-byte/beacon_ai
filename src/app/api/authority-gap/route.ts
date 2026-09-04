@@ -250,9 +250,12 @@ export async function POST(request: NextRequest) {
     }> = [];
 
     if (hasGoogleKey) {
-      try {
-        const model = google('gemini-3.8-flash');
-        const systemPrompt = `You are Beacon's Senior Digital PR Strategist.
+      const candidates = ['gemini-3.1-flash-lite', 'gemini-3-flash-preview'];
+      for (const candidate of candidates) {
+        if (variations.length >= 3) break;
+        try {
+          const model = google(candidate);
+          const systemPrompt = `You are Beacon's Senior Digital PR Strategist.
 Generate 3 distinct, highly tailored email pitches for ${brandName} to send to editors at ${domain}.
 Goal: Displace ${competitorName || 'competitors'} in coverage of "${relevanceTopic || 'category roundup'}".
 
@@ -292,23 +295,25 @@ Output strictly valid JSON array:
   }
 ]`;
 
-        const result = await generateText({
-          model,
-          system: systemPrompt,
-          prompt: `Publication: ${domain}\nTopic: ${relevanceTopic}\nCompetitor: ${competitorName}\nOutput strictly JSON array.`,
-          maxOutputTokens: 1200,
-          temperature: 0.65,
-          maxRetries: 0,
-        });
+          const result = await generateText({
+            model,
+            system: systemPrompt,
+            prompt: `Publication: ${domain}\nTopic: ${relevanceTopic}\nCompetitor: ${competitorName}\nOutput strictly JSON array.`,
+            maxOutputTokens: 1200,
+            temperature: 0.65,
+            maxRetries: 0,
+          });
 
-        const jsonMatch = result.text.match(/\[\s*\{[\s\S]*\}\s*\]/);
-        const cleanJson = jsonMatch ? jsonMatch[0] : result.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanJson);
-        if (Array.isArray(parsed) && parsed.length >= 3) {
-          variations = parsed.slice(0, 3);
+          const jsonMatch = result.text.match(/\[\s*\{[\s\S]*\}\s*\]/);
+          const cleanJson = jsonMatch ? jsonMatch[0] : result.text.replace(/```json/g, '').replace(/```/g, '').trim();
+          const parsed = JSON.parse(cleanJson);
+          if (Array.isArray(parsed) && parsed.length >= 3) {
+            variations = parsed.slice(0, 3);
+            break;
+          }
+        } catch (err) {
+          console.warn(`Gemini generation (${candidate}) in authority-gap fallback:`, err);
         }
-      } catch (err) {
-        console.warn('Gemini 3.8 Flash generation in authority-gap fallback:', err);
       }
     }
 

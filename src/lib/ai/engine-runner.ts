@@ -235,7 +235,7 @@ async function pingEngine(
       });
       rawOutput = response.text;
     } else if (engine.toLowerCase() === 'gemini' && process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      const candidates = [BEACON_MODELS.SEARCH_GROUNDING.id, 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-1.5-pro'];
+      const candidates = ['gemini-3.1-flash-lite', BEACON_MODELS.SEARCH_GROUNDING.id, 'gemini-3-flash-preview', 'gemini-1.5-pro'];
       for (const candidate of candidates) {
         try {
           const response = await generateText({

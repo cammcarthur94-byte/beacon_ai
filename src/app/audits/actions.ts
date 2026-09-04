@@ -556,13 +556,15 @@ export async function generateAiPrompts(params: {
   const intent = params.searchIntent || 'all';
   const association = params.brandAssociation || 'both';
 
-  // 1. Strictly use designated Gemini 3.8 Flash model
+  // 1. Primary AI Prompt Generation (Gemini 3.1 Flash with Preview fallback)
   const hasGoogleKey = Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY);
 
   if (hasGoogleKey) {
-    try {
-      const model = google('gemini-3.8-flash');
-      const systemPrompt = `You are Beacon's Generative Engine Optimization (GEO) strategist.
+    const candidates = ['gemini-3.1-flash-lite', 'gemini-3-flash-preview'];
+    for (const candidate of candidates) {
+      try {
+        const model = google(candidate);
+        const systemPrompt = `You are Beacon's Generative Engine Optimization (GEO) strategist.
 Generate ${count} high-impact, realistic search query prompts that prospective buyers ask conversational search engines (ChatGPT, Perplexity, Gemini, Claude).
 Respond strictly with a valid JSON array of objects with the following schema:
 [
@@ -576,7 +578,7 @@ Respond strictly with a valid JSON array of objects with the following schema:
   }
 ]`;
 
-      const userPrompt = `Workspace Context:
+        const userPrompt = `Workspace Context:
 Brand: ${brandName} (${domain})
 Industry: ${brandKit.industry || 'Consumer Retail'}
 Core Offerings: ${brandKit.core_offerings || 'Key products'}
@@ -590,33 +592,34 @@ Parameters:
 
 Generate exactly ${count} realistic buyer queries. Output strictly a JSON array without markdown formatting or code fences.`;
 
-      const result = await generateText({
-        model,
-        system: systemPrompt,
-        prompt: userPrompt,
-        maxRetries: 0,
-      });
+        const result = await generateText({
+          model,
+          system: systemPrompt,
+          prompt: userPrompt,
+          maxRetries: 0,
+        });
 
-      const jsonMatch = result.text.match(/\[\s*\{[\s\S]*\}\s*\]/);
-      const cleanJson = jsonMatch ? jsonMatch[0] : result.text.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(cleanJson);
+        const jsonMatch = result.text.match(/\[\s*\{[\s\S]*\}\s*\]/);
+        const cleanJson = jsonMatch ? jsonMatch[0] : result.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanJson);
 
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const validated: GeneratedPromptSuggestion[] = parsed.slice(0, count).map((item, idx) => ({
-          id: `gen-${Date.now()}-${idx}`,
-          query_text: item.query_text,
-          category: item.category || category,
-          search_intent: (['commercial', 'transactional', 'informational', 'navigational'].includes(item.search_intent)
-            ? item.search_intent
-            : 'commercial') as SearchIntent,
-          brand_association: (item.brand_association === 'branded' ? 'branded' : 'unbranded') as BrandAssociation,
-          recommended_frequency: (item.recommended_frequency === 'weekly' ? 'weekly' : 'daily') as AuditFrequency,
-          rationale: item.rationale || 'High-value customer consideration search query.',
-        }));
-        return { prompts: validated };
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const validated: GeneratedPromptSuggestion[] = parsed.slice(0, count).map((item, idx) => ({
+            id: `gen-${Date.now()}-${idx}`,
+            query_text: item.query_text,
+            category: item.category || category,
+            search_intent: (['commercial', 'transactional', 'informational', 'navigational'].includes(item.search_intent)
+              ? item.search_intent
+              : 'commercial') as SearchIntent,
+            brand_association: (item.brand_association === 'branded' ? 'branded' : 'unbranded') as BrandAssociation,
+            recommended_frequency: (item.recommended_frequency === 'weekly' ? 'weekly' : 'daily') as AuditFrequency,
+            rationale: item.rationale || 'High-value customer consideration search query.',
+          }));
+          return { prompts: validated };
+        }
+      } catch (err) {
+        console.warn(`Gemini generation (${candidate}) encountered temporary issue, checking next candidate:`, err);
       }
-    } catch (err) {
-      console.warn('Gemini 3.8 Flash generation encountered temporary rate or capacity restriction, engaging dynamic synthesizer:', err);
     }
   }
 

@@ -116,7 +116,6 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
       href: '/consultant',
       icon: Sparkles,
       active: pathname.startsWith('/consultant'),
-      badge: 'Gemini 3.8',
     },
     {
       title: 'Brand Kit',

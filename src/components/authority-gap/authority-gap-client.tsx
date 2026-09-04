@@ -537,7 +537,7 @@ export function AuthorityGapClient() {
             </p>
           </div>
           <div className="text-xs text-slate-400">
-            Click &quot;Ask Beacon Sentinel&quot; to draft outreach or pitch angle
+            Click &quot;Draft Pitch&quot; to generate targeted outreach for any gap
           </div>
         </div>
 
@@ -715,10 +715,10 @@ export function AuthorityGapClient() {
                         <Button
                           size="sm"
                           onClick={() => handleOpenPitchDrawer(item)}
-                          className="h-8 px-3 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-semibold shadow-none transition-all group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600"
+                          className="h-8 px-3 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-semibold shadow-none transition-all group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 cursor-pointer"
                         >
                           <Sparkles className="h-3 w-3 mr-1.5" />
-                          Ask Sentinel
+                          Draft Pitch
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -749,12 +749,8 @@ export function AuthorityGapClient() {
                     <Sparkles className="h-3.5 w-3.5" />
                   </div>
                   <h2 className="text-base font-bold text-slate-900">
-                    Beacon Sentinel Outreach Engine
+                    Editorial Pitch Outreach
                   </h2>
-                  <span className="text-[10px] text-emerald-800 font-semibold bg-emerald-50 border border-emerald-300 px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <Sparkles className="h-2.5 w-2.5 text-emerald-600" />
-                    Gemini 3.8 Flash
-                  </span>
                 </div>
                 <p className="text-xs text-slate-500">
                   AI-engineered editorial pitch variations to displace competitors on{' '}
@@ -806,7 +802,7 @@ export function AuthorityGapClient() {
                 <div className="h-64 flex flex-col items-center justify-center text-center gap-3">
                   <RefreshCw className="h-6 w-6 animate-spin text-emerald-600" />
                   <p className="text-xs font-semibold text-slate-800">
-                    Synthesizing 3 brand-tailored pitch angles with Gemini 3.8 Flash...
+                    Synthesizing 3 brand-tailored pitch angles...
                   </p>
                   <p className="text-[11px] text-slate-400 max-w-xs">
                     Generating benchmark hooks, review unit collaboration, and direct executive angles

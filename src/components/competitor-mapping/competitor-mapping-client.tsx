@@ -329,7 +329,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
               className="h-9 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium cursor-pointer"
             >
               <Sparkles className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
-              Ask Sentinel Analysis
+              Content Studio
             </Button>
           </Link>
 
@@ -905,10 +905,6 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
                   <h2 className="text-base font-bold text-slate-900">
                     Beacon Sentinel Parity Remediation
                   </h2>
-                  <span className="text-[10px] text-purple-700 font-semibold bg-purple-50 border border-purple-200/80 px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <Sparkles className="h-2.5 w-2.5 text-purple-600" />
-                    Claude Sonnet 5
-                  </span>
                 </div>
                 <p className="text-xs text-slate-500">
                   Interactive AI assistant engineering parity copy &amp; grounding schema for{' '}
@@ -1073,7 +1069,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
               >
                 <Input
                   type="text"
-                  placeholder="Ask Sentinel to draft schema, comparison copy, or PR angle..."
+                  placeholder="Draft schema, comparison copy, or PR pitch angle..."
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   className="h-9 text-xs bg-slate-50/70 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white font-sans"
