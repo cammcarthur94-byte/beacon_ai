@@ -159,20 +159,33 @@ function computeToneAlignment(brandKit: BrandKit, overrides?: Partial<BrandKit>)
   };
 }
 
-function resolveModel(preferredProvider: 'anthropic' | 'google') {
+interface ModelCandidate {
+  model: any;
+  modelName: string;
+  provider: 'anthropic' | 'google';
+}
+
+function getModelCandidates(preferredProvider: 'anthropic' | 'google'): ModelCandidate[] {
   const hasAnthropic = Boolean(process.env.ANTHROPIC_API_KEY);
   const hasGoogle = Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY);
 
-  if (preferredProvider === 'anthropic' && hasAnthropic) {
-    return { model: anthropic('claude-sonnet-5'), modelName: 'Claude Sonnet 5' };
+  const anthropicCandidates: ModelCandidate[] = hasAnthropic
+    ? [{ model: anthropic('claude-sonnet-5'), modelName: 'Claude Sonnet 5', provider: 'anthropic' }]
+    : [];
+
+  // gemini-3-flash-preview and gemini-3.1-flash-lite are verified active on Google API; gemini-3.8-flash is attempted as secondary
+  const googleCandidates: ModelCandidate[] = hasGoogle
+    ? [
+        { model: google('gemini-3-flash-preview'), modelName: 'Gemini 3 Flash', provider: 'google' },
+        { model: google('gemini-3.1-flash-lite'), modelName: 'Gemini 3.1 Flash Lite', provider: 'google' },
+        { model: google('gemini-3.8-flash'), modelName: 'Gemini 3.8 Flash', provider: 'google' },
+      ]
+    : [];
+
+  if (preferredProvider === 'anthropic') {
+    return [...anthropicCandidates, ...googleCandidates];
   }
-  if (hasGoogle) {
-    return { model: google('gemini-3.8-flash'), modelName: 'Gemini 3.8 Flash' };
-  }
-  if (hasAnthropic) {
-    return { model: anthropic('claude-sonnet-5'), modelName: 'Claude Sonnet 5' };
-  }
-  return null;
+  return [...googleCandidates, ...anthropicCandidates];
 }
 
 export async function POST(request: NextRequest) {
@@ -263,7 +276,7 @@ export async function POST(request: NextRequest) {
     const negativeBoundaryPrompt = formatNegativeKeywordsForPrompt(brandKit.negative_keywords).promptText;
 
     // =========================================================================
-    // 1. BLOG POST & AEO AUTHORITY GUIDE GENERATION (Claude Sonnet 5 Hybrid)
+    // 1. BLOG POST & AEO AUTHORITY GUIDE GENERATION (Claude Sonnet 5 / Gemini Failover)
     // =========================================================================
     if (type === 'blog_post') {
       const {
@@ -275,9 +288,9 @@ export async function POST(request: NextRequest) {
         customContext = '',
       } = params;
 
-      const aiModelChoice = resolveModel('anthropic');
+      const candidates = getModelCandidates('anthropic');
 
-      if (aiModelChoice) {
+      for (const candidate of candidates) {
         try {
           const systemPrompt = `You are Beacon's Lead AEO & Content Strategist.
 Write an authoritative, publication-grade, long-form Generative Engine Optimization (AEO) article for ${brandName} (${brandDomain}).
@@ -331,7 +344,7 @@ ${customContext ? `Custom Instructions: ${customContext}` : ''}
 Generate the full comprehensive article in strictly valid JSON.`;
 
           const result = await generateText({
-            model: aiModelChoice.model,
+            model: candidate.model,
             system: systemPrompt,
             prompt: userPrompt,
             maxOutputTokens: 2500,
@@ -347,15 +360,15 @@ Generate the full comprehensive article in strictly valid JSON.`;
             return NextResponse.json({
               success: true,
               type: 'blog_post',
-              model: aiModelChoice.modelName,
+              model: candidate.modelName,
               article: {
                 ...parsed,
                 toneAlignment,
               },
             });
           }
-        } catch (err) {
-          console.warn('AI blog generation error, engaging calibrated fallback:', err);
+        } catch (err: any) {
+          console.warn(`[Content Studio] Model ${candidate.modelName} failed for blog_post (${err?.message}), attempting failover...`);
         }
       }
 
@@ -452,9 +465,9 @@ Generate the full comprehensive article in strictly valid JSON.`;
         customContext = '',
       } = params;
 
-      const aiModelChoice = resolveModel('anthropic');
+      const candidates = getModelCandidates('anthropic');
 
-      if (aiModelChoice) {
+      for (const candidate of candidates) {
         try {
           const systemPrompt = `You are an Executive Ghostwriter and Brand Narrative Strategist for ${brandName} (${brandDomain}).
 Create a high-impact, provocative Executive Thought Leadership piece for ${platform.toUpperCase()}.
@@ -489,14 +502,14 @@ Adhere strictly to this JSON schema:
 }`;
 
           const result = await generateText({
-            model: aiModelChoice.model,
+            model: candidate.model,
             system: systemPrompt,
             prompt: `Topic: ${topic}
 Contrarian Angle: ${contrarianAngle}
 ${customContext ? `Additional Nuance: ${customContext}` : ''}
 
 Generate strictly valid JSON.`,
-            maxOutputTokens: 1500,
+            maxOutputTokens: 1800,
             temperature: 0.6,
             maxRetries: 0,
           });
@@ -509,15 +522,15 @@ Generate strictly valid JSON.`,
             return NextResponse.json({
               success: true,
               type: 'thought_leadership',
-              model: aiModelChoice.modelName,
+              model: candidate.modelName,
               post: {
                 ...parsed,
                 toneAlignment,
               },
             });
           }
-        } catch (err) {
-          console.warn('AI thought leadership generation error, engaging fallback:', err);
+        } catch (err: any) {
+          console.warn(`[Content Studio] Model ${candidate.modelName} failed for thought_leadership (${err?.message}), attempting failover...`);
         }
       }
 
@@ -566,9 +579,9 @@ Generate strictly valid JSON.`,
         customNotes = '',
       } = params;
 
-      const aiModelChoice = resolveModel('anthropic');
+      const candidates = getModelCandidates('anthropic');
 
-      if (aiModelChoice) {
+      for (const candidate of candidates) {
         try {
           const systemPrompt = `You are Beacon's Senior Digital PR & Generative Engine Optimization (GEO) Outreach Strategist.
 Generate 3 distinct, highly tailored editorial email pitch variations for ${brandName} (${brandDomain}).
@@ -637,10 +650,10 @@ ${customNotes ? `Special Instructions: ${customNotes}` : ''}
 Generate the 3 email variations in JSON. No markdown backticks, output strictly JSON.`;
 
           const result = await generateText({
-            model: aiModelChoice.model,
+            model: candidate.model,
             system: systemPrompt,
             prompt: userPrompt,
-            maxOutputTokens: 1400,
+            maxOutputTokens: 2200,
             temperature: 0.55,
             maxRetries: 0,
           });
@@ -653,12 +666,12 @@ Generate the 3 email variations in JSON. No markdown backticks, output strictly 
             return NextResponse.json({
               success: true,
               type: 'outreach_email',
-              model: aiModelChoice.modelName,
+              model: candidate.modelName,
               variations: parsed.slice(0, 3).map(v => ({ ...v, toneAlignment })),
             });
           }
-        } catch (err) {
-          console.warn('AI email generation error, engaging fallback synthesizer:', err);
+        } catch (err: any) {
+          console.warn(`[Content Studio] Model ${candidate.modelName} failed for outreach_email (${err?.message}), attempting failover...`);
         }
       }
 
@@ -723,9 +736,9 @@ Generate the 3 email variations in JSON. No markdown backticks, output strictly 
         targetEngine = 'Google AI Overviews',
       } = params;
 
-      const aiModelChoice = resolveModel('google');
+      const candidates = getModelCandidates('google');
 
-      if (aiModelChoice) {
+      for (const candidate of candidates) {
         try {
           const systemPrompt = `You are Beacon's AEO Semantic Entity Architect.
 Generate 4 authoritative FAQ pairs for ${brandName} (${brandDomain}) optimized for retrieval by ${targetEngine}.
@@ -746,10 +759,10 @@ Output strictly a valid JSON array:
 ]`;
 
           const result = await generateText({
-            model: aiModelChoice.model,
+            model: candidate.model,
             system: systemPrompt,
             prompt: `Topic Focus: ${topic}. Output strictly JSON.`,
-            maxOutputTokens: 1000,
+            maxOutputTokens: 1200,
             temperature: 0.4,
             maxRetries: 0,
           });
@@ -762,13 +775,13 @@ Output strictly a valid JSON array:
             return NextResponse.json({
               success: true,
               type: 'faq_block',
-              model: aiModelChoice.modelName,
+              model: candidate.modelName,
               faqs: parsed,
               toneAlignment,
             });
           }
-        } catch (err) {
-          console.warn('Gemini FAQ generation error:', err);
+        } catch (err: any) {
+          console.warn(`[Content Studio] Model ${candidate.modelName} failed for faq_block (${err?.message}), attempting failover...`);
         }
       }
 
@@ -819,9 +832,9 @@ Output strictly a valid JSON array:
         buyerPriority = 'Long-term durability and athletic mobility',
       } = params;
 
-      const aiModelChoice = resolveModel('google');
+      const candidates = getModelCandidates('google');
 
-      if (aiModelChoice) {
+      for (const candidate of candidates) {
         try {
           const systemPrompt = `You are Beacon's Head of Competitive GEO Strategy.
 Generate an objective, authoritative competitor positioning matrix for ${brandName} vs ${competitorName}.
@@ -845,10 +858,10 @@ Output strictly valid JSON:
 }`;
 
           const result = await generateText({
-            model: aiModelChoice.model,
+            model: candidate.model,
             system: systemPrompt,
             prompt: `Generate comparison matrix. Output strictly JSON.`,
-            maxOutputTokens: 1000,
+            maxOutputTokens: 1200,
             temperature: 0.4,
             maxRetries: 0,
           });
@@ -861,15 +874,15 @@ Output strictly valid JSON:
             return NextResponse.json({
               success: true,
               type: 'competitor_comparison',
-              model: aiModelChoice.modelName,
+              model: candidate.modelName,
               comparison: {
                 ...parsed,
                 toneAlignment,
               },
             });
           }
-        } catch (err) {
-          console.warn('Gemini comparison generation error:', err);
+        } catch (err: any) {
+          console.warn(`[Content Studio] Model ${candidate.modelName} failed for competitor_comparison (${err?.message}), attempting failover...`);
         }
       }
 
@@ -913,11 +926,10 @@ Output strictly valid JSON:
         auditTopic = 'Brand Category Authority',
       } = params;
 
-      const aiModelChoice = resolveModel('google');
+      const candidates = getModelCandidates('google');
 
-      if (aiModelChoice) {
+      for (const candidate of candidates) {
         try {
-          const model = aiModelChoice.model;
           const systemPrompt = `You are Beacon's Senior Generative Engine Optimization (GEO) Architect.
 Provide 3 concrete, high-leverage remediation recommendations for ${brandName} (${brandDomain}) to increase citations on ${underperformingEngines.join(', ')}.
 Focus Topic: ${auditTopic}
@@ -937,7 +949,7 @@ Output strictly valid JSON array:
 ]`;
 
           const result = await generateText({
-            model,
+            model: candidate.model,
             system: systemPrompt,
             prompt: `Generate 3 strategic recommendations. Output strictly JSON.`,
             maxOutputTokens: 1000,
@@ -953,12 +965,12 @@ Output strictly valid JSON array:
             return NextResponse.json({
               success: true,
               type: 'strategic_recommendations',
-              model: 'gemini-3.8-flash',
+              model: candidate.modelName,
               recommendations: parsed,
             });
           }
-        } catch (err) {
-          console.warn('Gemini 3.8 Flash recommendations generation error:', err);
+        } catch (err: any) {
+          console.warn(`[Content Studio] Model ${candidate.modelName} failed for strategic_recommendations (${err?.message}), attempting failover...`);
         }
       }
 

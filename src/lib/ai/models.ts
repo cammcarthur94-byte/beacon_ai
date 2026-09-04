@@ -21,11 +21,11 @@ export const BEACON_MODELS = {
     fallbackIds: ['claude-3-7-sonnet-latest', 'claude-3-5-sonnet-latest'] as const,
   },
   CONTENT_CREATION: {
-    id: 'gemini-3.8-flash',
+    id: 'gemini-3-flash-preview',
     provider: 'google',
-    displayName: 'Gemini 3.8 Flash',
+    displayName: 'Gemini 3 Flash',
     role: 'AEO Content, Recommendations & Outreach Email Generator',
-    fallbackIds: ['gemini-2.5-flash', 'gemini-1.5-flash'] as const,
+    fallbackIds: ['gemini-3.1-flash-lite', 'gemini-3.8-flash'] as const,
   },
   COMPETITOR_MAPPING: {
     id: 'claude-haiku-4-5',
@@ -35,7 +35,7 @@ export const BEACON_MODELS = {
     fallbackIds: ['claude-haiku-4-5-20251001', 'claude-3-5-haiku-latest'] as const,
   },
   PROMPT_CREATION: {
-    googleModelId: 'gemini-3.8-flash',
+    googleModelId: 'gemini-3-flash-preview',
     openaiModelId: 'gpt-4o-mini',
     role: 'GEO Search Prompt Synthesizer',
   },
