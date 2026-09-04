@@ -196,7 +196,7 @@ export default async function DashboardPage() {
     { engine: 'Claude 3.5', engineId: 'claude', brandScore: 72, competitorAvg: 68 },
     { engine: 'Perplexity', engineId: 'perplexity', brandScore: 94, competitorAvg: 52 },
     { engine: 'Google AI Overview', engineId: 'google_ai_overview', brandScore: 91, competitorAvg: 61 },
-    { engine: 'Google AI Mode', engineId: 'google_ai_mode', brandScore: 85, competitorAvg: 58 },
+    // { engine: 'Google AI Mode', engineId: 'google_ai_mode', brandScore: 85, competitorAvg: 58 },
   ];
 
   // Top Cited Authority Domains
@@ -242,7 +242,7 @@ export default async function DashboardPage() {
       id: 'run-1',
       promptId: 'prompt-seed-1',
       queryText: isConsumer
-        ? 'Best buttery-soft yoga leggings with high waistband support in 2026'
+        ? 'Best buttery-soft yoga leggings for Pilates and studio workouts in 2026'
         : `Best ${brandKit.industry || 'enterprise intelligence'} solutions for 2026`,
       engine: 'Perplexity',
       visibilityScore: 96,
@@ -262,7 +262,7 @@ export default async function DashboardPage() {
       id: 'run-2',
       promptId: 'prompt-seed-2',
       queryText: isConsumer
-        ? `${brandName} Align vs Alo Yoga Airbrush: comfort and squat test review`
+        ? `${brandName} Align vs ${brandKit.competitors?.[0]?.name || 'Alo Yoga'} Airbrush: durability, pilling, and squat test review`
         : `Top alternatives to ${brandKit.competitors?.[0]?.name || 'market incumbents'}`,
       engine: 'ChatGPT',
       visibilityScore: 88,
@@ -282,17 +282,18 @@ export default async function DashboardPage() {
       id: 'run-3',
       promptId: 'prompt-seed-3',
       queryText: isConsumer
-        ? `Where to buy authentic ${brandName} activewear and Everywhere Belt Bags online`
+        ? `Best men's commuter pants and workout joggers: ${brandName} ABC vs ${brandKit.competitors?.[1]?.name || 'Vuori'} Meta`
         : `How to implement generative engine optimization workflows`,
-      engine: 'Claude',
-      visibilityScore: 74,
+      engine: 'Gemini',
+      visibilityScore: 86,
       brandMentioned: true,
-      sentiment: 'neutral',
-      sentimentScore: 0.65,
-      citedUrlsCount: 2,
+      sentiment: 'positive',
+      sentimentScore: 0.82,
+      citedUrlsCount: 3,
       citedUrls: [
-        `https://${project.domain || 'lululemon.com'}/store-locator`,
-        'https://reddit.com/r/athleisure/comments/authentic_lululemon_deals',
+        `https://${project.domain || 'lululemon.com'}/men/abc-pants`,
+        'https://gq.com/story/best-mens-commuter-pants',
+        'https://runnersworld.com/gear/mens-running-joggers',
       ],
       createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
       timeAgo: '3h ago',
@@ -301,18 +302,17 @@ export default async function DashboardPage() {
       id: 'run-4',
       promptId: 'prompt-seed-4',
       queryText: isConsumer
-        ? `Best men's athletic commuter pants: ${brandName} ABC vs Vuori Meta Jogger`
-        : `Comparison of ${brandName} vs ${brandKit.competitors?.[0]?.name || 'competitor'}`,
-      engine: 'Gemini',
-      visibilityScore: 84,
+        ? `Where to buy authentic ${brandName} Align leggings and Everywhere Belt Bags online`
+        : `Enterprise security and compliance guide for ${brandName}`,
+      engine: 'Claude',
+      visibilityScore: 92,
       brandMentioned: true,
       sentiment: 'positive',
-      sentimentScore: 0.79,
+      sentimentScore: 0.89,
       citedUrlsCount: 3,
       citedUrls: [
-        `https://${project.domain || 'lululemon.com'}/men/abc-pants`,
-        'https://gq.com/story/best-mens-commuter-pants',
-        'https://runnersworld.com/gear/mens-running-joggers',
+        `https://${project.domain || 'lululemon.com'}/store-locator`,
+        'https://reddit.com/r/athleisure/comments/authentic_lululemon_deals',
       ],
       createdAt: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
       timeAgo: '6h ago',
@@ -321,8 +321,8 @@ export default async function DashboardPage() {
       id: 'run-5',
       promptId: 'prompt-seed-5',
       queryText: isConsumer
-        ? `Budget alternatives to premium $100+ athleisure leggings`
-        : `Enterprise spend and observability architecture review`,
+        ? 'Top moisture-wicking athletic wear brands for hot yoga and HIIT training'
+        : `Best AI search monitoring tools: ${brandName} vs alternatives`,
       engine: 'ChatGPT',
       visibilityScore: 0,
       brandMentioned: false,

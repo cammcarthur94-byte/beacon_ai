@@ -81,6 +81,51 @@ export interface BrandKit {
 // Enterprise Settings Suite Types
 export type TeamMemberRole = 'owner' | 'admin' | 'editor' | 'viewer';
 
+export type PermissionAction =
+  | 'manage_billing'
+  | 'manage_team'
+  | 'edit_brand_kit'
+  | 'manage_prompts'
+  | 'trigger_audits'
+  | 'content_studio_pitches'
+  | 'export_reports'
+  | 'view_telemetry';
+
+export type RolePermissionsConfig = Record<TeamMemberRole, PermissionAction[]>;
+
+export const DEFAULT_ROLE_PERMISSIONS: RolePermissionsConfig = {
+  owner: [
+    'manage_billing',
+    'manage_team',
+    'edit_brand_kit',
+    'manage_prompts',
+    'trigger_audits',
+    'content_studio_pitches',
+    'export_reports',
+    'view_telemetry',
+  ],
+  admin: [
+    'manage_team',
+    'edit_brand_kit',
+    'manage_prompts',
+    'trigger_audits',
+    'content_studio_pitches',
+    'export_reports',
+    'view_telemetry',
+  ],
+  editor: [
+    'manage_prompts',
+    'trigger_audits',
+    'content_studio_pitches',
+    'export_reports',
+    'view_telemetry',
+  ],
+  viewer: [
+    'export_reports',
+    'view_telemetry',
+  ],
+};
+
 export interface TeamMember {
   id: string;
   email: string;
@@ -88,6 +133,8 @@ export interface TeamMember {
   role: TeamMemberRole;
   avatarUrl?: string;
   lastActive: string;
+  userId?: string;
+  projectId?: string;
 }
 
 export interface TeamInvitation {
@@ -96,6 +143,10 @@ export interface TeamInvitation {
   role: TeamMemberRole;
   status: 'pending' | 'accepted' | 'revoked';
   sentAt: string;
+  token?: string;
+  projectId?: string;
+  invitedBy?: string;
+  expiresAt?: string;
 }
 
 export interface ApiKey {
@@ -189,6 +240,7 @@ export interface Database {
           stripe_subscription_id: string | null;
           brand_kit: BrandKit;
           is_active: boolean;
+          role_permissions?: RolePermissionsConfig | null;
           created_at: string;
           updated_at: string;
         };
@@ -203,6 +255,7 @@ export interface Database {
           stripe_subscription_id?: string | null;
           brand_kit?: BrandKit | Json;
           is_active?: boolean;
+          role_permissions?: RolePermissionsConfig | Json | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -217,6 +270,7 @@ export interface Database {
           stripe_subscription_id?: string | null;
           brand_kit?: BrandKit | Json;
           is_active?: boolean;
+          role_permissions?: RolePermissionsConfig | Json | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -389,6 +443,78 @@ export interface Database {
           project_id?: string;
           date_range?: '7d' | '30d' | 'all';
           report_data?: ExecutiveReportData | Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      team_members: {
+        Row: {
+          id: string;
+          project_id: string;
+          user_id: string | null;
+          email: string;
+          name: string;
+          role: TeamMemberRole;
+          avatar_url: string | null;
+          last_active: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          user_id?: string | null;
+          email: string;
+          name: string;
+          role: TeamMemberRole;
+          avatar_url?: string | null;
+          last_active?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          user_id?: string | null;
+          email?: string;
+          name?: string;
+          role?: TeamMemberRole;
+          avatar_url?: string | null;
+          last_active?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      team_invitations: {
+        Row: {
+          id: string;
+          project_id: string;
+          email: string;
+          role: TeamMemberRole;
+          status: 'pending' | 'accepted' | 'revoked';
+          token: string;
+          invited_by: string | null;
+          expires_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          email: string;
+          role: TeamMemberRole;
+          status?: 'pending' | 'accepted' | 'revoked';
+          token?: string;
+          invited_by?: string | null;
+          expires_at?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          email?: string;
+          role?: TeamMemberRole;
+          status?: 'pending' | 'accepted' | 'revoked';
+          token?: string;
+          invited_by?: string | null;
+          expires_at?: string;
           created_at?: string;
         };
         Relationships: [];

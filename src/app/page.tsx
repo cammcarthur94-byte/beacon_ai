@@ -152,7 +152,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Card 2: Google AI Mode & Overviews */}
+            {/* Card 2: Google AI Overviews */}
             <div className="group rounded-2xl border border-slate-200 bg-slate-50/50 p-6 sm:p-8 hover:bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="h-12 w-12 rounded-xl bg-blue-100/70 border border-blue-200 flex items-center justify-center text-blue-700 shadow-2xs group-hover:scale-105 transition-transform">
@@ -160,7 +160,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                    Google AI Mode &amp; Overviews
+                    Google AI Overviews
                   </h3>
                   <span className="px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-[10px] font-bold text-blue-800 uppercase tracking-wider">
                     Pro

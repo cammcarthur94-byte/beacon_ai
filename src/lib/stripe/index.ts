@@ -45,7 +45,7 @@ export const BILLING_PLANS: BillingPlan[] = [
     description: 'Autonomous GEO intelligence and automated competitor displacement.',
     features: [
       '100 scheduled prompt audits / mo',
-      'Google AI Mode & AI Overviews tracking (SERP)',
+      'Google AI Overviews tracking (SERP)',
       'Proactive visibility drop email alerts (Resend)',
       'Autonomous Coworker AI Agent (`draftRewrite`)',
       'Unlimited AI Strategy Audit Reports',

@@ -13,7 +13,7 @@ const ALL_ENGINES = [
   { id: 'claude', label: 'Claude' },
   { id: 'perplexity', label: 'Perplexity' },
   { id: 'google_ai_overview', label: 'AI Overview' },
-  { id: 'google_ai_mode', label: 'AI Mode' },
+  // { id: 'google_ai_mode', label: 'AI Mode' }, // hidden for now
 ];
 
 export type DateRangePreset = '7d' | '30d' | '90d';

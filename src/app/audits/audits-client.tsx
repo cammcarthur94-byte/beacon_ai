@@ -97,7 +97,7 @@ const AVAILABLE_ENGINES = [
   { id: 'claude', label: 'Claude 3.5', isGated: false },
   { id: 'perplexity', label: 'Perplexity Sonar', isGated: false },
   { id: 'google_ai_overview', label: 'Google AI Overview', isGated: true },
-  { id: 'google_ai_mode', label: 'Google AI Mode', isGated: true },
+  // { id: 'google_ai_mode', label: 'Google AI Mode', isGated: true }, // hidden for now
 ];
 
 function getIntentBadgeMeta(intent: SearchIntent) {
@@ -569,7 +569,7 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
                             key={eng.id}
                             href="/settings/billing"
                             className="group relative flex flex-col gap-1.5 p-2.5 rounded-lg border border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50/80 transition-all text-xs cursor-pointer shadow-2xs"
-                            title="Upgrade to Pro Tier to unlock Google AI Mode & AI Overviews tracking"
+                            title="Upgrade to Pro Tier to unlock Google AI Overviews tracking"
                           >
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex items-center gap-2">
@@ -840,7 +840,7 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
                               const disabledEngines = p.disabled_engines || [];
                               const assignedEngines = Array.from(
                                 new Set([...activeEngines, ...disabledEngines])
-                              );
+                              ).filter((eng) => eng !== 'google_ai_mode');
                               return assignedEngines.map((eng) => (
                                 <EngineFaviconBadge
                                   key={eng}

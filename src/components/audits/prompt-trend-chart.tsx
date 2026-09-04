@@ -48,7 +48,7 @@ const ENGINES: EngineDefinition[] = [
   { id: 'chatgpt', name: 'ChatGPT', shortName: 'ChatGPT', color: '#10b981' },
   { id: 'perplexity', name: 'Perplexity', shortName: 'Perplexity', color: '#06b6d4' },
   { id: 'google_ai_overview', name: 'Google AI Overviews', shortName: 'AI Overviews', color: '#4285F4' },
-  { id: 'google_ai_mode', name: 'Google AI Mode', shortName: 'AI Mode', color: '#7c3aed' },
+  // { id: 'google_ai_mode', name: 'Google AI Mode', shortName: 'AI Mode', color: '#7c3aed' },
   { id: 'gemini', name: 'Google Gemini', shortName: 'Gemini', color: '#3b82f6' },
   { id: 'claude', name: 'Anthropic Claude', shortName: 'Claude', color: '#d97706' },
 ];
@@ -65,12 +65,12 @@ const PRESETS: PresetItem[] = [
   {
     id: 'all',
     label: 'All Engines',
-    engines: ['chatgpt', 'perplexity', 'google_ai_overview', 'google_ai_mode', 'gemini', 'claude'],
+    engines: ['chatgpt', 'perplexity', 'google_ai_overview', 'gemini', 'claude'],
   },
   {
     id: 'google_ai',
-    label: 'Google AI (Mode & Overviews)',
-    engines: ['google_ai_overview', 'google_ai_mode', 'gemini'],
+    label: 'Google AI (Overviews & Gemini)',
+    engines: ['google_ai_overview', 'gemini'],
   },
   {
     id: 'chatgpt_claude',
@@ -132,7 +132,7 @@ export function PromptTrendChart({ data, queryText }: PromptTrendChartProps) {
     'chatgpt',
     'perplexity',
     'google_ai_overview',
-    'google_ai_mode',
+    // 'google_ai_mode',
     'gemini',
     'claude',
   ]);

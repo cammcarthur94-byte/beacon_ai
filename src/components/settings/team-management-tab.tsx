@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Users,
@@ -21,9 +21,31 @@ import {
   RefreshCw,
   X,
   Plus,
+  Copy,
+  Check,
+  ExternalLink,
+  Sliders,
+  Sparkles,
+  Loader2,
+  Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { TeamMember, TeamInvitation, TeamMemberRole } from '@/types/database.types';
+import type {
+  TeamMember,
+  TeamInvitation,
+  TeamMemberRole,
+  RolePermissionsConfig,
+} from '@/types/database.types';
+import { DEFAULT_ROLE_PERMISSIONS } from '@/types/database.types';
+import {
+  getWorkspaceTeamData,
+  inviteTeamMember,
+  updateMemberRole,
+  removeTeamMember,
+  revokeTeamInvitation,
+} from '@/app/settings/team-actions';
+import { RolePermissionsDialog } from './role-permissions-dialog';
+import { getRoleBadgeColor, hasPermission } from '@/lib/auth/permissions';
 
 interface TeamManagementTabProps {
   project: {
@@ -34,74 +56,73 @@ interface TeamManagementTabProps {
   };
 }
 
-const DEFAULT_MEMBERS: TeamMember[] = [
-  {
-    id: 'mem-1',
-    email: 'cam@beaconmetrics.io',
-    name: 'Cameron M.',
-    role: 'owner',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop&crop=face',
-    lastActive: 'Active right now',
-  },
-  {
-    id: 'mem-2',
-    email: 'elena.rostova@lululemon.com',
-    name: 'Elena Rostova',
-    role: 'admin',
-    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=96&h=96&fit=crop&crop=face',
-    lastActive: '2 hours ago',
-  },
-  {
-    id: 'mem-3',
-    email: 'david.chen@lululemon.com',
-    name: 'David Chen',
-    role: 'editor',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face',
-    lastActive: 'Yesterday',
-  },
-  {
-    id: 'mem-4',
-    email: 'auditor.external@deloitte.com',
-    name: 'Marcus Vance',
-    role: 'viewer',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=96&h=96&fit=crop&crop=face',
-    lastActive: '3 days ago',
-  },
-];
-
-const DEFAULT_INVITES: TeamInvitation[] = [
-  {
-    id: 'inv-1',
-    email: 'sarah.marketing@lululemon.com',
-    role: 'editor',
-    status: 'pending',
-    sentAt: 'Sep 2, 2026',
-  },
-];
-
 export function TeamManagementTab({ project }: TeamManagementTabProps) {
-  const [members, setMembers] = useState<TeamMember[]>(DEFAULT_MEMBERS);
-  const [invitations, setInvitations] = useState<TeamInvitation[]>(DEFAULT_INVITES);
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [invitations, setInvitations] = useState<TeamInvitation[]>([]);
+  const [roleConfig, setRoleConfig] = useState<RolePermissionsConfig>(DEFAULT_ROLE_PERMISSIONS);
+  const [currentUserRole, setCurrentUserRole] = useState<TeamMemberRole>('owner');
+  const [loading, setLoading] = useState(true);
+
+  // Invite Modal
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<TeamMemberRole>('editor');
+  const [isInviting, startInviteTransition] = useTransition();
+
+  // Generated Link Modal
+  const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [latestInvite, setLatestInvite] = useState<{ email: string; role: string; link: string } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  // Role Permissions Dialog
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [ssoEnforced, setSsoEnforced] = useState(false);
 
-  const handleRoleChange = (memberId: string, newRole: TeamMemberRole) => {
-    setMembers((prev) =>
-      prev.map((m) => (m.id === memberId ? { ...m, role: newRole } : m))
-    );
-    toast.success('Member permissions successfully updated.');
+  // Load initial data
+  useEffect(() => {
+    let mounted = true;
+    getWorkspaceTeamData(project.id).then((data) => {
+      if (!mounted) return;
+      setMembers(data.members);
+      setInvitations(data.invitations);
+      setRoleConfig(data.rolePermissionsConfig);
+      setCurrentUserRole(data.currentUserRole);
+      setLoading(false);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [project.id]);
+
+  const canManageTeam = hasPermission(currentUserRole, 'manage_team', roleConfig);
+
+  const handleRoleChange = async (memberId: string, newRole: TeamMemberRole) => {
+    if (!canManageTeam) {
+      toast.error('You do not have permission to manage team roles.');
+      return;
+    }
+    setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, role: newRole } : m)));
+    const res = await updateMemberRole(project.id, memberId, newRole);
+    if (res.success) {
+      toast.success('Member permissions successfully updated.');
+    }
   };
 
-  const handleRemoveMember = (memberId: string) => {
+  const handleRemoveMember = async (memberId: string) => {
+    if (!canManageTeam) {
+      toast.error('You do not have permission to remove team members.');
+      return;
+    }
     const target = members.find((m) => m.id === memberId);
     if (target?.role === 'owner') {
       toast.error('Cannot remove workspace owner.');
       return;
     }
     setMembers((prev) => prev.filter((m) => m.id !== memberId));
-    toast.success('Team member removed from workspace.');
+    const res = await removeTeamMember(project.id, memberId);
+    if (res.success) {
+      toast.success('Team member removed from workspace.');
+    }
   };
 
   const handleSendInvite = (e: React.FormEvent) => {
@@ -110,22 +131,53 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
       toast.error('Please enter a valid email address.');
       return;
     }
-    const newInv: TeamInvitation = {
-      id: 'inv-' + Date.now(),
-      email: inviteEmail.trim().toLowerCase(),
-      role: inviteRole,
-      status: 'pending',
-      sentAt: 'Just now',
-    };
-    setInvitations((prev) => [...prev, newInv]);
-    setInviteEmail('');
-    setInviteModalOpen(false);
-    toast.success(`Invitation sent to ${newInv.email}`);
+
+    startInviteTransition(async () => {
+      const res = await inviteTeamMember(project.id, inviteEmail, inviteRole);
+      if (!res.success || !res.invite) {
+        toast.error(res.error || 'Failed to send invitation.');
+        return;
+      }
+
+      const newInv: TeamInvitation = {
+        id: res.invite.id,
+        email: res.invite.email,
+        role: res.invite.role,
+        status: 'pending',
+        sentAt: 'Just now',
+        token: res.invite.token,
+      };
+
+      setInvitations((prev) => [newInv, ...prev.filter((i) => i.email !== newInv.email)]);
+      setLatestInvite({
+        email: res.invite.email,
+        role: res.invite.role,
+        link: res.invite.inviteLink,
+      });
+
+      setInviteEmail('');
+      setInviteModalOpen(false);
+      setLinkModalOpen(true);
+      toast.success(`Invitation created for ${newInv.email}!`);
+    });
   };
 
-  const handleRevokeInvite = (invId: string) => {
+  const handleRevokeInvite = async (invId: string) => {
+    if (!canManageTeam) {
+      toast.error('You do not have permission to revoke invitations.');
+      return;
+    }
     setInvitations((prev) => prev.filter((i) => i.id !== invId));
+    await revokeTeamInvitation(project.id, invId);
     toast.info('Invitation revoked.');
+  };
+
+  const handleCopyLink = () => {
+    if (!latestInvite?.link) return;
+    navigator.clipboard.writeText(latestInvite.link);
+    setCopied(true);
+    toast.success('Invite link copied to clipboard!');
+    setTimeout(() => setCopied(false), 2500);
   };
 
   const handleToggleSso = () => {
@@ -141,7 +193,7 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* 1. TEAM MEMBERS LIST */}
       <Card className="border-slate-200 bg-white shadow-xs rounded-xl overflow-hidden">
         <CardHeader className="pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -151,20 +203,27 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
                 Access Control
               </span>
               <span className="text-slate-300">&bull;</span>
-              <span className="text-xs text-slate-500 font-medium">{members.length} Active Users</span>
+              <span className="text-xs text-slate-500 font-medium">
+                {members.length} Active User{members.length !== 1 ? 's' : ''}
+              </span>
+              <span className="text-slate-300">&bull;</span>
+              <span className="text-[11px] text-slate-500">
+                Your role: <strong className="text-slate-800 capitalize">{currentUserRole}</strong>
+              </span>
             </div>
-            <CardTitle className="text-lg font-bold text-slate-950 font-sans">
+            <CardTitle className="text-lg font-bold text-slate-950">
               Active Workspace Members
             </CardTitle>
-            <CardDescription className="text-xs text-slate-600 font-sans">
+            <CardDescription className="text-xs text-slate-600">
               Manage roles and access permissions for users authorized to view or edit this tenant.
             </CardDescription>
           </div>
 
           <Button
             type="button"
+            disabled={!canManageTeam}
             onClick={() => setInviteModalOpen(true)}
-            className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-4 py-2 shadow-xs flex items-center gap-1.5 cursor-pointer self-start sm:self-center"
+            className="bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 shadow-xs flex items-center gap-1.5 cursor-pointer self-start sm:self-center"
           >
             <UserPlus className="h-3.5 w-3.5" />
             Invite Member
@@ -182,7 +241,7 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
                   <th className="py-3 px-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-800 font-sans">
+              <tbody className="divide-y divide-slate-100 text-slate-800">
                 {members.map((member) => (
                   <tr key={member.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="py-3.5 px-4">
@@ -195,7 +254,14 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
                           )}
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-950">{member.name}</div>
+                          <div className="font-semibold text-slate-950 flex items-center gap-1.5">
+                            <span>{member.name}</span>
+                            {member.role === 'owner' && (
+                              <Badge className="text-[9px] font-mono px-1 py-0 bg-purple-50 text-purple-700 border-purple-200">
+                                OWNER
+                              </Badge>
+                            )}
+                          </div>
                           <div className="text-[11px] text-slate-500 font-mono">{member.email}</div>
                         </div>
                       </div>
@@ -203,11 +269,11 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
                     <td className="py-3.5 px-4">
                       <select
                         value={member.role}
-                        disabled={member.role === 'owner'}
+                        disabled={member.role === 'owner' || !canManageTeam}
                         onChange={(e) => handleRoleChange(member.id, e.target.value as TeamMemberRole)}
                         className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-800 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer focus:border-emerald-500 focus:outline-none"
                       >
-                        <option value="owner">Owner</option>
+                        <option value="owner" disabled>Owner</option>
                         <option value="admin">Admin</option>
                         <option value="editor">Editor</option>
                         <option value="viewer">Viewer</option>
@@ -217,15 +283,15 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
                       {member.lastActive}
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      {member.role !== 'owner' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                      {member.role !== 'owner' && canManageTeam && (
+                        <button
+                          type="button"
                           onClick={() => handleRemoveMember(member.id)}
-                          className="h-7 text-xs text-slate-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                          className="text-slate-400 hover:text-rose-600 p-1 rounded-md hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Remove user from workspace"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -236,15 +302,15 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
         </CardContent>
       </Card>
 
-      {/* 2. PENDING INVITATIONS TABLE */}
+      {/* 2. PENDING INVITATIONS */}
       {invitations.length > 0 && (
         <Card className="border-slate-200 bg-white shadow-xs rounded-xl overflow-hidden">
           <CardHeader className="pb-3 border-b border-slate-100">
-            <CardTitle className="text-sm font-bold text-slate-900 font-sans">
+            <CardTitle className="text-sm font-bold text-slate-900">
               Pending Invitations
             </CardTitle>
-            <CardDescription className="text-xs text-slate-500 font-sans">
-              Invited colleagues who have not yet claimed their seat.
+            <CardDescription className="text-xs text-slate-500">
+              Invited colleagues who have not yet set up their credentials.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
@@ -264,14 +330,31 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
                     <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800 text-[10px] font-mono">
                       Pending Acceptance
                     </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRevokeInvite(inv.id)}
-                      className="h-7 text-xs text-slate-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
-                    >
-                      Revoke
-                    </Button>
+                    {inv.token && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const link = `${window.location.origin}/invite/${inv.token}`;
+                          navigator.clipboard.writeText(link);
+                          toast.success('Direct invite link copied!');
+                        }}
+                        className="h-7 text-xs border-slate-200 text-slate-700 hover:text-emerald-700 cursor-pointer"
+                      >
+                        <Copy className="h-3 w-3 mr-1" />
+                        Copy Link
+                      </Button>
+                    )}
+                    {canManageTeam && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRevokeInvite(inv.id)}
+                        className="h-7 text-xs text-slate-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                      >
+                        Revoke
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -281,35 +364,78 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
       )}
 
       {/* 3. RBAC PERMISSIONS MATRIX CARD */}
-      <Card className="border-slate-200 bg-slate-50/50 shadow-xs rounded-xl p-5 space-y-3">
-        <div className="flex items-center gap-2">
-          <Shield className="h-4 w-4 text-emerald-700" />
-          <h4 className="text-xs font-mono uppercase tracking-wider font-bold text-slate-900">
-            Role-Based Access Control (RBAC) Permissions
-          </h4>
+      <Card className="border-slate-200 bg-slate-50/50 shadow-xs rounded-xl p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-emerald-700" />
+            <div>
+              <h4 className="text-xs font-mono uppercase tracking-wider font-bold text-slate-900">
+                Role-Based Access Control (RBAC) Permissions
+              </h4>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Customizable security scopes governing what each role can view and execute.
+              </p>
+            </div>
+          </div>
+          {canManageTeam && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setRoleDialogOpen(true)}
+              className="text-xs h-8 border-slate-300 text-slate-800 hover:text-emerald-700 bg-white font-semibold cursor-pointer shadow-2xs self-start sm:self-center"
+            >
+              <Sliders className="h-3.5 w-3.5 mr-1.5 text-emerald-600" />
+              Configure Role Permissions
+            </Button>
+          )}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-1 text-xs">
-          <div className="p-3 bg-white rounded-lg border border-slate-200/80 space-y-1">
-            <span className="font-bold text-slate-900 block font-mono text-[11px]">Owner</span>
-            <p className="text-slate-500 text-[11px]">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+          <div className="p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-900 block font-mono text-[11px]">Owner</span>
+              <Badge className="bg-purple-50 text-purple-700 border-purple-200 text-[9px]">Root</Badge>
+            </div>
+            <p className="text-slate-500 text-[11px] leading-relaxed">
               Full workspace control, Stripe billing management, account deletion, and ownership transfer.
             </p>
           </div>
-          <div className="p-3 bg-white rounded-lg border border-slate-200/80 space-y-1">
-            <span className="font-bold text-slate-900 block font-mono text-[11px]">Admin</span>
-            <p className="text-slate-500 text-[11px]">
-              Calibrate Brand Kit, manage team members &amp; invitations, and run audits.
+
+          <div className="p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-900 block font-mono text-[11px]">Admin</span>
+              <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-[9px]">
+                {(roleConfig.admin || []).length} Scopes
+              </Badge>
+            </div>
+            <p className="text-slate-500 text-[11px] leading-relaxed">
+              {(roleConfig.admin || []).includes('edit_brand_kit') ? 'Calibrate Brand Kit, ' : ''}
+              {(roleConfig.admin || []).includes('manage_team') ? 'manage team members & invites, ' : ''}
+              and run audits.
             </p>
           </div>
-          <div className="p-3 bg-white rounded-lg border border-slate-200/80 space-y-1">
-            <span className="font-bold text-slate-900 block font-mono text-[11px]">Editor</span>
-            <p className="text-slate-500 text-[11px]">
+
+          <div className="p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-900 block font-mono text-[11px]">Editor</span>
+              <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[9px]">
+                {(roleConfig.editor || []).length} Scopes
+              </Badge>
+            </div>
+            <p className="text-slate-500 text-[11px] leading-relaxed">
               Trigger prompt audits, generate PR pitches in Content Studio, view authority gap matrices.
             </p>
           </div>
-          <div className="p-3 bg-white rounded-lg border border-slate-200/80 space-y-1">
-            <span className="font-bold text-slate-900 block font-mono text-[11px]">Viewer</span>
-            <p className="text-slate-500 text-[11px]">
+
+          <div className="p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-900 block font-mono text-[11px]">Viewer</span>
+              <Badge className="bg-slate-100 text-slate-700 border-slate-200 text-[9px]">
+                {(roleConfig.viewer || []).length} Scopes
+              </Badge>
+            </div>
+            <p className="text-slate-500 text-[11px] leading-relaxed">
               Read-only telemetry access to Share of Voice benchmarks, citations, and executive reports.
             </p>
           </div>
@@ -325,7 +451,7 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
                 <Lock className="h-4 w-4 text-emerald-700" />
                 Enterprise Single Sign-On (SSO) &amp; Security
               </CardTitle>
-              <CardDescription className="text-xs text-slate-600 font-sans">
+              <CardDescription className="text-xs text-slate-600">
                 Require all team members to authenticate through corporate identity providers (Google Workspace, Microsoft Entra, or Okta SAML).
               </CardDescription>
             </div>
@@ -346,7 +472,7 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
             <span className="text-xs font-semibold text-slate-900">
               Enforce Domain OAuth for @{project.domain || 'yourdomain.com'}
             </span>
-            <p className="text-xs text-slate-500 font-sans">
+            <p className="text-xs text-slate-500">
               Disables standard email/password login for any user with this corporate domain.
             </p>
           </div>
@@ -372,7 +498,7 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
             <div className="p-5 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <UserPlus className="h-4 w-4 text-emerald-700" />
-                <h3 className="text-base font-bold text-slate-950 font-sans">Invite Team Member</h3>
+                <h3 className="text-base font-bold text-slate-950">Invite Team Member</h3>
               </div>
               <button
                 type="button"
@@ -396,6 +522,7 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
                   onChange={(e) => setInviteEmail(e.target.value)}
                   className="border-slate-200 text-sm"
                   autoFocus
+                  required
                 />
               </div>
 
@@ -406,10 +533,13 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
                   onChange={(e) => setInviteRole(e.target.value as TeamMemberRole)}
                   className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
                 >
-                  <option value="admin">Admin - Full management &amp; Brand Kit configuration</option>
-                  <option value="editor">Editor - Prompt audits &amp; Content Studio generation</option>
-                  <option value="viewer">Viewer - Read-only reporting &amp; telemetry</option>
+                  <option value="admin">Admin - Workspace management &amp; Brand Kit calibration</option>
+                  <option value="editor">Editor - Prompt audits &amp; Content Studio PR pitches</option>
+                  <option value="viewer">Viewer - Read-only telemetry &amp; reporting</option>
                 </select>
+                <span className="text-[11px] text-slate-500 block">
+                  The member will create their own password and gain access strictly to <strong>{project.name}</strong>.
+                </span>
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
@@ -424,16 +554,101 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
                 </Button>
                 <Button
                   type="submit"
+                  disabled={isInviting}
                   size="sm"
                   className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold cursor-pointer"
                 >
-                  Send Invitation
+                  {isInviting ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                      Generating Invite...
+                    </>
+                  ) : (
+                    'Generate & Send Invitation'
+                  )}
                 </Button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* INVITE LINK GENERATED MODAL */}
+      {linkModalOpen && latestInvite && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 p-6 space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Invitation Dispatched!
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Invited <strong className="text-slate-700">{latestInvite.email}</strong> as an{' '}
+                  <span className="capitalize font-semibold text-emerald-700">{latestInvite.role}</span>.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                Direct Onboarding Link
+              </span>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={latestInvite.link}
+                  readOnly
+                  className="text-xs font-mono bg-white border-slate-200 text-slate-700 h-9"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleCopyLink}
+                  className="h-9 px-3 text-xs bg-slate-900 hover:bg-slate-800 text-white font-semibold cursor-pointer shrink-0"
+                >
+                  {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                  <span className="ml-1.5">{copied ? 'Copied!' : 'Copy'}</span>
+                </Button>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Share this link directly or have the user open it to set up their login information.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <a
+                href={latestInvite.link}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1"
+              >
+                <span>Test Invite Link in New Tab</span>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setLinkModalOpen(false)}
+                className="text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-semibold"
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ROLE PERMISSIONS CONFIGURATION DIALOG */}
+      <RolePermissionsDialog
+        open={roleDialogOpen}
+        onOpenChange={setRoleDialogOpen}
+        projectId={project.id}
+        initialConfig={roleConfig}
+        onConfigUpdated={(newCfg) => setRoleConfig(newCfg)}
+      />
     </div>
   );
 }

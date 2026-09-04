@@ -45,7 +45,7 @@ const ENGINES = [
   { id: 'claude', label: 'Claude' },
   { id: 'perplexity', label: 'Perplexity' },
   { id: 'google_ai_overview', label: 'Google AI Overviews' },
-  { id: 'google_ai_mode', label: 'Google AI Mode' },
+  // { id: 'google_ai_mode', label: 'Google AI Mode' }, // hidden for now
 ];
 
 export function LeaderboardClient() {
@@ -198,7 +198,7 @@ export function LeaderboardClient() {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-2">
-              Across <span className="font-semibold text-slate-800">{data?.metrics.activeTrackedPrompts ?? 38}</span> target prompts & 6 generative engines.
+              Across <span className="font-semibold text-slate-800">{data?.metrics.activeTrackedPrompts ?? 38}</span> target prompts & 5 generative engines.
             </p>
           </CardContent>
         </Card>

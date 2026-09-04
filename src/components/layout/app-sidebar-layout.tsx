@@ -25,7 +25,12 @@ import {
   Target,
   Trophy,
   Sliders,
+  Shield,
+  Building2,
 } from 'lucide-react';
+import type { TeamMemberRole, RolePermissionsConfig } from '@/types/database.types';
+import { getRoleBadgeColor, hasPermission } from '@/lib/auth/permissions';
+import { cn } from '@/lib/utils';
 
 interface AppSidebarLayoutProps {
   project: {
@@ -33,6 +38,7 @@ interface AppSidebarLayoutProps {
     name: string;
     domain: string;
     tier?: string;
+    role_permissions?: RolePermissionsConfig;
   };
   children: React.ReactNode;
 }
@@ -53,6 +59,27 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
   const [commandOpen, setCommandOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [currentUser, setCurrentUser] = useState<{
+    email?: string;
+    name?: string;
+    role?: TeamMemberRole;
+    assignedBrandId?: string;
+  }>({
+    role: 'owner',
+    name: 'Cameron M.',
+    email: 'cam@beaconmetrics.io',
+  });
+
+  useEffect(() => {
+    try {
+      const match = document.cookie.match(/beacon_active_user=([^;]+)/);
+      if (match) {
+        const parsed = JSON.parse(decodeURIComponent(match[1]));
+        if (parsed) setCurrentUser(parsed);
+      }
+    } catch {}
+  }, []);
+
   // Global Cmd+K / Ctrl+K keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -66,6 +93,15 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const userRole = currentUser.role || 'owner';
+  const canAccessContentStudio = hasPermission(userRole, 'content_studio_pitches', project.role_permissions);
+  const canEditBrandKit = hasPermission(userRole, 'edit_brand_kit', project.role_permissions);
+  const canAccessSettings =
+    hasPermission(userRole, 'manage_team', project.role_permissions) ||
+    hasPermission(userRole, 'manage_billing', project.role_permissions) ||
+    userRole === 'admin' ||
+    userRole === 'owner';
 
   const generativeItems: NavItem[] = [
     {
@@ -111,20 +147,28 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
   const growthItems: NavItem[] = [];
 
   const adminItems: NavItem[] = [
+    ...(canAccessContentStudio
+      ? [
+          {
+            title: 'Content Studio',
+            href: '/consultant',
+            icon: Sparkles,
+            active: pathname.startsWith('/consultant'),
+          },
+        ]
+      : []),
+    ...(canEditBrandKit || userRole === 'admin' || userRole === 'owner'
+      ? [
+          {
+            title: 'Brand Kit',
+            href: '/brand-kit',
+            icon: Sliders,
+            active: pathname.startsWith('/brand-kit'),
+          },
+        ]
+      : []),
     {
-      title: 'Content Studio',
-      href: '/consultant',
-      icon: Sparkles,
-      active: pathname.startsWith('/consultant'),
-    },
-    {
-      title: 'Brand Kit',
-      href: '/brand-kit',
-      icon: Sliders,
-      active: pathname.startsWith('/brand-kit'),
-    },
-    {
-      title: 'Settings & Billing',
+      title: canAccessSettings ? 'Settings & Billing' : 'Workspace Details',
       href: '/settings',
       icon: Settings,
       active: pathname === '/settings',
@@ -269,6 +313,27 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
 
           <Separator className="bg-zinc-200" />
 
+          {/* Active Workspace & Security Role Badge */}
+          <div className="p-2.5 rounded-xl bg-white border border-zinc-200 shadow-2xs space-y-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Building2 className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                <span className="text-xs font-bold text-slate-900 truncate block">
+                  {project.name}
+                </span>
+              </div>
+              <Badge className={cn('text-[9px] font-mono font-bold uppercase px-1.5 py-0.2', getRoleBadgeColor(userRole))}>
+                {userRole}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+              <span className="truncate">{project.domain}</span>
+              <span className="flex items-center gap-1 text-emerald-600 font-sans font-medium text-[10px]">
+                <Shield className="h-2.5 w-2.5" /> Isolated
+              </span>
+            </div>
+          </div>
+
           {/* Navigation Menu */}
           <div className="space-y-4">
             <div className="space-y-1">
@@ -365,12 +430,26 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
 
         {/* Bottom User & Sign Out Section */}
         <div className="border-t border-zinc-200 pt-4 space-y-3">
+          <div className="p-2 rounded-xl bg-white border border-zinc-200/80 shadow-2xs flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <span className="font-semibold text-xs text-zinc-900 truncate block">
+                {currentUser.name || currentUser.email || 'Cameron M.'}
+              </span>
+              <span className="text-[10px] text-zinc-400 font-mono truncate block">
+                {currentUser.email || 'cam@beaconmetrics.io'}
+              </span>
+            </div>
+            <Badge className={cn('text-[9px] font-mono uppercase px-1.5 py-0.2 shrink-0', getRoleBadgeColor(userRole))}>
+              {userRole}
+            </Badge>
+          </div>
+
           <form action={signOut}>
             <Button
               type="submit"
               variant="outline"
               size="sm"
-              className="w-full justify-start text-xs border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-700 shadow-2xs"
+              className="w-full justify-start text-xs border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-700 shadow-2xs cursor-pointer"
             >
               <LogOut className="h-3.5 w-3.5 mr-2 text-zinc-500" /> Sign Out
             </Button>

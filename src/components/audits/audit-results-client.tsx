@@ -296,6 +296,9 @@ export function AuditResultsClient({
       <SentimentContextCard
         runs={runs}
         brandName={project.name}
+        domain={project.domain}
+        competitors={competitorsList}
+        queryText={prompt.query_text}
         onOpenSentinel={handleOpenSentinel}
       />
 

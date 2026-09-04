@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import type { BrandKit, SearchIntent, BrandAssociation } from '@/types/database.types';
+import { getPromptById, generateContextualAuditRuns } from '@/lib/demo-prompts';
 
 export const auditReportSchema = z.object({
   executiveSummary: z.string().describe('Concise high-level executive summary of brand positioning across answer engines.'),
@@ -89,31 +90,28 @@ export async function generateAuditReportAction(
       }
     }
 
-    // 2. Fallback check for demo cookies
+    // 2. Fallback check for demo cookies / centralized prompt helper
     if (!rawAuditOutputs) {
-      const demoPromptsCookie = cookieStore.get('beacon_demo_prompts')?.value;
-      if (demoPromptsCookie) {
-        try {
-          const list = JSON.parse(demoPromptsCookie);
-          const found = list.find((p: any) => p.id === promptId);
-          if (found) {
-            queryText = found.query_text || queryText;
-            if (found.search_intent) searchIntent = found.search_intent;
-            if (found.brand_association) brandAssociation = found.brand_association;
-          }
-        } catch {}
-      }
-
+      let activeProject: any = null;
       const activeProjectCookie = cookieStore.get('beacon_active_project');
       if (activeProjectCookie?.value) {
         try {
-          const parsed = JSON.parse(activeProjectCookie.value);
-          brandName = parsed.name || brandName;
-          domain = parsed.domain || domain;
-          brandKit = parsed.brand_kit || brandKit;
+          activeProject = JSON.parse(activeProjectCookie.value);
+          brandName = activeProject.name || brandName;
+          domain = activeProject.domain || domain;
+          brandKit = activeProject.brand_kit || brandKit;
         } catch {}
       }
-      rawAuditOutputs = `[PERPLEXITY]: "${brandName} emerges as a top recommendation alongside ${brandKit.competitors?.[0]?.name || 'competitors'} for ${queryText}."\n[CHATGPT]: "${brandName} is recognized for superior technology, but ${brandKit.competitors?.[0]?.name || 'competitor'} was referenced first."`;
+
+      const promptItem = getPromptById(promptId, cookieStore, activeProject);
+      queryText = promptItem.query_text || queryText;
+      if (promptItem.search_intent) searchIntent = promptItem.search_intent;
+      if (promptItem.brand_association) brandAssociation = promptItem.brand_association;
+
+      const mockRuns = generateContextualAuditRuns(promptItem, activeProject);
+      rawAuditOutputs = mockRuns
+        .map((r) => `[${r.engine.toUpperCase()} - Score: ${r.visibilityScore}%]: ${r.rawText}`)
+        .join('\n\n');
     }
 
     const systemPrompt = `You are a world-class Generative Engine Optimization (GEO) & Answer Engine Optimization (AEO) expert strategist.

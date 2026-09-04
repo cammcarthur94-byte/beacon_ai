@@ -236,6 +236,7 @@ async function pingEngine(
       rawOutput = response.text;
     } else if (engine.toLowerCase() === 'gemini' && process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
       const candidates = ['gemini-3.1-flash-lite', BEACON_MODELS.SEARCH_GROUNDING.id, 'gemini-3-flash-preview', 'gemini-1.5-pro'];
+      let lastCandidateErr: unknown = null;
       for (const candidate of candidates) {
         try {
           const response = await generateText({
@@ -247,10 +248,12 @@ async function pingEngine(
           rawOutput = response.text;
           if (rawOutput) break;
         } catch (candidateErr) {
+          lastCandidateErr = candidateErr;
           console.warn(`Gemini candidate ${candidate} failed, trying next:`, candidateErr);
         }
       }
       if (!rawOutput) {
+        console.warn(`External AI API call failed for engine ${engine}. Falling back to simulator.`, lastCandidateErr);
         rawOutput = generateSimulatedResponse(engine, queryText, brandName, domain, competitors);
       }
     } else if (engine.toLowerCase() === 'claude' && process.env.ANTHROPIC_API_KEY) {

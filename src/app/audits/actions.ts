@@ -12,6 +12,17 @@ import { executeMultiEngineAudit } from '@/lib/ai/engine-runner';
 import type { AuditFrequency, BrandKit, SearchIntent, BrandAssociation } from '@/types/database.types';
 import { extractDomain, categorizeSource } from '@/lib/citations/categorizer';
 import { checkTierAccess, isTierEligibleForGoogleAi } from '@/lib/billing/tier-access';
+import { getDemoPrompts } from '@/lib/demo-prompts';
+
+function getActiveProjectFromCookie(cookieStore: any) {
+  const projectCookie = cookieStore.get('beacon_active_project')?.value;
+  if (projectCookie) {
+    try {
+      return JSON.parse(projectCookie);
+    } catch {}
+  }
+  return null;
+}
 
 const createPromptSchema = z.object({
   queryText: z.string().min(4, 'Audit phrase must be at least 4 characters long.'),
@@ -92,8 +103,8 @@ export async function createPromptAudit(formData: FormData) {
 
   // Fallback for local development if cloud credentials aren't set
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const existingPromptsRaw = cookieStore.get('beacon_demo_prompts')?.value;
-    const promptsList = existingPromptsRaw ? JSON.parse(existingPromptsRaw) : [];
+    const project = getActiveProjectFromCookie(cookieStore);
+    const promptsList = [...getDemoPrompts(cookieStore, project)];
 
     const newPrompt = {
       id: 'prompt-' + Date.now(),
@@ -234,15 +245,15 @@ export async function togglePromptStatus(promptId: string, isCurrentlyActive: bo
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const raw = cookieStore.get('beacon_demo_prompts')?.value;
-    if (raw) {
-      const list = JSON.parse(raw);
-      const updated = list.map((p: any) =>
-        p.id === promptId ? { ...p, is_active: !isCurrentlyActive } : p
-      );
-      cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), { path: '/' });
-    }
+    const project = getActiveProjectFromCookie(cookieStore);
+    const list = getDemoPrompts(cookieStore, project);
+    const updated = list.map((p: any) =>
+      p.id === promptId ? { ...p, is_active: !isCurrentlyActive } : p
+    );
+    cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), { path: '/' });
     revalidatePath('/audits');
+    revalidatePath(`/audits/${promptId}`);
+    revalidatePath('/dashboard');
     return { success: true };
   }
 
@@ -264,39 +275,38 @@ export async function togglePromptEngine(promptId: string, engineId: string) {
 
   // Local demo fallback
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const raw = cookieStore.get('beacon_demo_prompts')?.value;
-    if (raw) {
-      const list = JSON.parse(raw);
-      const updated = list.map((p: any) => {
-        if (p.id !== promptId) return p;
+    const project = getActiveProjectFromCookie(cookieStore);
+    const list = getDemoPrompts(cookieStore, project);
+    const updated = list.map((p: any) => {
+      if (p.id !== promptId) return p;
 
-        const currentActive: string[] = Array.isArray(p.target_engines) ? [...p.target_engines] : [];
-        const currentDisabled: string[] = Array.isArray(p.disabled_engines) ? [...p.disabled_engines] : [];
+      const currentActive: string[] = Array.isArray(p.target_engines) ? [...p.target_engines] : [];
+      const currentDisabled: string[] = Array.isArray(p.disabled_engines) ? [...p.disabled_engines] : [];
 
-        let newActive: string[];
-        let newDisabled: string[];
+      let newActive: string[];
+      let newDisabled: string[];
 
-        if (currentActive.includes(engineId)) {
-          newActive = currentActive.filter((e) => e !== engineId);
-          newDisabled = Array.from(new Set([...currentDisabled, engineId]));
-        } else {
-          newActive = Array.from(new Set([...currentActive, engineId]));
-          newDisabled = currentDisabled.filter((e) => e !== engineId);
-        }
+      if (currentActive.includes(engineId)) {
+        newActive = currentActive.filter((e) => e !== engineId);
+        newDisabled = Array.from(new Set([...currentDisabled, engineId]));
+      } else {
+        newActive = Array.from(new Set([...currentActive, engineId]));
+        newDisabled = currentDisabled.filter((e) => e !== engineId);
+      }
 
-        const newIsActive = newActive.length === 0 ? false : p.is_active;
+      const newIsActive = newActive.length === 0 ? false : p.is_active;
 
-        return {
-          ...p,
-          target_engines: newActive,
-          disabled_engines: newDisabled,
-          is_active: newIsActive,
-        };
-      });
+      return {
+        ...p,
+        target_engines: newActive,
+        disabled_engines: newDisabled,
+        is_active: newIsActive,
+      };
+    });
 
-      cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), { path: '/' });
-    }
+    cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), { path: '/' });
     revalidatePath('/audits');
+    revalidatePath(`/audits/${promptId}`);
     revalidatePath('/dashboard');
     return { success: true };
   }
@@ -344,12 +354,12 @@ export async function deletePromptAudit(promptId: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const raw = cookieStore.get('beacon_demo_prompts')?.value;
-    if (raw) {
-      const list = JSON.parse(raw).filter((p: any) => p.id !== promptId);
-      cookieStore.set('beacon_demo_prompts', JSON.stringify(list), { path: '/' });
-    }
+    const project = getActiveProjectFromCookie(cookieStore);
+    const list = getDemoPrompts(cookieStore, project);
+    const updated = list.filter((p: any) => p.id !== promptId);
+    cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), { path: '/' });
     revalidatePath('/audits');
+    revalidatePath('/dashboard');
     return { success: true };
   }
 
@@ -366,7 +376,20 @@ export async function triggerInstantRun(promptId: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+    const project = getActiveProjectFromCookie(cookieStore);
+    const list = getDemoPrompts(cookieStore, project);
+    const updated = list.map((p: any) =>
+      p.id === promptId
+        ? {
+            ...p,
+            last_run_at: new Date().toISOString(),
+            latest_score: Math.min(99, Math.max(70, (p.latest_score || 85) + (Math.floor(Math.random() * 7) - 3))),
+          }
+        : p
+    );
+    cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), { path: '/' });
     revalidatePath('/audits');
+    revalidatePath(`/audits/${promptId}`);
     revalidatePath('/dashboard');
     return { success: true, message: 'Instant audit completed successfully.' };
   }
@@ -861,8 +884,8 @@ export async function batchCreatePromptAudits(prompts: BatchPromptInput[]) {
 
   // Fallback for local demo mode without Supabase cloud
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const existingPromptsRaw = cookieStore.get('beacon_demo_prompts')?.value;
-    let promptsList = existingPromptsRaw ? JSON.parse(existingPromptsRaw) : [];
+    const project = getActiveProjectFromCookie(cookieStore);
+    let promptsList = [...getDemoPrompts(cookieStore, project)];
 
     if (promptsList.length + prompts.length > auditLimit) {
       const remaining = Math.max(0, auditLimit - promptsList.length);

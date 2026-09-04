@@ -7,6 +7,7 @@ import { AppSidebarLayout } from '@/components/layout/app-sidebar-layout';
 import { Search, Clock, Cpu, TrendingUp } from 'lucide-react';
 import { AuditsClientView, type AuditPromptItem } from './audits-client';
 import type { BrandKit } from '@/types/database.types';
+import { getDemoPrompts } from '@/lib/demo-prompts';
 
 export default async function AuditsPage() {
   const cookieStore = await cookies();
@@ -92,121 +93,7 @@ export default async function AuditsPage() {
     project.name.toLowerCase().includes('lululemon');
 
   if (prompts.length === 0) {
-    const demoPromptsCookie = cookieStore.get('beacon_demo_prompts');
-    if (demoPromptsCookie?.value) {
-      try {
-        prompts = JSON.parse(demoPromptsCookie.value);
-      } catch {
-        // ignore
-      }
-    }
-
-    if (prompts.length === 0) {
-      // Default initial prompts aligned with industry
-      if (isConsumer) {
-        prompts = [
-          {
-            id: 'prompt-seed-1',
-            query_text: `Best buttery-soft yoga leggings for Pilates and studio workouts in 2026`,
-            frequency: 'daily',
-            target_engines: ['chatgpt', 'gemini', 'claude', 'perplexity'],
-            search_intent: 'commercial',
-            brand_association: 'unbranded',
-            is_active: true,
-            last_run_at: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-            next_run_at: new Date(Date.now() + 1000 * 60 * 60 * 21).toISOString(),
-            latest_score: 94,
-          },
-          {
-            id: 'prompt-seed-2',
-            query_text: `${project.name} Align vs Alo Yoga Airbrush: durability, pilling, and squat test review`,
-            frequency: 'weekly',
-            target_engines: ['chatgpt', 'perplexity'],
-            search_intent: 'commercial',
-            brand_association: 'branded',
-            is_active: true,
-            last_run_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-            next_run_at: new Date(Date.now() + 1000 * 60 * 60 * 144).toISOString(),
-            latest_score: 89,
-          },
-          {
-            id: 'prompt-seed-3',
-            query_text: `Best men's commuter pants and workout joggers: ${project.name} ABC vs Vuori Meta`,
-            frequency: 'daily',
-            target_engines: ['gemini', 'perplexity'],
-            search_intent: 'commercial',
-            brand_association: 'branded',
-            is_active: true,
-            last_run_at: new Date(Date.now() - 1000 * 60 * 480).toISOString(),
-            next_run_at: new Date(Date.now() + 1000 * 60 * 60 * 16).toISOString(),
-            latest_score: 86,
-          },
-          {
-            id: 'prompt-seed-4',
-            query_text: `Where to buy authentic ${project.name} Align leggings and Everywhere Belt Bags online`,
-            frequency: 'daily',
-            target_engines: ['gemini', 'perplexity', 'chatgpt'],
-            search_intent: 'transactional',
-            brand_association: 'branded',
-            is_active: true,
-            last_run_at: new Date(Date.now() - 1000 * 60 * 300).toISOString(),
-            next_run_at: new Date(Date.now() + 1000 * 60 * 60 * 20).toISOString(),
-            latest_score: 92,
-          },
-          {
-            id: 'prompt-seed-5',
-            query_text: `Top moisture-wicking athletic wear brands for hot yoga and HIIT training`,
-            frequency: 'weekly',
-            target_engines: ['claude', 'perplexity'],
-            search_intent: 'informational',
-            brand_association: 'unbranded',
-            is_active: true,
-            last_run_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-            next_run_at: new Date(Date.now() + 1000 * 60 * 60 * 120).toISOString(),
-            latest_score: 81,
-          },
-        ];
-      } else {
-        prompts = [
-          {
-            id: 'prompt-seed-1',
-            query_text: `What are the best platforms for ${project.name || 'enterprise intelligence'} in 2026?`,
-            frequency: 'daily',
-            target_engines: ['chatgpt', 'gemini', 'claude', 'perplexity'],
-            search_intent: 'commercial',
-            brand_association: 'unbranded',
-            is_active: true,
-            last_run_at: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-            next_run_at: new Date(Date.now() + 1000 * 60 * 60 * 21).toISOString(),
-            latest_score: 92,
-          },
-          {
-            id: 'prompt-seed-2',
-            query_text: `Top alternatives to legacy market incumbents for ${project.domain}`,
-            frequency: 'weekly',
-            target_engines: ['chatgpt', 'perplexity'],
-            search_intent: 'commercial',
-            brand_association: 'branded',
-            is_active: true,
-            last_run_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-            next_run_at: new Date(Date.now() + 1000 * 60 * 60 * 144).toISOString(),
-            latest_score: 84,
-          },
-          {
-            id: 'prompt-seed-3',
-            query_text: `How to implement generative engine optimization workflows`,
-            frequency: 'daily',
-            target_engines: ['claude', 'perplexity'],
-            search_intent: 'informational',
-            brand_association: 'unbranded',
-            is_active: true,
-            last_run_at: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
-            next_run_at: new Date(Date.now() + 1000 * 60 * 60 * 18).toISOString(),
-            latest_score: 78,
-          },
-        ];
-      }
-    }
+    prompts = getDemoPrompts(cookieStore, project) as any;
   }
 
   const activeCount = prompts.filter((p) => p.is_active).length;
@@ -309,9 +196,9 @@ export default async function AuditsPage() {
             </div>
             <div>
               <div className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 tabular-nums">
-                6 Engines Active
+                5 Engines Active
               </div>
-              <p className="text-xs text-slate-500 mt-1 font-sans truncate" title="ChatGPT, Claude, Gemini, Perplexity, AI Mode, AI Overviews">
+              <p className="text-xs text-slate-500 mt-1 font-sans truncate" title="ChatGPT, Claude, Gemini, Perplexity, AI Overviews">
                 ChatGPT, Claude, Gemini, Perplexity &amp; Google AI
               </p>
             </div>

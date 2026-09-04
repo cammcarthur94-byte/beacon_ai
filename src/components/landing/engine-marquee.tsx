@@ -47,13 +47,13 @@ const ENGINES: EngineItem[] = [
     domain: 'google.com',
     iconColor: 'text-[#4285F4]',
   },
-  {
+  /* {
     id: 'google_ai_mode',
     name: 'Google AI Mode',
     shortLabel: 'AI Mode',
     domain: 'google.com',
     iconColor: 'text-[#7C3AED]',
-  },
+  }, */
   {
     id: 'copilot',
     name: 'Microsoft Copilot',

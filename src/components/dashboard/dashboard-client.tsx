@@ -41,7 +41,7 @@ export function DashboardClientView({
     'claude',
     'perplexity',
     'google_ai_overview',
-    'google_ai_mode',
+    // 'google_ai_mode',
   ];
   const [selectedEngines, setSelectedEngines] = useState<string[]>(ALL_ENGINE_IDS);
   const [selectedSentimentCategory, setSelectedSentimentCategory] = useState<'all' | 'positive' | 'neutral' | 'negative'>('all');
