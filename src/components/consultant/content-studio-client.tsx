@@ -196,7 +196,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
       const data = await res.json();
       if (data.success && data.article) {
         setBlogResult(data.article);
-        toast.success(`Generated publication-ready article via ${data.model || 'Claude Sonnet 5'}`);
+        toast.success('Generated publication-ready article');
       } else {
         toast.error(data.error || 'Failed to generate article');
       }
@@ -233,7 +233,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
       if (data.success && Array.isArray(data.variations)) {
         setEmailVariations(data.variations);
         setSelectedVariationIndex(0);
-        toast.success(`Generated 3 brand-tailored email variations via ${data.model || 'Claude Sonnet 5'}`);
+        toast.success('Generated 3 tailored email pitch variations');
       } else {
         toast.error(data.error || 'Failed to generate email variations');
       }
@@ -267,7 +267,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
       const data = await res.json();
       if (data.success && data.post) {
         setThoughtResult(data.post);
-        toast.success(`Generated executive thought leadership via ${data.model || 'Claude Sonnet 5'}`);
+        toast.success('Generated executive thought leadership piece');
       } else {
         toast.error(data.error || 'Failed to generate piece');
       }
@@ -300,7 +300,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
       if (data.success && Array.isArray(data.faqs)) {
         setFaqList(data.faqs);
         if (data.toneAlignment) setFaqToneAlignment(data.toneAlignment);
-        toast.success(`Synthesized 4 semantic FAQ pairs via ${data.model || 'Gemini 3.8 Flash'}`);
+        toast.success('Synthesized 4 semantic FAQ pairs');
       } else {
         toast.error(data.error || 'Failed to generate FAQ blocks');
       }
@@ -332,7 +332,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
       const data = await res.json();
       if (data.success && data.comparison) {
         setCompResult(data.comparison);
-        toast.success(`Generated positioning matrix via ${data.model || 'Gemini 3.8 Flash'}`);
+        toast.success('Generated positioning matrix');
       } else {
         toast.error(data.error || 'Failed to generate comparison');
       }
@@ -590,14 +590,9 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
             {/* Input Controls */}
             <Card className="lg:col-span-5 border-slate-200 shadow-sm h-fit">
               <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-bold text-slate-900">AEO Article Configuration</CardTitle>
-                  <Badge className="bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] font-semibold">
-                    Claude Sonnet 5
-                  </Badge>
-                </div>
+                <CardTitle className="text-base font-bold text-slate-900">AEO Article Configuration</CardTitle>
                 <CardDescription className="text-xs text-slate-500">
-                  Engineer structured, entity-dense authority guides designed to earn citations in ChatGPT, Google AI Overviews, and Perplexity.
+                  Engineer structured, entity-dense authority guides designed to earn citations across AI search engines.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-xs">
@@ -675,7 +670,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
 
                 {/* Primary Entity to Anchor */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-700">Primary Entity to Anchor in Model Knowledge</label>
+                  <label className="font-semibold text-slate-700">Primary Brand Entity to Anchor</label>
                   <Input
                     value={blogPrimaryEntity}
                     onChange={(e) => setBlogPrimaryEntity(e.target.value)}
@@ -883,15 +878,10 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
             {/* Left Column: Personalization & Pitch Parameters */}
             <Card className="lg:col-span-5 border-slate-200 shadow-sm h-fit">
               <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-emerald-700" />
-                    Target Editorial Parameters
-                  </CardTitle>
-                  <Badge className="bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] font-semibold">
-                    Claude Sonnet 5
-                  </Badge>
-                </div>
+                <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-emerald-700" />
+                  Target Editorial Parameters
+                </CardTitle>
                 <CardDescription className="text-xs text-slate-500">
                   Configure journalist recipient, publication domain, and displacement angle to synthesize brand-calibrated pitches.
                 </CardDescription>
@@ -1201,15 +1191,10 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
             {/* Left Column: Narrative Parameters */}
             <Card className="lg:col-span-5 border-slate-200 shadow-sm h-fit">
               <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <Share2 className="h-4 w-4 text-emerald-700" />
-                    Executive Narrative Configuration
-                  </CardTitle>
-                  <Badge className="bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] font-semibold">
-                    Claude Sonnet 5
-                  </Badge>
-                </div>
+                <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Share2 className="h-4 w-4 text-emerald-700" />
+                  Executive Narrative Configuration
+                </CardTitle>
                 <CardDescription className="text-xs text-slate-500">
                   Synthesize high-conviction executive essays and LinkedIn posts calibrated to your brand voice.
                 </CardDescription>
@@ -1481,15 +1466,10 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
             {/* Left Column: FAQ Target Parameters */}
             <Card className="lg:col-span-5 border-slate-200 shadow-sm h-fit">
               <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <HelpCircle className="h-4 w-4 text-emerald-700" />
-                    Semantic FAQ Configuration
-                  </CardTitle>
-                  <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-semibold">
-                    Gemini 3.8 Flash
-                  </Badge>
-                </div>
+                <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <HelpCircle className="h-4 w-4 text-emerald-700" />
+                  Semantic FAQ Configuration
+                </CardTitle>
                 <CardDescription className="text-xs text-slate-500">
                   Generate structured FAQ answer blocks engineered for direct citation in AI search engines.
                 </CardDescription>
@@ -1655,17 +1635,12 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
             {/* Left Column: Comparison Parameters */}
             <Card className="lg:col-span-4 border-slate-200 shadow-sm h-fit">
               <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <Scale className="h-4 w-4 text-emerald-700" />
-                    Comparison Parameters
-                  </CardTitle>
-                  <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-semibold">
-                    Gemini 3.8 Flash
-                  </Badge>
-                </div>
+                <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Scale className="h-4 w-4 text-emerald-700" />
+                  Comparison Parameters
+                </CardTitle>
                 <CardDescription className="text-xs text-slate-500">
-                  Generate objective head-to-head positioning matrices for LLM scrapers.
+                  Generate objective head-to-head positioning matrices for AI search citations.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

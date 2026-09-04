@@ -165,26 +165,23 @@ interface ModelCandidate {
   provider: 'anthropic' | 'google';
 }
 
-function getModelCandidates(preferredProvider: 'anthropic' | 'google'): ModelCandidate[] {
-  const hasAnthropic = Boolean(process.env.ANTHROPIC_API_KEY);
+function getModelCandidates(): ModelCandidate[] {
   const hasGoogle = Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY);
+  const hasAnthropic = Boolean(process.env.ANTHROPIC_API_KEY);
 
-  const anthropicCandidates: ModelCandidate[] = hasAnthropic
-    ? [{ model: anthropic('claude-sonnet-5'), modelName: 'Claude Sonnet 5', provider: 'anthropic' }]
-    : [];
-
-  // gemini-3-flash-preview and gemini-3.1-flash-lite are verified active on Google API; gemini-3.8-flash is attempted as secondary
+  // Default everything in Content Studio to 3.1 Flash first
   const googleCandidates: ModelCandidate[] = hasGoogle
     ? [
-        { model: google('gemini-3-flash-preview'), modelName: 'Gemini 3 Flash', provider: 'google' },
-        { model: google('gemini-3.1-flash-lite'), modelName: 'Gemini 3.1 Flash Lite', provider: 'google' },
-        { model: google('gemini-3.8-flash'), modelName: 'Gemini 3.8 Flash', provider: 'google' },
+        { model: google('gemini-3.1-flash-lite'), modelName: '3.1 Flash', provider: 'google' },
+        { model: google('gemini-3-flash-preview'), modelName: '3.1 Flash', provider: 'google' },
+        { model: google('gemini-3.1-flash-lite-preview'), modelName: '3.1 Flash', provider: 'google' },
       ]
     : [];
 
-  if (preferredProvider === 'anthropic') {
-    return [...anthropicCandidates, ...googleCandidates];
-  }
+  const anthropicCandidates: ModelCandidate[] = hasAnthropic
+    ? [{ model: anthropic('claude-sonnet-5'), modelName: 'Fallback Engine', provider: 'anthropic' }]
+    : [];
+
   return [...googleCandidates, ...anthropicCandidates];
 }
 
@@ -288,7 +285,7 @@ export async function POST(request: NextRequest) {
         customContext = '',
       } = params;
 
-      const candidates = getModelCandidates('anthropic');
+      const candidates = getModelCandidates();
 
       for (const candidate of candidates) {
         try {
@@ -465,7 +462,7 @@ Generate the full comprehensive article in strictly valid JSON.`;
         customContext = '',
       } = params;
 
-      const candidates = getModelCandidates('anthropic');
+      const candidates = getModelCandidates();
 
       for (const candidate of candidates) {
         try {
@@ -579,7 +576,7 @@ Generate strictly valid JSON.`,
         customNotes = '',
       } = params;
 
-      const candidates = getModelCandidates('anthropic');
+      const candidates = getModelCandidates();
 
       for (const candidate of candidates) {
         try {
@@ -736,7 +733,7 @@ Generate the 3 email variations in JSON. No markdown backticks, output strictly 
         targetEngine = 'Google AI Overviews',
       } = params;
 
-      const candidates = getModelCandidates('google');
+      const candidates = getModelCandidates();
 
       for (const candidate of candidates) {
         try {
@@ -832,7 +829,7 @@ Output strictly a valid JSON array:
         buyerPriority = 'Long-term durability and athletic mobility',
       } = params;
 
-      const candidates = getModelCandidates('google');
+      const candidates = getModelCandidates();
 
       for (const candidate of candidates) {
         try {
@@ -926,7 +923,7 @@ Output strictly valid JSON:
         auditTopic = 'Brand Category Authority',
       } = params;
 
-      const candidates = getModelCandidates('google');
+      const candidates = getModelCandidates();
 
       for (const candidate of candidates) {
         try {
