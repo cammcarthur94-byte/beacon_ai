@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
+import { BEACON_MODELS } from '@/lib/ai/models';
 import { executeMultiEngineAudit } from '@/lib/ai/engine-runner';
 import type { AuditFrequency, BrandKit, SearchIntent, BrandAssociation } from '@/types/database.types';
 import { extractDomain, categorizeSource } from '@/lib/citations/categorizer';
@@ -420,13 +421,22 @@ export async function generateAiPrompts(params: {
   const intent = params.searchIntent || 'all';
   const association = params.brandAssociation || 'both';
 
-  // 1. Try real LLM generation if keys available
-  const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY);
+  // 1. Try real LLM generation using designated Gemini 3.8 Flash OR OpenAI GPT-4o-mini
   const hasGoogleKey = Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
+  const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY);
 
-  if (hasOpenAiKey || hasGoogleKey) {
+  if (hasGoogleKey || hasOpenAiKey) {
     try {
-      const model = hasOpenAiKey ? openai('gpt-4o-mini') : google('gemini-1.5-flash');
+      let model;
+      if (hasGoogleKey) {
+        try {
+          model = google(BEACON_MODELS.PROMPT_CREATION.googleModelId);
+        } catch {
+          model = google('gemini-2.5-flash');
+        }
+      } else {
+        model = openai(BEACON_MODELS.PROMPT_CREATION.openaiModelId);
+      }
       const systemPrompt = `You are Beacon's Generative Engine Optimization (GEO) strategist.
 Generate ${count} high-impact, realistic search query prompts that prospective buyers ask conversational search engines (ChatGPT, Perplexity, Gemini, Claude).
 Respond strictly with a valid JSON array of objects with the following schema:

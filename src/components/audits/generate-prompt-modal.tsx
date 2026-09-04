@@ -198,6 +198,12 @@ export function GeneratePromptModal({
               <Sparkles className="h-3.5 w-3.5" />
               <span>AI Telemetry Generator</span>
             </Badge>
+            <Badge
+              variant="outline"
+              className="bg-blue-50 text-blue-700 border-blue-200 gap-1 px-2 py-0.5 text-[11px] font-medium"
+            >
+              <span>Gemini 3.8 Flash / GPT-4o-mini</span>
+            </Badge>
           </div>
           <DialogTitle className="text-xl font-bold tracking-tight text-slate-900 mt-1">
             Generate Buyer Search Prompts with AI

@@ -740,6 +740,10 @@ export function AuthorityGapClient() {
                   <h2 className="text-base font-bold text-slate-900">
                     Beacon Sentinel Outreach Engine
                   </h2>
+                  <span className="text-[10px] text-purple-700 font-semibold bg-purple-50 border border-purple-200/80 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Sparkles className="h-2.5 w-2.5 text-purple-600" />
+                    Claude Sonnet 5
+                  </span>
                 </div>
                 <p className="text-xs text-slate-500">
                   AI-engineered editorial pitch angle to displace competitors on{' '}

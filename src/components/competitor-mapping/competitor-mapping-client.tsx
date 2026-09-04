@@ -323,6 +323,11 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
 
         {/* Consolidated action buttons */}
         <div className="flex items-center gap-2.5 shrink-0">
+          <span className="text-[11px] text-slate-600 font-medium hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100/90 border border-slate-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Crawler: Claude Haiku 4.5
+          </span>
+
           <Link href="/consultant">
             <Button
               variant="outline"
@@ -906,6 +911,10 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
                   <h2 className="text-base font-bold text-slate-900">
                     Beacon Sentinel Parity Remediation
                   </h2>
+                  <span className="text-[10px] text-purple-700 font-semibold bg-purple-50 border border-purple-200/80 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Sparkles className="h-2.5 w-2.5 text-purple-600" />
+                    Claude Sonnet 5
+                  </span>
                 </div>
                 <p className="text-xs text-slate-500">
                   Interactive AI assistant engineering parity copy &amp; grounding schema for{' '}

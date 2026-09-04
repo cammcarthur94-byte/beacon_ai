@@ -11,6 +11,8 @@ import {
 import { z } from 'zod';
 import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
+import { anthropic } from '@ai-sdk/anthropic';
+import { BEACON_MODELS } from '@/lib/ai/models';
 import { createClient } from '@/lib/supabase/server';
 import type { BrandKit } from '@/types/database.types';
 import {
@@ -264,6 +266,48 @@ export async function POST(req: Request) {
   // ---------------------------------------------------------------------------
   const modelMessages = await convertToModelMessages(uiMessages, { tools });
 
+  // Prioritize Claude Sonnet 5 (Anthropic flagship) for Beacon Sentinel
+  if (process.env.ANTHROPIC_API_KEY) {
+    try {
+      let anthropicModel;
+      try {
+        anthropicModel = anthropic(BEACON_MODELS.SENTINEL_CHAT.id);
+      } catch {
+        anthropicModel = anthropic('claude-3-7-sonnet-latest');
+      }
+
+      const result = streamText({
+        model: anthropicModel,
+        system: systemPrompt,
+        messages: modelMessages,
+        tools,
+        maxRetries: 2,
+        onEnd: async (event) => {
+          const text = event.steps
+            .map((step) => step.text)
+            .filter(Boolean)
+            .join('\n\n')
+            .trim();
+          if (!text) return;
+          await persistChatMessage(toolContext.supabase, {
+            projectId: project.id,
+            sender: 'agent',
+            content: text,
+            metadata: {
+              source: 'beacon-sentinel',
+              model: BEACON_MODELS.SENTINEL_CHAT.displayName,
+            },
+          });
+        },
+      });
+      return createUIMessageStreamResponse({
+        stream: result.toUIMessageStream({ sendSources: false }),
+      });
+    } catch (error) {
+      console.warn('Claude Sonnet 5 stream failed, trying fallback providers:', error);
+    }
+  }
+
   if (process.env.OPENAI_API_KEY) {
     try {
       const result = streamText({
@@ -283,7 +327,7 @@ export async function POST(req: Request) {
             projectId: project.id,
             sender: 'agent',
             content: text,
-            metadata: { source: 'beacon-sentinel' },
+            metadata: { source: 'beacon-sentinel', model: 'OpenAI GPT-4o-mini' },
           });
         },
       });
@@ -291,14 +335,21 @@ export async function POST(req: Request) {
         stream: result.toUIMessageStream({ sendSources: false }),
       });
     } catch (error) {
-      console.warn('Live model stream failed, using offline Sentinel engine:', error);
+      console.warn('OpenAI stream failed, trying Google fallback:', error);
     }
   }
 
   if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
     try {
+      let googleModel;
+      try {
+        googleModel = google('gemini-2.5-pro');
+      } catch {
+        googleModel = google('gemini-1.5-flash');
+      }
+
       const result = streamText({
-        model: google('gemini-1.5-flash'),
+        model: googleModel,
         system: systemPrompt,
         messages: modelMessages,
         tools,
@@ -314,7 +365,7 @@ export async function POST(req: Request) {
             projectId: project.id,
             sender: 'agent',
             content: text,
-            metadata: { source: 'beacon-sentinel' },
+            metadata: { source: 'beacon-sentinel', model: 'Google Gemini 2.5 Pro' },
           });
         },
       });

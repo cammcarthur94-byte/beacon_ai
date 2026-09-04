@@ -2,6 +2,7 @@ import { generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
 import { anthropic } from '@ai-sdk/anthropic';
+import { BEACON_MODELS } from '@/lib/ai/models';
 import type { SentimentType } from '@/types/database.types';
 import { analyzeOutput } from './analyzer';
 import { fetchGoogleSerpAiResult } from '@/lib/serp/serp-client';
@@ -234,10 +235,17 @@ async function pingEngine(
       });
       rawOutput = response.text;
     } else if (engine.toLowerCase() === 'gemini' && process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      let geminiModel;
+      try {
+        geminiModel = google(BEACON_MODELS.SEARCH_GROUNDING.id);
+      } catch {
+        geminiModel = google('gemini-1.5-pro');
+      }
+
       const response = await generateText({
-        model: google('gemini-1.5-pro'),
+        model: geminiModel,
         system:
-          'You are Google Gemini providing detailed, search-grounded answers with brand mentions and source links.',
+          'You are Google Gemini 2.5 Pro providing detailed, search-grounded answers with brand mentions, citation verification, and primary source links.',
         prompt: queryText,
       });
       rawOutput = response.text;

@@ -187,6 +187,10 @@ export function ConsultantChat({ workspace, initialMessages, hasUnreadAlerts }: 
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-gray-900 text-sm">Beacon Sentinel</span>
+                <span className="text-[10px] text-purple-700 font-semibold bg-purple-50 border border-purple-200/80 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Sparkles className="h-2.5 w-2.5 text-purple-600" />
+                  Claude Sonnet 5
+                </span>
                 <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
                   Online
                 </span>
