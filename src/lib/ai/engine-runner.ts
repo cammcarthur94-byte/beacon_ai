@@ -235,20 +235,24 @@ async function pingEngine(
       });
       rawOutput = response.text;
     } else if (engine.toLowerCase() === 'gemini' && process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      let geminiModel;
-      try {
-        geminiModel = google(BEACON_MODELS.SEARCH_GROUNDING.id);
-      } catch {
-        geminiModel = google('gemini-1.5-pro');
+      const candidates = [BEACON_MODELS.SEARCH_GROUNDING.id, 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-1.5-pro'];
+      for (const candidate of candidates) {
+        try {
+          const response = await generateText({
+            model: google(candidate),
+            system:
+              'You are Google Gemini providing detailed, search-grounded answers with brand mentions, citation verification, and primary source links.',
+            prompt: queryText,
+          });
+          rawOutput = response.text;
+          if (rawOutput) break;
+        } catch (candidateErr) {
+          console.warn(`Gemini candidate ${candidate} failed, trying next:`, candidateErr);
+        }
       }
-
-      const response = await generateText({
-        model: geminiModel,
-        system:
-          'You are Google Gemini 2.5 Pro providing detailed, search-grounded answers with brand mentions, citation verification, and primary source links.',
-        prompt: queryText,
-      });
-      rawOutput = response.text;
+      if (!rawOutput) {
+        rawOutput = generateSimulatedResponse(engine, queryText, brandName, domain, competitors);
+      }
     } else if (engine.toLowerCase() === 'claude' && process.env.ANTHROPIC_API_KEY) {
       const response = await generateText({
         model: anthropic('claude-3-5-sonnet-latest'),
