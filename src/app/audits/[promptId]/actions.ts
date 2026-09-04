@@ -8,7 +8,7 @@ import { cookies } from 'next/headers';
 import type { BrandKit, SearchIntent, BrandAssociation } from '@/types/database.types';
 import { getPromptById, generateContextualAuditRuns } from '@/lib/demo-prompts';
 
-export const auditReportSchema = z.object({
+const auditReportSchema = z.object({
   executiveSummary: z.string().describe('Concise high-level executive summary of brand positioning across answer engines.'),
   trendAnalysis: z.string().describe('Analysis comparing historical performance against competitors.'),
   whatWorked: z.array(z.string()).describe('Specific entities, keywords, or positioning that successfully triggered brand mentions.'),
@@ -28,7 +28,6 @@ export async function generateAuditReportAction(
   promptId: string
 ): Promise<{ report?: AuditReportData; error?: string }> {
   try {
-    const supabase = await createClient();
     const cookieStore = await cookies();
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
@@ -48,6 +47,7 @@ export async function generateAuditReportAction(
 
     // 1. Fetch from Supabase
     if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
+      const supabase = await createClient();
       const { data: prompt } = await supabase
         .from('prompts')
         .select(`

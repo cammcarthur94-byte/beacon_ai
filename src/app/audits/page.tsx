@@ -11,7 +11,6 @@ import { getDemoPrompts } from '@/lib/demo-prompts';
 
 export default async function AuditsPage() {
   const cookieStore = await cookies();
-  const supabase = await createClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   let project: { id: string; name: string; domain: string; tier: string; brand_kit?: BrandKit } | null = null;
@@ -19,6 +18,7 @@ export default async function AuditsPage() {
 
   // 1. Fetch from Supabase cloud
   if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
+    const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -92,7 +92,8 @@ export default async function AuditsPage() {
     project.name.toLowerCase().includes('nike') ||
     project.name.toLowerCase().includes('lululemon');
 
-  if (prompts.length === 0) {
+  const isCloud = Boolean(supabaseUrl && !supabaseUrl.includes('placeholder'));
+  if (!isCloud) {
     prompts = getDemoPrompts(cookieStore, project) as any;
   }
 
@@ -102,7 +103,7 @@ export default async function AuditsPage() {
 
   // Overall Visibility (Avg SOV across prompts)
   const totalScore = prompts.reduce((acc, p) => acc + (p.latest_score || 84.2), 0);
-  const avgSov = prompts.length > 0 ? (totalScore / prompts.length).toFixed(1) : '84.2';
+  const avgSov = prompts.length > 0 ? (totalScore / prompts.length).toFixed(1) : '0.0';
 
   return (
     <AppSidebarLayout project={project}>

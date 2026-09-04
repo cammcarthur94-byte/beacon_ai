@@ -240,240 +240,273 @@ export async function createPromptAudit(formData: FormData) {
 }
 
 export async function togglePromptStatus(promptId: string, isCurrentlyActive: boolean) {
-  const cookieStore = await cookies();
-  const supabase = await createClient();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  try {
+    const cookieStore = await cookies();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-  if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const project = getActiveProjectFromCookie(cookieStore);
-    const list = getDemoPrompts(cookieStore, project);
-    const updated = list.map((p: any) =>
-      p.id === promptId ? { ...p, is_active: !isCurrentlyActive } : p
-    );
-    cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), { path: '/' });
+    if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+      const project = getActiveProjectFromCookie(cookieStore);
+      const list = getDemoPrompts(cookieStore, project);
+      const updated = list.map((p: any) =>
+        p.id === promptId ? { ...p, is_active: !isCurrentlyActive } : p
+      );
+      cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      revalidatePath('/audits');
+      revalidatePath(`/audits/${promptId}`);
+      revalidatePath('/dashboard');
+      return { success: true };
+    }
+
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('prompts')
+      .update({ is_active: !isCurrentlyActive })
+      .eq('id', promptId);
+
+    if (error) return { error: error.message };
+
     revalidatePath('/audits');
-    revalidatePath(`/audits/${promptId}`);
-    revalidatePath('/dashboard');
     return { success: true };
+  } catch (err: any) {
+    console.error('Error toggling prompt status:', err);
+    return { error: err?.message || 'Failed to toggle prompt status.' };
   }
-
-  const { error } = await supabase
-    .from('prompts')
-    .update({ is_active: !isCurrentlyActive })
-    .eq('id', promptId);
-
-  if (error) return { error: error.message };
-
-  revalidatePath('/audits');
-  return { success: true };
 }
 
 export async function togglePromptEngine(promptId: string, engineId: string) {
-  const cookieStore = await cookies();
-  const supabase = await createClient();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  try {
+    const cookieStore = await cookies();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-  // Local demo fallback
-  if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const project = getActiveProjectFromCookie(cookieStore);
-    const list = getDemoPrompts(cookieStore, project);
-    const updated = list.map((p: any) => {
-      if (p.id !== promptId) return p;
+    // Local demo fallback
+    if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+      const project = getActiveProjectFromCookie(cookieStore);
+      const list = getDemoPrompts(cookieStore, project);
+      const updated = list.map((p: any) => {
+        if (p.id !== promptId) return p;
 
-      const currentActive: string[] = Array.isArray(p.target_engines) ? [...p.target_engines] : [];
-      const currentDisabled: string[] = Array.isArray(p.disabled_engines) ? [...p.disabled_engines] : [];
+        const currentActive: string[] = Array.isArray(p.target_engines) ? [...p.target_engines] : [];
+        const currentDisabled: string[] = Array.isArray(p.disabled_engines) ? [...p.disabled_engines] : [];
 
-      let newActive: string[];
-      let newDisabled: string[];
+        let newActive: string[];
+        let newDisabled: string[];
 
-      if (currentActive.includes(engineId)) {
-        newActive = currentActive.filter((e) => e !== engineId);
-        newDisabled = Array.from(new Set([...currentDisabled, engineId]));
-      } else {
-        newActive = Array.from(new Set([...currentActive, engineId]));
-        newDisabled = currentDisabled.filter((e) => e !== engineId);
-      }
+        if (currentActive.includes(engineId)) {
+          newActive = currentActive.filter((e) => e !== engineId);
+          newDisabled = Array.from(new Set([...currentDisabled, engineId]));
+        } else {
+          newActive = Array.from(new Set([...currentActive, engineId]));
+          newDisabled = currentDisabled.filter((e) => e !== engineId);
+        }
 
-      const newIsActive = newActive.length === 0 ? false : p.is_active;
+        const newIsActive = newActive.length === 0 ? false : p.is_active;
 
-      return {
-        ...p,
+        return {
+          ...p,
+          target_engines: newActive,
+          disabled_engines: newDisabled,
+          is_active: newIsActive,
+        };
+      });
+
+      cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      revalidatePath('/audits');
+      revalidatePath(`/audits/${promptId}`);
+      revalidatePath('/dashboard');
+      return { success: true };
+    }
+
+    const supabase = await createClient();
+    // Supabase Cloud path
+    const { data: prompt, error: fetchErr } = await supabase
+      .from('prompts')
+      .select('target_engines, is_active')
+      .eq('id', promptId)
+      .single();
+
+    if (fetchErr || !prompt) {
+      return { error: fetchErr?.message || 'Prompt not found' };
+    }
+
+    const currentActive: string[] = Array.isArray(prompt.target_engines) ? [...prompt.target_engines] : [];
+    let newActive: string[];
+
+    if (currentActive.includes(engineId)) {
+      newActive = currentActive.filter((e) => e !== engineId);
+    } else {
+      newActive = Array.from(new Set([...currentActive, engineId]));
+    }
+
+    const newIsActive = newActive.length === 0 ? false : prompt.is_active;
+
+    const { error: updateErr } = await supabase
+      .from('prompts')
+      .update({
         target_engines: newActive,
-        disabled_engines: newDisabled,
         is_active: newIsActive,
-      };
-    });
+      })
+      .eq('id', promptId);
 
-    cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), { path: '/' });
+    if (updateErr) return { error: updateErr.message };
+
     revalidatePath('/audits');
-    revalidatePath(`/audits/${promptId}`);
     revalidatePath('/dashboard');
     return { success: true };
+  } catch (err: any) {
+    console.error('Error toggling prompt engine:', err);
+    return { error: err?.message || 'Failed to toggle prompt engine.' };
   }
-
-  // Supabase Cloud path
-  const { data: prompt, error: fetchErr } = await supabase
-    .from('prompts')
-    .select('target_engines, is_active')
-    .eq('id', promptId)
-    .single();
-
-  if (fetchErr || !prompt) {
-    return { error: fetchErr?.message || 'Prompt not found' };
-  }
-
-  const currentActive: string[] = Array.isArray(prompt.target_engines) ? [...prompt.target_engines] : [];
-  let newActive: string[];
-
-  if (currentActive.includes(engineId)) {
-    newActive = currentActive.filter((e) => e !== engineId);
-  } else {
-    newActive = Array.from(new Set([...currentActive, engineId]));
-  }
-
-  const newIsActive = newActive.length === 0 ? false : prompt.is_active;
-
-  const { error: updateErr } = await supabase
-    .from('prompts')
-    .update({
-      target_engines: newActive,
-      is_active: newIsActive,
-    })
-    .eq('id', promptId);
-
-  if (updateErr) return { error: updateErr.message };
-
-  revalidatePath('/audits');
-  revalidatePath('/dashboard');
-  return { success: true };
 }
 
 export async function deletePromptAudit(promptId: string) {
-  const cookieStore = await cookies();
-  const supabase = await createClient();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  try {
+    const cookieStore = await cookies();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-  if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const project = getActiveProjectFromCookie(cookieStore);
-    const list = getDemoPrompts(cookieStore, project);
-    const updated = list.filter((p: any) => p.id !== promptId);
-    cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), { path: '/' });
+    if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+      const project = getActiveProjectFromCookie(cookieStore);
+      const list = getDemoPrompts(cookieStore, project);
+      const updated = list.filter((p: any) => p.id !== promptId);
+      cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      revalidatePath('/audits');
+      revalidatePath('/dashboard');
+      return { success: true };
+    }
+
+    const supabase = await createClient();
+    const { error } = await supabase.from('prompts').delete().eq('id', promptId);
+    if (error) return { error: error.message };
+
     revalidatePath('/audits');
     revalidatePath('/dashboard');
     return { success: true };
+  } catch (err: any) {
+    console.error('Error deleting prompt audit:', err);
+    return { error: err?.message || 'Failed to delete prompt audit tracker.' };
   }
-
-  const { error } = await supabase.from('prompts').delete().eq('id', promptId);
-  if (error) return { error: error.message };
-
-  revalidatePath('/audits');
-  return { success: true };
 }
 
 export async function triggerInstantRun(promptId: string) {
-  const cookieStore = await cookies();
-  const supabase = await createClient();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  try {
+    const cookieStore = await cookies();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-  if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const project = getActiveProjectFromCookie(cookieStore);
-    const list = getDemoPrompts(cookieStore, project);
-    const updated = list.map((p: any) =>
-      p.id === promptId
-        ? {
-            ...p,
-            last_run_at: new Date().toISOString(),
-            latest_score: Math.min(99, Math.max(70, (p.latest_score || 85) + (Math.floor(Math.random() * 7) - 3))),
-          }
-        : p
-    );
-    cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), { path: '/' });
-    revalidatePath('/audits');
-    revalidatePath(`/audits/${promptId}`);
-    revalidatePath('/dashboard');
-    return { success: true, message: 'Instant audit completed successfully.' };
-  }
-
-  // Fetch prompt details
-  const { data: prompt } = await supabase
-    .from('prompts')
-    .select(`
-      id,
-      query_text,
-      target_engines,
-      projects (
-        id,
-        name,
-        domain,
-        tier,
-        brand_kit
-      )
-    `)
-    .eq('id', promptId)
-    .single();
-
-  if (!prompt || !prompt.projects) {
-    return { error: 'Prompt not found' };
-  }
-
-  const project: any = prompt.projects;
-  const hasGoogleAiAccess = isTierEligibleForGoogleAi(project.tier);
-  let enginesToRun = (prompt.target_engines || ['chatgpt', 'gemini', 'claude', 'perplexity']) as string[];
-
-  if (!hasGoogleAiAccess) {
-    enginesToRun = enginesToRun.filter(
-      (e) => e !== 'google_ai_overview' && e !== 'google_ai_mode'
-    );
-    if (enginesToRun.length === 0) {
-      enginesToRun = ['chatgpt', 'gemini', 'claude', 'perplexity'];
-    }
-  }
-
-  const evaluations = await executeMultiEngineAudit({
-    queryText: prompt.query_text,
-    brandName: project.name,
-    domain: project.domain,
-    competitors: project.brand_kit?.competitors || [],
-    targetEngines: enginesToRun,
-  });
-
-  for (const ev of evaluations) {
-    const { data: insertedRes } = await supabase.from('results').insert({
-      prompt_id: prompt.id,
-      engine: ev.engine,
-      visibility_score: ev.visibilityScore,
-      brand_mentioned: ev.brandMentioned,
-      sentiment: ev.sentiment,
-      sentiment_score: ev.sentimentScore,
-      raw_text: ev.rawText,
-      cited_urls: ev.citedUrls,
-      ranking_position: ev.rankingPosition,
-    }).select('id').single();
-
-    if (ev.citedUrls && ev.citedUrls.length > 0) {
-      const citationRows = ev.citedUrls.map((rawUrl) => {
-        const domain = extractDomain(rawUrl);
-        return {
-          project_id: project.id,
-          run_id: insertedRes?.id || null,
-          engine: ev.engine,
-          url: rawUrl,
-          domain: domain || 'unknown.com',
-          source_type: categorizeSource(domain, rawUrl),
-        };
+    if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+      const project = getActiveProjectFromCookie(cookieStore);
+      const list = getDemoPrompts(cookieStore, project);
+      const updated = list.map((p: any) =>
+        p.id === promptId
+          ? {
+              ...p,
+              last_run_at: new Date().toISOString(),
+              latest_score: Math.min(99, Math.max(70, (p.latest_score || 85) + (Math.floor(Math.random() * 7) - 3))),
+            }
+          : p
+      );
+      cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
       });
-      await supabase.from('citations').insert(citationRows);
+      revalidatePath('/audits');
+      revalidatePath(`/audits/${promptId}`);
+      revalidatePath('/dashboard');
+      return { success: true, message: 'Instant audit completed successfully.' };
     }
+
+    const supabase = await createClient();
+    // Fetch prompt details
+    const { data: prompt } = await supabase
+      .from('prompts')
+      .select(`
+        id,
+        query_text,
+        target_engines,
+        projects (
+          id,
+          name,
+          domain,
+          tier,
+          brand_kit
+        )
+      `)
+      .eq('id', promptId)
+      .single();
+
+    if (!prompt || !prompt.projects) {
+      return { error: 'Prompt not found' };
+    }
+
+    const project: any = prompt.projects;
+    const hasGoogleAiAccess = isTierEligibleForGoogleAi(project.tier);
+    let enginesToRun = (prompt.target_engines || ['chatgpt', 'gemini', 'claude', 'perplexity']) as string[];
+
+    if (!hasGoogleAiAccess) {
+      enginesToRun = enginesToRun.filter(
+        (e) => e !== 'google_ai_overview' && e !== 'google_ai_mode'
+      );
+      if (enginesToRun.length === 0) {
+        enginesToRun = ['chatgpt', 'gemini', 'claude', 'perplexity'];
+      }
+    }
+
+    const evaluations = await executeMultiEngineAudit({
+      queryText: prompt.query_text,
+      brandName: project.name,
+      domain: project.domain,
+      competitors: project.brand_kit?.competitors || [],
+      targetEngines: enginesToRun,
+    });
+
+    for (const ev of evaluations) {
+      const { data: insertedRes } = await supabase.from('results').insert({
+        prompt_id: prompt.id,
+        engine: ev.engine,
+        visibility_score: ev.visibilityScore,
+        brand_mentioned: ev.brandMentioned,
+        sentiment: ev.sentiment,
+        sentiment_score: ev.sentimentScore,
+        raw_text: ev.rawText,
+        cited_urls: ev.citedUrls,
+        ranking_position: ev.rankingPosition,
+      }).select('id').single();
+
+      if (ev.citedUrls && ev.citedUrls.length > 0) {
+        const citationRows = ev.citedUrls.map((rawUrl) => {
+          const domain = extractDomain(rawUrl);
+          return {
+            project_id: project.id,
+            run_id: insertedRes?.id || null,
+            engine: ev.engine,
+            url: rawUrl,
+            domain: domain || 'unknown.com',
+            source_type: categorizeSource(domain, rawUrl),
+          };
+        });
+        await supabase.from('citations').insert(citationRows);
+      }
+    }
+
+    await supabase
+      .from('prompts')
+      .update({ last_run_at: new Date().toISOString() })
+      .eq('id', prompt.id);
+
+    revalidatePath('/audits');
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (err: any) {
+    console.error('Error triggering instant run:', err);
+    return { error: err?.message || 'Failed to trigger instant audit run.' };
   }
-
-  await supabase
-    .from('prompts')
-    .update({ last_run_at: new Date().toISOString() })
-    .eq('id', prompt.id);
-
-  revalidatePath('/audits');
-  revalidatePath('/dashboard');
-  return { success: true };
 }
 
 export interface GeneratedPromptSuggestion {
@@ -486,7 +519,7 @@ export interface GeneratedPromptSuggestion {
   rationale: string;
 }
 
-export const TIER_PROMPT_LIMITS: Record<string, number> = {
+const TIER_PROMPT_LIMITS: Record<string, number> = {
   starter: 20,
   growth: 100,
   pro: 100,
@@ -860,7 +893,6 @@ export async function batchCreatePromptAudits(prompts: BatchPromptInput[]) {
   }
 
   const cookieStore = await cookies();
-  const supabase = await createClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   let projectId = '';
@@ -923,6 +955,7 @@ export async function batchCreatePromptAudits(prompts: BatchPromptInput[]) {
   }
 
   // Supabase Cloud Insert
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

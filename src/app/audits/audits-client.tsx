@@ -217,6 +217,10 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
   const [isPending, startTransition] = useTransition();
   const [runningPromptId, setRunningPromptId] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    setPrompts(initialPrompts);
+  }, [initialPrompts]);
+
   // Form State
   const [queryText, setQueryText] = useState('');
   const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'biweekly'>('daily');
@@ -310,27 +314,43 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
       setPrompts((prev) =>
         prev.map((p) => (p.id === id ? { ...p, is_active: !currentStatus } : p))
       );
-      const res = await togglePromptStatus(id, currentStatus);
-      if (res?.error) {
-        toast.error(res.error);
+      try {
+        const res = await togglePromptStatus(id, currentStatus);
+        if (res?.error) {
+          toast.error(res.error);
+          setPrompts((prev) =>
+            prev.map((p) => (p.id === id ? { ...p, is_active: currentStatus } : p))
+          );
+        } else {
+          toast.success(currentStatus ? 'Prompt paused.' : 'Prompt resumed.');
+        }
+      } catch (err: any) {
+        toast.error(err?.message || 'Failed to update prompt status.');
         setPrompts((prev) =>
           prev.map((p) => (p.id === id ? { ...p, is_active: currentStatus } : p))
         );
-      } else {
-        toast.success(currentStatus ? 'Prompt paused.' : 'Prompt resumed.');
       }
     });
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm('Are you sure you want to delete this prompt audit tracker?')) return;
+    if (typeof window !== 'undefined' && !window.confirm('Are you sure you want to delete this prompt audit tracker?')) {
+      return;
+    }
     startTransition(async () => {
+      const prevPrompts = [...prompts];
       setPrompts((prev) => prev.filter((p) => p.id !== id));
-      const res = await deletePromptAudit(id);
-      if (res?.error) {
-        toast.error(res.error);
-      } else {
-        toast.success('Prompt tracker removed.');
+      try {
+        const res = await deletePromptAudit(id);
+        if (res?.error) {
+          toast.error(res.error);
+          setPrompts(prevPrompts);
+        } else {
+          toast.success('Prompt tracker removed.');
+        }
+      } catch (err: any) {
+        toast.error(err?.message || 'Failed to delete prompt.');
+        setPrompts(prevPrompts);
       }
     });
   };
@@ -338,13 +358,18 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
   const handleRunNow = (id: string) => {
     setRunningPromptId(id);
     startTransition(async () => {
-      toast.info('Dispatching prompt across target answer engines...');
-      const res = await triggerInstantRun(id);
-      setRunningPromptId(null);
-      if (res?.error) {
-        toast.error(res.error);
-      } else {
-        toast.success('Instant audit completed! Scores updated.');
+      try {
+        toast.info('Dispatching prompt across target answer engines...');
+        const res = await triggerInstantRun(id);
+        setRunningPromptId(null);
+        if (res?.error) {
+          toast.error(res.error);
+        } else {
+          toast.success('Instant audit completed! Scores updated.');
+        }
+      } catch (err: any) {
+        setRunningPromptId(null);
+        toast.error(err?.message || 'Failed to trigger audit run.');
       }
     });
   };
@@ -394,10 +419,17 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
     );
 
     startTransition(async () => {
-      const res = await togglePromptEngine(promptId, engineId);
-      if (res?.error) {
-        toast.error(`Failed to update engine: ${res.error}`);
-        // Revert on error
+      try {
+        const res = await togglePromptEngine(promptId, engineId);
+        if (res?.error) {
+          toast.error(`Failed to update engine: ${res.error}`);
+          // Revert on error
+          setPrompts((prev) =>
+            prev.map((p) => (p.id === promptId ? targetPrompt : p))
+          );
+        }
+      } catch (err: any) {
+        toast.error(err?.message || 'Failed to update engine.');
         setPrompts((prev) =>
           prev.map((p) => (p.id === promptId ? targetPrompt : p))
         );
