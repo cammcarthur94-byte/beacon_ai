@@ -44,6 +44,7 @@ import {
 import {
   createPromptAudit,
   togglePromptStatus,
+  togglePromptEngine,
   deletePromptAudit,
   triggerInstantRun,
 } from './actions';
@@ -81,6 +82,7 @@ export interface AuditPromptItem {
   query_text: string;
   frequency: 'daily' | 'weekly' | 'biweekly';
   target_engines: string[];
+  disabled_engines?: string[];
   search_intent?: SearchIntent;
   brand_association?: BrandAssociation;
   is_active: boolean;
@@ -143,16 +145,37 @@ function getAssociationBadgeMeta(association: BrandAssociation) {
   };
 }
 
-function EngineFaviconBadge({ engine }: { engine: string }) {
+function EngineFaviconBadge({
+  engine,
+  isActive = true,
+  onClick,
+}: {
+  engine: string;
+  isActive?: boolean;
+  onClick?: () => void;
+}) {
   const meta = getEngineMeta(engine);
   const [hasError, setHasError] = React.useState(false);
 
   return (
-    <span
-      title={meta.label}
+    <button
+      type="button"
+      onClick={onClick}
+      title={
+        onClick
+          ? isActive
+            ? `Click to turn off tracking for "${meta.label}"`
+            : `Click to turn on tracking for "${meta.label}"`
+          : meta.label
+      }
       className={cn(
-        'inline-flex items-center justify-center h-7 w-7 rounded-lg border border-slate-200/90 bg-white p-1 shadow-2xs transition-all hover:scale-115 hover:border-slate-300 hover:shadow-xs cursor-pointer',
-        meta.badgeClass
+        'inline-flex items-center justify-center h-7 w-7 rounded-lg border p-1 shadow-2xs transition-all select-none cursor-pointer',
+        isActive
+          ? cn(
+              'border-slate-200/90 bg-white hover:scale-115 hover:border-slate-300 hover:shadow-xs',
+              meta.badgeClass
+            )
+          : 'border-dashed border-slate-300 bg-slate-100/90 opacity-40 grayscale hover:opacity-75 hover:grayscale-50 hover:scale-105'
       )}
     >
       {!hasError ? (
@@ -162,13 +185,17 @@ function EngineFaviconBadge({ engine }: { engine: string }) {
           width={16}
           height={16}
           loading="lazy"
-          className="h-4 w-4 object-contain"
+          className={cn('h-4 w-4 object-contain transition-all', !isActive && 'grayscale')}
           onError={() => setHasError(true)}
         />
       ) : (
-        <EngineIcon engine={engine} size={14} className={meta.iconColor} />
+        <EngineIcon
+          engine={engine}
+          size={14}
+          className={isActive ? meta.iconColor : 'text-slate-400'}
+        />
       )}
-    </span>
+    </button>
   );
 }
 
@@ -318,6 +345,62 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
         toast.error(res.error);
       } else {
         toast.success('Instant audit completed! Scores updated.');
+      }
+    });
+  };
+
+  const handleTogglePromptEngine = (promptId: string, engineId: string) => {
+    const meta = getEngineMeta(engineId);
+    const targetPrompt = prompts.find((p) => p.id === promptId);
+    if (!targetPrompt) return;
+
+    const currentActive: string[] = Array.isArray(targetPrompt.target_engines)
+      ? [...targetPrompt.target_engines]
+      : [];
+    const currentDisabled: string[] = Array.isArray(targetPrompt.disabled_engines)
+      ? [...targetPrompt.disabled_engines]
+      : [];
+
+    const isCurrentlyActive = currentActive.includes(engineId);
+
+    let newActive: string[];
+    let newDisabled: string[];
+
+    if (isCurrentlyActive) {
+      newActive = currentActive.filter((e) => e !== engineId);
+      newDisabled = Array.from(new Set([...currentDisabled, engineId]));
+      toast.info(`Prompt tracking for "${meta.label}" is turned off`);
+    } else {
+      newActive = Array.from(new Set([...currentActive, engineId]));
+      newDisabled = currentDisabled.filter((e) => e !== engineId);
+      toast.success(`Prompt tracking for "${meta.label}" is turned on`);
+    }
+
+    // Auto-adjust status: if 0 active engines remain, transition to Paused; if active models exist, restore Active
+    const newIsActive = newActive.length === 0 ? false : true;
+
+    // Optimistic UI update
+    setPrompts((prev) =>
+      prev.map((p) =>
+        p.id === promptId
+          ? {
+              ...p,
+              target_engines: newActive,
+              disabled_engines: newDisabled,
+              is_active: newIsActive,
+            }
+          : p
+      )
+    );
+
+    startTransition(async () => {
+      const res = await togglePromptEngine(promptId, engineId);
+      if (res?.error) {
+        toast.error(`Failed to update engine: ${res.error}`);
+        // Revert on error
+        setPrompts((prev) =>
+          prev.map((p) => (p.id === promptId ? targetPrompt : p))
+        );
       }
     });
   };
@@ -749,12 +832,24 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
                           </div>
                         </TableCell>
 
-                        {/* Target Engines - High Quality Favicon Logos, Centered */}
+                        {/* Target Engines - Interactive AI Model Toggles, Centered */}
                         <TableCell className="py-4.5 align-middle font-sans text-center">
                           <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                            {p.target_engines?.map((eng) => (
-                              <EngineFaviconBadge key={eng} engine={eng} />
-                            ))}
+                            {(() => {
+                              const activeEngines = p.target_engines || [];
+                              const disabledEngines = p.disabled_engines || [];
+                              const assignedEngines = Array.from(
+                                new Set([...activeEngines, ...disabledEngines])
+                              );
+                              return assignedEngines.map((eng) => (
+                                <EngineFaviconBadge
+                                  key={eng}
+                                  engine={eng}
+                                  isActive={activeEngines.includes(eng)}
+                                  onClick={() => handleTogglePromptEngine(p.id, eng)}
+                                />
+                              ));
+                            })()}
                           </div>
                         </TableCell>
 

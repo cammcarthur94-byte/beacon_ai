@@ -324,7 +324,13 @@ export default async function AuditsPage() {
         </div>
 
         {/* INTERACTIVE AUDITS CLIENT */}
-        <AuditsClientView initialPrompts={prompts} project={project} />
+        <AuditsClientView
+          initialPrompts={prompts.map((p) => ({
+            ...p,
+            disabled_engines: p.disabled_engines || [],
+          }))}
+          project={project}
+        />
       </div>
     </AppSidebarLayout>
   );

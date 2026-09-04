@@ -257,6 +257,87 @@ export async function togglePromptStatus(promptId: string, isCurrentlyActive: bo
   return { success: true };
 }
 
+export async function togglePromptEngine(promptId: string, engineId: string) {
+  const cookieStore = await cookies();
+  const supabase = await createClient();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  // Local demo fallback
+  if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+    const raw = cookieStore.get('beacon_demo_prompts')?.value;
+    if (raw) {
+      const list = JSON.parse(raw);
+      const updated = list.map((p: any) => {
+        if (p.id !== promptId) return p;
+
+        const currentActive: string[] = Array.isArray(p.target_engines) ? [...p.target_engines] : [];
+        const currentDisabled: string[] = Array.isArray(p.disabled_engines) ? [...p.disabled_engines] : [];
+
+        let newActive: string[];
+        let newDisabled: string[];
+
+        if (currentActive.includes(engineId)) {
+          newActive = currentActive.filter((e) => e !== engineId);
+          newDisabled = Array.from(new Set([...currentDisabled, engineId]));
+        } else {
+          newActive = Array.from(new Set([...currentActive, engineId]));
+          newDisabled = currentDisabled.filter((e) => e !== engineId);
+        }
+
+        const newIsActive = newActive.length === 0 ? false : p.is_active;
+
+        return {
+          ...p,
+          target_engines: newActive,
+          disabled_engines: newDisabled,
+          is_active: newIsActive,
+        };
+      });
+
+      cookieStore.set('beacon_demo_prompts', JSON.stringify(updated), { path: '/' });
+    }
+    revalidatePath('/audits');
+    revalidatePath('/dashboard');
+    return { success: true };
+  }
+
+  // Supabase Cloud path
+  const { data: prompt, error: fetchErr } = await supabase
+    .from('prompts')
+    .select('target_engines, is_active')
+    .eq('id', promptId)
+    .single();
+
+  if (fetchErr || !prompt) {
+    return { error: fetchErr?.message || 'Prompt not found' };
+  }
+
+  const currentActive: string[] = Array.isArray(prompt.target_engines) ? [...prompt.target_engines] : [];
+  let newActive: string[];
+
+  if (currentActive.includes(engineId)) {
+    newActive = currentActive.filter((e) => e !== engineId);
+  } else {
+    newActive = Array.from(new Set([...currentActive, engineId]));
+  }
+
+  const newIsActive = newActive.length === 0 ? false : prompt.is_active;
+
+  const { error: updateErr } = await supabase
+    .from('prompts')
+    .update({
+      target_engines: newActive,
+      is_active: newIsActive,
+    })
+    .eq('id', promptId);
+
+  if (updateErr) return { error: updateErr.message };
+
+  revalidatePath('/audits');
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
 export async function deletePromptAudit(promptId: string) {
   const cookieStore = await cookies();
   const supabase = await createClient();
