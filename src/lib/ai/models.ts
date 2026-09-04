@@ -21,11 +21,11 @@ export const BEACON_MODELS = {
     fallbackIds: ['claude-3-7-sonnet-latest', 'claude-3-5-sonnet-latest'] as const,
   },
   CONTENT_CREATION: {
-    id: 'claude-sonnet-5',
-    provider: 'anthropic',
-    displayName: 'Claude Sonnet 5',
-    role: 'AEO Content & Brief Generator',
-    fallbackIds: ['claude-3-7-sonnet-latest', 'claude-3-5-sonnet-latest'] as const,
+    id: 'gemini-3.8-flash',
+    provider: 'google',
+    displayName: 'Gemini 3.8 Flash',
+    role: 'AEO Content, Recommendations & Outreach Email Generator',
+    fallbackIds: ['gemini-2.5-flash', 'gemini-1.5-flash'] as const,
   },
   COMPETITOR_MAPPING: {
     id: 'claude-haiku-4-5',
@@ -37,9 +37,7 @@ export const BEACON_MODELS = {
   PROMPT_CREATION: {
     googleModelId: 'gemini-3.8-flash',
     openaiModelId: 'gpt-4o-mini',
-    displayName: 'Gemini 3.8 Flash / GPT-4o-mini',
     role: 'GEO Search Prompt Synthesizer',
-    googleFallbackIds: ['gemini-2.5-flash', 'gemini-1.5-flash'] as const,
   },
   SEARCH_GROUNDING: {
     id: 'gemini-2.5-pro',
@@ -58,10 +56,10 @@ export function getSentinelChatModel() {
 }
 
 /**
- * Resolves Claude Sonnet 5 for content generation (meta descriptions, FAQ blocks, comparison matrices).
+ * Resolves Gemini 3.8 Flash for content generation, recommendations, and outreach emails.
  */
 export function getContentCreationModel() {
-  return anthropic(BEACON_MODELS.CONTENT_CREATION.id);
+  return google(BEACON_MODELS.CONTENT_CREATION.id);
 }
 
 /**
@@ -72,23 +70,10 @@ export function getCompetitorMappingModel() {
 }
 
 /**
- * Resolves prompt creation model: prefers Gemini 3.8 Flash if Google key is configured,
- * otherwise OpenAI GPT-4o-mini if OpenAI key is configured.
+ * Resolves prompt creation model: limited exclusively to Gemini 3.8 Flash.
  */
 export function getPromptCreationModel() {
-  if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-    return {
-      model: google(BEACON_MODELS.PROMPT_CREATION.googleModelId),
-      name: 'Gemini 3.8 Flash',
-    };
-  }
-  if (process.env.OPENAI_API_KEY) {
-    return {
-      model: openai(BEACON_MODELS.PROMPT_CREATION.openaiModelId),
-      name: 'OpenAI GPT-4o-mini',
-    };
-  }
-  return null;
+  return google(BEACON_MODELS.PROMPT_CREATION.googleModelId);
 }
 
 /**

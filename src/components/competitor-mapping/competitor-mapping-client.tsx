@@ -306,28 +306,22 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
     <div className="space-y-6 font-sans pb-16">
       {/* ── 1. STREAMLINED PAGE HEADER & PRIMARY ACTION ──────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-6">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-              Competitor Product &amp; Feature Mapping
-            </h1>
-            <Badge className="bg-purple-50 text-purple-700 border-purple-200 text-xs font-semibold px-2.5 py-0.5">
-              Automated AEO Matrix
-            </Badge>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
+              PRODUCT INTELLIGENCE
+            </span>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-sans">
+            Competitor Product &amp; Feature Comparison
+          </h1>
           <p className="text-sm text-slate-600 max-w-3xl">
-            Live crawler monitoring competitor product catalogs, feature claims, and pricing tiers.
-            Compare citation share parity to pinpoint where AI models favor rival brands.
+            Monitor rival product catalogs, feature claims, and pricing tiers to see where AI models favor competing brands over yours.
           </p>
         </div>
 
         {/* Consolidated action buttons */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <span className="text-[11px] text-slate-600 font-medium hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100/90 border border-slate-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Crawler: Claude Haiku 4.5
-          </span>
-
           <Link href="/consultant">
             <Button
               variant="outline"

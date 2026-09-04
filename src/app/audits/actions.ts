@@ -463,6 +463,13 @@ export interface GeneratedPromptSuggestion {
   rationale: string;
 }
 
+export const TIER_PROMPT_LIMITS: Record<string, number> = {
+  starter: 20,
+  growth: 100,
+  pro: 100,
+  enterprise: 500,
+};
+
 export async function generateAiPrompts(params: {
   category?: string;
   searchIntent?: SearchIntent | 'all';
@@ -470,10 +477,14 @@ export async function generateAiPrompts(params: {
   count?: number;
 }): Promise<{ prompts: GeneratedPromptSuggestion[]; error?: string }> {
   const cookieStore = await cookies();
-  const count = params.count || 5;
+  const supabase = await createClient();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
+  let projectId = '';
   let brandName = 'Lululemon';
   let domain = 'lululemon.com';
+  let projectTier = 'starter';
+  let auditLimit = 20;
   let brandKit: BrandKit = {
     industry: 'Premium Athleisure & Athletic Apparel',
     target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, gym-goers, and fitness lifestyle consumers',
@@ -490,34 +501,67 @@ export async function generateAiPrompts(params: {
   if (projectCookie?.value) {
     try {
       const parsed = JSON.parse(projectCookie.value);
+      projectId = parsed.id || '';
       brandName = parsed.name || brandName;
       domain = parsed.domain || domain;
       if (parsed.brand_kit) brandKit = parsed.brand_kit;
+      if (parsed.tier) projectTier = parsed.tier;
+      if (parsed.audit_limit) {
+        auditLimit = parsed.audit_limit;
+      } else {
+        auditLimit = TIER_PROMPT_LIMITS[projectTier] || 20;
+      }
     } catch {
       // ignore
     }
   }
 
+  // Determine existing prompt count to respect tier limits
+  let existingPromptCount = 0;
+  if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+    const demoPromptsRaw = cookieStore.get('beacon_demo_prompts')?.value;
+    if (demoPromptsRaw) {
+      try {
+        const list = JSON.parse(demoPromptsRaw);
+        if (Array.isArray(list)) existingPromptCount = list.length;
+      } catch {
+        // ignore
+      }
+    }
+  } else if (projectId) {
+    try {
+      const { count: dbCount } = await supabase
+        .from('prompts')
+        .select('id', { count: 'exact', head: true })
+        .eq('project_id', projectId);
+      if (typeof dbCount === 'number') existingPromptCount = dbCount;
+    } catch {
+      // ignore
+    }
+  }
+
+  const remainingSlots = Math.max(0, auditLimit - existingPromptCount);
+  if (remainingSlots <= 0) {
+    return {
+      prompts: [],
+      error: `Prompt tracking limit reached (${existingPromptCount}/${auditLimit} active prompts on ${projectTier.toUpperCase()} tier). Upgrade your plan in Settings & Billing to create more prompts.`,
+    };
+  }
+
+  // Requested prompt count clamped by available capacity
+  const requestedCount = params.count && params.count > 0 ? params.count : 5;
+  const count = Math.min(requestedCount, remainingSlots);
+
   const category = params.category || 'comparisons';
   const intent = params.searchIntent || 'all';
   const association = params.brandAssociation || 'both';
 
-  // 1. Try real LLM generation using designated Gemini 3.8 Flash OR OpenAI GPT-4o-mini
-  const hasGoogleKey = Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
-  const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY);
+  // 1. Strictly use designated Gemini 3.8 Flash model
+  const hasGoogleKey = Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY);
 
-  if (hasGoogleKey || hasOpenAiKey) {
+  if (hasGoogleKey) {
     try {
-      let model;
-      if (hasGoogleKey) {
-        try {
-          model = google(BEACON_MODELS.PROMPT_CREATION.googleModelId);
-        } catch {
-          model = google('gemini-2.5-flash');
-        }
-      } else {
-        model = openai(BEACON_MODELS.PROMPT_CREATION.openaiModelId);
-      }
+      const model = google('gemini-3.8-flash');
       const systemPrompt = `You are Beacon's Generative Engine Optimization (GEO) strategist.
 Generate ${count} high-impact, realistic search query prompts that prospective buyers ask conversational search engines (ChatGPT, Perplexity, Gemini, Claude).
 Respond strictly with a valid JSON array of objects with the following schema:
@@ -544,18 +588,21 @@ Parameters:
 - Search Intent Preference: ${intent === 'all' ? 'Diverse mix of commercial, transactional, informational' : intent}
 - Brand Association Preference: ${association === 'both' ? 'Mix of branded and unbranded queries' : association}
 
-Generate ${count} realistic queries. Output JSON only without markdown fences.`;
+Generate exactly ${count} realistic buyer queries. Output strictly a JSON array without markdown formatting or code fences.`;
 
       const result = await generateText({
         model,
         system: systemPrompt,
         prompt: userPrompt,
+        maxRetries: 0,
       });
 
-      const cleanJson = result.text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const jsonMatch = result.text.match(/\[\s*\{[\s\S]*\}\s*\]/);
+      const cleanJson = jsonMatch ? jsonMatch[0] : result.text.replace(/```json/g, '').replace(/```/g, '').trim();
       const parsed = JSON.parse(cleanJson);
+
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const validated: GeneratedPromptSuggestion[] = parsed.map((item, idx) => ({
+        const validated: GeneratedPromptSuggestion[] = parsed.slice(0, count).map((item, idx) => ({
           id: `gen-${Date.now()}-${idx}`,
           query_text: item.query_text,
           category: item.category || category,
@@ -569,99 +616,208 @@ Generate ${count} realistic queries. Output JSON only without markdown fences.`;
         return { prompts: validated };
       }
     } catch (err) {
-      console.warn('AI generation fell back to domain templates:', err);
+      console.warn('Gemini 3.8 Flash generation encountered temporary rate or capacity restriction, engaging dynamic synthesizer:', err);
     }
   }
 
-  // 2. High-quality domain synthesis fallback
-  const competitor1 = brandKit.competitors?.[0]?.name || 'Alo Yoga';
-  const competitor2 = brandKit.competitors?.[1]?.name || 'Vuori';
-  const firstOffering = brandKit.core_offerings?.split(',')[0]?.trim() || 'athletic wear';
-  const secondOffering = brandKit.core_offerings?.split(',')[1]?.trim() || 'leggings';
+  // 2. Dynamic Domain Intelligence Synthesis (graceful zero-downtime fallback tailored to brand & count)
+  const compList = (brandKit.competitors || []).map((c) => c.name);
+  const comp1 = compList[0] || 'Alo Yoga';
+  const comp2 = compList[1] || 'Vuori';
+  const comp3 = compList[2] || 'Athleta';
 
-  const templatePool: Array<{
-    query_text: string;
-    category: string;
-    search_intent: SearchIntent;
-    brand_association: BrandAssociation;
-    recommended_frequency: AuditFrequency;
-    rationale: string;
-  }> = [
-    {
-      query_text: `${brandName} ${firstOffering} vs ${competitor1}: which has better durability and fit in 2026?`,
-      category: 'comparisons',
-      search_intent: 'commercial',
-      brand_association: 'branded',
-      recommended_frequency: 'daily',
-      rationale: `Captures high-intent buyers comparing ${brandName} against rival ${competitor1}.`,
-    },
-    {
-      query_text: `Best buttery-soft leggings for hot yoga and Pilates: top recommended brands`,
-      category: 'discovery',
-      search_intent: 'informational',
-      brand_association: 'unbranded',
-      recommended_frequency: 'daily',
-      rationale: `Monitors whether AI engines cite ${brandName} without explicit brand prompting.`,
-    },
-    {
-      query_text: `Is ${brandName} ${firstOffering} worth the investment compared to ${competitor2}?`,
-      category: 'features',
-      search_intent: 'commercial',
-      brand_association: 'branded',
-      recommended_frequency: 'weekly',
-      rationale: `Evaluates price-to-value citations and customer sentiment against ${competitor2}.`,
-    },
-    {
-      query_text: `Where to buy authentic ${brandName} ${secondOffering} with the best return policy online`,
-      category: 'buying_guides',
-      search_intent: 'transactional',
-      brand_association: 'branded',
-      recommended_frequency: 'daily',
-      rationale: `Monitors transactional citation placement and partner link accuracy.`,
-    },
-    {
-      query_text: `Top premium athleisure alternatives to ${brandName} with moisture-wicking fabric`,
-      category: 'alternatives',
-      search_intent: 'commercial',
-      brand_association: 'branded',
-      recommended_frequency: 'weekly',
-      rationale: `Alerts when competitors appear in conquesting lists when buyers search for alternatives.`,
-    },
-    {
-      query_text: `Most flattering gym workout sets and studio joggers for women in 2026`,
-      category: 'discovery',
-      search_intent: 'informational',
-      brand_association: 'unbranded',
-      recommended_frequency: 'daily',
-      rationale: `Tracks organic discovery share of voice for top-of-funnel workout searches.`,
-    },
-    {
-      query_text: `${brandName} vs ${competitor1} sizing guide: do they run true to size or small?`,
-      category: 'features',
-      search_intent: 'informational',
-      brand_association: 'branded',
-      recommended_frequency: 'weekly',
-      rationale: `Ensures AI search answers provide accurate fit recommendations without dissuading buyers.`,
-    },
-  ];
+  const rawOfferings = (brandKit.core_offerings || 'athletic wear, leggings, joggers, workout apparel')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const item1 = rawOfferings[0] || 'athletic wear';
+  const item2 = rawOfferings[1] || 'workout apparel';
+  const item3 = rawOfferings[2] || 'everyday activewear';
 
-  // Filter templates based on requested criteria
-  let filtered = templatePool;
-  if (intent !== 'all') {
-    filtered = filtered.filter((t) => t.search_intent === intent);
-    if (filtered.length === 0) filtered = templatePool;
+  const categoryTemplates: Record<string, Array<(b: string, i1: string, i2: string, c1: string, c2: string) => { text: string; intent: SearchIntent; assoc: BrandAssociation; freq: AuditFrequency; rationale: string }>> = {
+    comparisons: [
+      (b, i1, _, c1) => ({
+        text: `${b} ${i1} vs ${c1}: which has better durability and fit in 2026?`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'daily',
+        rationale: `Captures high-intent consideration searches evaluating ${b} directly against primary competitor ${c1}.`,
+      }),
+      (b, _, i2, __, c2) => ({
+        text: `Is ${b} or ${c2} better for high-intensity training and daily wear?`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'daily',
+        rationale: `Monitors brand preference and side-by-side performance sentiment against ${c2}.`,
+      }),
+      (b, i1, ___, c1, c2) => ({
+        text: `${b} vs ${c1} vs ${c2}: ultimate side-by-side comparison for ${i1}`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'weekly',
+        rationale: `Tracks multi-brand roundup recommendations where buyers decide between the top three market options.`,
+      }),
+      (b, _, i2, c1) => ({
+        text: `${c1} alternative with similar fabric quality: how does ${b} ${i2} rank?`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'weekly',
+        rationale: `Conquesting query capturing buyers looking to migrate away from ${c1}.`,
+      }),
+    ],
+    discovery: [
+      (_, i1, i2) => ({
+        text: `Best premium ${i1} and ${i2} brands recommended by fitness trainers in 2026`,
+        intent: 'informational',
+        assoc: 'unbranded',
+        freq: 'daily',
+        rationale: `Measures organic discovery presence when consumers ask conversational AI for top category recommendations without brand prompts.`,
+      }),
+      (_, i1) => ({
+        text: `What are the highest-rated luxury ${i1} brands that don't pill or lose shape?`,
+        intent: 'commercial',
+        assoc: 'unbranded',
+        freq: 'daily',
+        rationale: `Identifies whether AI engines cite your brand when durability and quality are key search factors.`,
+      }),
+      (b, _, i2) => ({
+        text: `Top emerging athletic apparel trends: where does ${b} rank among modern ${i2}?`,
+        intent: 'informational',
+        assoc: 'branded',
+        freq: 'weekly',
+        rationale: `Tracks brand thought leadership and category dominance in generative trend overviews.`,
+      }),
+      (_, i1) => ({
+        text: `Best breathable ${i1} for hot weather workouts and marathon training`,
+        intent: 'informational',
+        assoc: 'unbranded',
+        freq: 'daily',
+        rationale: `Evaluates unbranded topical authority for performance-specific search intent.`,
+      }),
+    ],
+    buying_guides: [
+      (b, _, i2) => ({
+        text: `Where to buy authentic ${b} ${i2} online with fastest shipping and easiest return policy`,
+        intent: 'transactional',
+        assoc: 'branded',
+        freq: 'daily',
+        rationale: `Monitors direct purchase intent and verifies that AI engines cite verified authorized retail channels.`,
+      }),
+      (b, i1) => ({
+        text: `Is ${b} ${i1} worth the price tag in 2026? Customer reviews and cost-per-wear breakdown`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'weekly',
+        rationale: `Assesses buyer conversion stage questions where price sensitivity and value justification dominate.`,
+      }),
+      (b, i1) => ({
+        text: `Current discounts, member sales, and promo codes for ${b} ${i1}`,
+        intent: 'transactional',
+        assoc: 'branded',
+        freq: 'daily',
+        rationale: `Ensures AI answer engines don't hallucinate invalid discount codes that hurt margin or trust.`,
+      }),
+      (_, i1) => ({
+        text: `Complete buying guide for premium ${i1}: what materials and specs to look for before buying`,
+        intent: 'informational',
+        assoc: 'unbranded',
+        freq: 'weekly',
+        rationale: `Captures early-stage research queries before buyers narrow their final shortlist.`,
+      }),
+    ],
+    features: [
+      (b, i1, _, c1) => ({
+        text: `${b} ${i1} sizing guide: do they run true to size, large, or small compared to ${c1}?`,
+        intent: 'informational',
+        assoc: 'branded',
+        freq: 'weekly',
+        rationale: `High-frequency pre-checkout query where inaccurate sizing advice leads to customer drop-off or returns.`,
+      }),
+      (b, _, i2) => ({
+        text: `How does the proprietary fabric technology of ${b} ${i2} handle sweat and moisture wicking?`,
+        intent: 'informational',
+        assoc: 'branded',
+        freq: 'weekly',
+        rationale: `Evaluates whether AI engines correctly recite your technical product specifications and IP.`,
+      }),
+      (b, i1) => ({
+        text: `${b} ${i1} long-term durability test: how do they hold up after 50 washes?`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'weekly',
+        rationale: `Gauges long-term product perception and post-purchase customer satisfaction sentiment.`,
+      }),
+      (b, _, i2, __, c2) => ({
+        text: `Pockets, waistband compression, and comfort test: ${b} ${i2} vs ${c2}`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'weekly',
+        rationale: `Granular feature-by-feature evaluation that frequently drives the final purchasing decision.`,
+      }),
+    ],
+    alternatives: [
+      (b, i1) => ({
+        text: `Top premium alternatives to ${b} for high-performance ${i1}`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'weekly',
+        rationale: `Alerts immediately when competitors displace ${b} in conquesting lists.`,
+      }),
+      (b, _, i2, c1) => ({
+        text: `Brands similar to ${b} with more accessible price points or better availability like ${c1}`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'daily',
+        rationale: `Monitors price-conquesting vulnerability where competitors bid against your brand recognition.`,
+      }),
+      (b, i1, __, ___, c2) => ({
+        text: `If I love ${b} ${i1}, will I like ${c2}? Fit and feel comparison`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'weekly',
+        rationale: `Tracks competitor brand crossover and customer deflection trends.`,
+      }),
+      (b, i1) => ({
+        text: `Independent brands disrupting ${b} in technical ${i1} in 2026`,
+        intent: 'informational',
+        assoc: 'branded',
+        freq: 'weekly',
+        rationale: `Early warning telemetry on emerging niche entrants gaining AI search citations.`,
+      }),
+    ],
+  };
+
+  const selectedCategoryList = categoryTemplates[category] || categoryTemplates.comparisons;
+  const allCategoryLists = Object.values(categoryTemplates).flat();
+
+  const pool = [...selectedCategoryList, ...allCategoryLists];
+  const generatedList: GeneratedPromptSuggestion[] = [];
+
+  for (let idx = 0; idx < count; idx++) {
+    const generator = pool[idx % pool.length];
+    const currentOffering = idx % 2 === 0 ? item1 : item2;
+    const currentSecondOffering = idx % 2 === 0 ? item2 : item3;
+    const currentComp = idx % 3 === 0 ? comp1 : idx % 3 === 1 ? comp2 : comp3;
+    const currentOtherComp = idx % 3 === 0 ? comp2 : comp1;
+
+    const data = generator(brandName, currentOffering, currentSecondOffering, currentComp, currentOtherComp);
+
+    // Apply preference overrides if specified
+    const finalIntent = intent !== 'all' ? intent : data.intent;
+    const finalAssoc = association !== 'both' ? association : data.assoc;
+
+    generatedList.push({
+      id: `synth-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 6)}`,
+      query_text: data.text,
+      category,
+      search_intent: finalIntent,
+      brand_association: finalAssoc,
+      recommended_frequency: data.freq,
+      rationale: data.rationale,
+    });
   }
-  if (association !== 'both') {
-    filtered = filtered.filter((t) => t.brand_association === association);
-    if (filtered.length === 0) filtered = templatePool;
-  }
 
-  const results: GeneratedPromptSuggestion[] = filtered.slice(0, count).map((item, idx) => ({
-    ...item,
-    id: `synth-${Date.now()}-${idx}`,
-  }));
-
-  return { prompts: results };
+  return { prompts: generatedList };
 }
 
 export interface BatchPromptInput {
@@ -682,11 +838,19 @@ export async function batchCreatePromptAudits(prompts: BatchPromptInput[]) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   let projectId = '';
+  let projectTier = 'starter';
+  let auditLimit = 20;
   const projectCookie = cookieStore.get('beacon_active_project');
   if (projectCookie?.value) {
     try {
       const parsed = JSON.parse(projectCookie.value);
-      projectId = parsed.id;
+      projectId = parsed.id || '';
+      if (parsed.tier) projectTier = parsed.tier;
+      if (parsed.audit_limit) {
+        auditLimit = parsed.audit_limit;
+      } else {
+        auditLimit = TIER_PROMPT_LIMITS[projectTier] || 20;
+      }
     } catch {
       // ignore
     }
@@ -696,6 +860,13 @@ export async function batchCreatePromptAudits(prompts: BatchPromptInput[]) {
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
     const existingPromptsRaw = cookieStore.get('beacon_demo_prompts')?.value;
     let promptsList = existingPromptsRaw ? JSON.parse(existingPromptsRaw) : [];
+
+    if (promptsList.length + prompts.length > auditLimit) {
+      const remaining = Math.max(0, auditLimit - promptsList.length);
+      return {
+        error: `Cannot add ${prompts.length} prompt(s). Your ${projectTier.toUpperCase()} plan has ${remaining} slot(s) remaining (limit: ${auditLimit}). Upgrade in Settings & Billing to expand your quota.`,
+      };
+    }
 
     const newItems = prompts.map((item, idx) => ({
       id: `prompt-ai-${Date.now()}-${idx}`,
@@ -746,6 +917,19 @@ export async function batchCreatePromptAudits(prompts: BatchPromptInput[]) {
     } else {
       return { error: 'No active project found.' };
     }
+  }
+
+  // Check quota against existing db prompts
+  const { count: existingDbCount } = await supabase
+    .from('prompts')
+    .select('id', { count: 'exact', head: true })
+    .eq('project_id', projectId);
+
+  if (typeof existingDbCount === 'number' && existingDbCount + prompts.length > auditLimit) {
+    const remaining = Math.max(0, auditLimit - existingDbCount);
+    return {
+      error: `Cannot add ${prompts.length} prompt(s). Your ${projectTier.toUpperCase()} plan has ${remaining} slot(s) remaining (limit: ${auditLimit}). Upgrade in Settings & Billing to expand your quota.`,
+    };
   }
 
   const rows = prompts.map((item) => ({

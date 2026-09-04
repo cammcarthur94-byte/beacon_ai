@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
   Sparkles,
   Loader2,
@@ -22,7 +23,9 @@ import {
   ShoppingBag,
   Star,
   Layers,
+  AlertCircle,
 } from 'lucide-react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
@@ -39,6 +42,9 @@ interface GeneratePromptModalProps {
   onOpenChange: (open: boolean) => void;
   onPromptsAdded: (newPrompts: any[]) => void;
   brandName?: string;
+  tier?: string;
+  existingCount?: number;
+  auditLimit?: number;
 }
 
 const CATEGORIES = [
@@ -69,11 +75,36 @@ export function GeneratePromptModal({
   onOpenChange,
   onPromptsAdded,
   brandName = 'Your Brand',
+  tier = 'starter',
+  existingCount = 0,
+  auditLimit,
 }: GeneratePromptModalProps) {
   const [category, setCategory] = useState('comparisons');
   const [searchIntent, setSearchIntent] = useState<SearchIntent | 'all'>('all');
   const [brandAssociation, setBrandAssociation] = useState<BrandAssociation | 'both'>('both');
   const [selectedEngines, setSelectedEngines] = useState<string[]>(DEFAULT_ENGINES);
+
+  // Price level & quota calculations
+  const rawTier = (tier || 'starter').toLowerCase();
+  const defaultLimit = rawTier === 'enterprise' ? 500 : rawTier === 'growth' || rawTier === 'pro' ? 100 : 20;
+  const limit = auditLimit || defaultLimit;
+  const currentUsed = existingCount ?? 0;
+  const remainingSlots = Math.max(0, limit - currentUsed);
+  const isAtCapacity = remainingSlots <= 0;
+  const tierLabel = rawTier === 'growth' || rawTier === 'pro' ? 'Pro' : rawTier === 'enterprise' ? 'Enterprise' : 'Starter';
+
+  // Custom prompt count input state
+  const [promptCount, setPromptCount] = useState<number>(() => {
+    if (remainingSlots <= 0) return 1;
+    return Math.min(5, remainingSlots);
+  });
+
+  // Adjust prompt count if remainingSlots changes
+  React.useEffect(() => {
+    if (remainingSlots > 0 && promptCount > remainingSlots) {
+      setPromptCount(remainingSlots);
+    }
+  }, [remainingSlots, promptCount]);
 
   const [generatedPrompts, setGeneratedPrompts] = useState<GeneratedPromptSuggestion[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -83,13 +114,19 @@ export function GeneratePromptModal({
   const [isAdding, startAdding] = useTransition();
 
   const handleGenerate = () => {
+    if (isAtCapacity) {
+      toast.error(`You have reached your ${tierLabel} plan limit of ${limit} prompts. Please upgrade in Settings.`);
+      return;
+    }
+
     startGenerating(async () => {
       try {
+        const countToFetch = Math.min(Math.max(1, promptCount), remainingSlots);
         const res = await generateAiPrompts({
           category,
           searchIntent,
           brandAssociation,
-          count: 5,
+          count: countToFetch,
         });
 
         if (res.error) {
@@ -190,7 +227,7 @@ export function GeneratePromptModal({
       <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden font-sans border-slate-200">
         {/* Header */}
         <DialogHeader className="p-6 pb-4 border-b border-slate-200 bg-slate-50/50">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge
               variant="outline"
               className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1.5 px-2.5 py-0.5 text-xs font-medium"
@@ -200,9 +237,20 @@ export function GeneratePromptModal({
             </Badge>
             <Badge
               variant="outline"
-              className="bg-blue-50 text-blue-700 border-blue-200 gap-1 px-2 py-0.5 text-[11px] font-medium"
+              className={cn(
+                'gap-1.5 px-2.5 py-0.5 text-xs font-medium',
+                isAtCapacity
+                  ? 'bg-amber-50 text-amber-800 border-amber-200'
+                  : 'bg-slate-100 text-slate-700 border-slate-200'
+              )}
             >
-              <span>Gemini 3.8 Flash / GPT-4o-mini</span>
+              <span>Plan: {tierLabel}</span>
+              <span className="text-slate-400">·</span>
+              <span>{currentUsed}/{limit} Tracked</span>
+              <span className="text-slate-400">·</span>
+              <span className={cn(remainingSlots <= 3 ? 'text-amber-700 font-semibold' : 'text-emerald-700 font-semibold')}>
+                {remainingSlots} available
+              </span>
             </Badge>
           </div>
           <DialogTitle className="text-xl font-bold tracking-tight text-slate-900 mt-1">
@@ -300,12 +348,93 @@ export function GeneratePromptModal({
               </div>
             </div>
 
+            {/* 4. Prompt Quantity & Allowance */}
+            <div className="space-y-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                  4. Number of Prompts to Generate
+                </label>
+                <span className="text-xs text-slate-500 font-medium">
+                  {remainingSlots} prompt slot{remainingSlots === 1 ? '' : 's'} remaining
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="relative w-32">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={Math.max(1, remainingSlots)}
+                    value={promptCount}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      if (isNaN(val) || val < 1) {
+                        setPromptCount(1);
+                      } else {
+                        setPromptCount(Math.min(val, Math.max(1, remainingSlots)));
+                      }
+                    }}
+                    disabled={isAtCapacity || isGenerating}
+                    className="h-9 text-sm font-semibold text-slate-900 border-slate-200 focus-visible:ring-emerald-500"
+                    placeholder="5"
+                  />
+                </div>
+
+                {/* Quick Selection Buttons */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[3, 5, 10, 15, 20].map((num) => {
+                    const isDisabled = num > remainingSlots || isAtCapacity;
+                    return (
+                      <button
+                        key={num}
+                        type="button"
+                        disabled={isDisabled || isGenerating}
+                        onClick={() => setPromptCount(num)}
+                        className={cn(
+                          'px-2.5 py-1 text-xs rounded-md border font-medium transition-colors cursor-pointer',
+                          promptCount === num && !isDisabled
+                            ? 'bg-slate-900 border-slate-900 text-white font-semibold shadow-2xs'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100',
+                          isDisabled && 'opacity-35 cursor-not-allowed hover:bg-white text-slate-400'
+                        )}
+                      >
+                        {num}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <p className="text-[11px] text-slate-500 font-normal">
+                Your current {tierLabel} plan allows up to {limit} prompts ({currentUsed} currently active, {remainingSlots} available).
+              </p>
+            </div>
+
+            {/* Capacity Warning Alert */}
+            {isAtCapacity && (
+              <div className="p-3.5 rounded-lg border border-amber-200 bg-amber-50/80 text-amber-900 text-xs flex items-start gap-2.5">
+                <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-semibold">Plan Prompt Allowance Reached ({limit}/{limit})</p>
+                  <p className="text-amber-800 text-[11px]">
+                    You have reached the maximum allowance of {limit} prompts on your current plan. Upgrade to expand your tracking capacity.
+                  </p>
+                  <Link
+                    href="/settings"
+                    className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:underline pt-0.5"
+                  >
+                    Upgrade in Settings &amp; Billing &rarr;
+                  </Link>
+                </div>
+              </div>
+            )}
+
             {/* Trigger Generation Button */}
             <div className="pt-2 flex justify-end">
               <Button
                 type="button"
                 onClick={handleGenerate}
-                disabled={isGenerating}
+                disabled={isGenerating || isAtCapacity}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs cursor-pointer gap-2 px-5 h-9"
               >
                 {isGenerating ? (
@@ -316,7 +445,7 @@ export function GeneratePromptModal({
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    <span>{generatedPrompts.length > 0 ? 'Regenerate Suggestions' : 'Generate Prompts'}</span>
+                    <span>{generatedPrompts.length > 0 ? 'Regenerate Suggestions' : `Generate ${promptCount} Prompts`}</span>
                   </>
                 )}
               </Button>

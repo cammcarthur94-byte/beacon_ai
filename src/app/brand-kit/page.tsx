@@ -1,22 +1,12 @@
-import { cookies } from 'next/headers';
+﻿import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
-import { signOut } from '@/app/login/actions';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { AppSidebarLayout } from '@/components/layout/app-sidebar-layout';
-import { Radio, LogOut, Sparkles } from 'lucide-react';
-import Link from 'next/link';
-import { SettingsView } from '@/components/settings/settings-view';
+import { BrandKitView } from '@/components/brand-kit/brand-kit-view';
 import type { BrandKit } from '@/types/database.types';
 
-interface SettingsPageProps {
-  searchParams: Promise<{ tab?: string }>;
-}
+export const dynamic = 'force-dynamic';
 
-export default async function SettingsPage({ searchParams }: SettingsPageProps) {
-  const { tab } = await searchParams;
+export default async function BrandKitPage() {
   const cookieStore = await cookies();
   const supabase = await createClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -29,7 +19,6 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     audit_limit: number;
     brand_kit: BrandKit;
   } | null = null;
-  let activeAuditsCount = 2;
 
   // 1. Fetch from Supabase
   if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
@@ -47,16 +36,6 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
       if (projects && projects.length > 0) {
         project = projects[0] as any;
-
-        const { count } = await supabase
-          .from('prompts')
-          .select('*', { count: 'exact', head: true })
-          .eq('project_id', project!.id)
-          .eq('is_active', true);
-
-        if (count !== null) {
-          activeAuditsCount = count;
-        }
       }
     }
   }
@@ -73,6 +52,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     }
   }
 
+  // 3. Fallback to default demo project (Lululemon)
   if (!project) {
     project = {
       id: 'demo-project-lululemon',
@@ -120,21 +100,21 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         <div className="border-b border-zinc-200 pb-6 space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono uppercase tracking-wider text-zinc-500 font-semibold">
-              Workspace Configuration
+              AI CONTEXT CALIBRATION
             </span>
             <span className="text-zinc-300">&bull;</span>
             <span className="text-xs font-mono text-emerald-600 font-medium">Tenancy RLS Verified</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-950 tracking-tight">
-            Settings & Stripe Subscriptions
+            Brand Kit &amp; AI Grounding
           </h1>
           <p className="text-xs sm:text-sm text-zinc-600">
-            Configure brand parameters, calibrate your Brand Kit context, monitor audit quotas, and manage subscription billing.
+            Configure brand taxonomy, narrative pillars, regional search intent, and stylistic tone guardrails injected into all AI models.
           </p>
         </div>
 
-        {/* SETTINGS VIEW */}
-        <SettingsView project={project} activeAuditsCount={activeAuditsCount} initialTab={tab} />
+        {/* Brand Kit Dedicated Studio */}
+        <BrandKitView project={project} />
       </div>
     </AppSidebarLayout>
   );

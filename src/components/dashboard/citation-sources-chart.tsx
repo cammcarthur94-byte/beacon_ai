@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Cell,
   CartesianGrid,
+  LabelList,
 } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -156,11 +157,18 @@ export function CitationSourcesChart({
             <BarChart
               data={data}
               layout="vertical"
-              margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
+              margin={{ top: 5, right: 45, left: 10, bottom: 5 }}
             >
-              <CartesianGrid {...chartGridProps} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--chart-grid)"
+                vertical={true}
+                horizontal={false}
+              />
               <XAxis
                 type="number"
+                domain={[0, 60]}
+                ticks={[0, 15, 30, 45, 60]}
                 {...chartXAxisProps}
                 tickFormatter={(v) => `${v}`}
               />
@@ -178,6 +186,15 @@ export function CitationSourcesChart({
                 cursor="pointer"
                 onClick={(_, index) => handleBarClick(data[index])}
               >
+                <LabelList
+                  dataKey="citations"
+                  position="right"
+                  fill="#18181b"
+                  fontSize={12}
+                  fontWeight={600}
+                  fontFamily="'Google Sans', 'Open Sans', sans-serif"
+                  offset={8}
+                />
                 {data.map((entry) => {
                   const isSelected = selectedDomain === entry.domain;
                   const isAnySelected = Boolean(selectedDomain);

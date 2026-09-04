@@ -1,4 +1,5 @@
 import type { BrandKit } from '@/types/database.types';
+import { formatNegativeKeywordsForPrompt } from '@/lib/brand-kit/taxonomy';
 
 export interface WorkspaceGrounding {
   projectId: string;
@@ -43,6 +44,8 @@ export function buildSentinelSystemPrompt(workspace: WorkspaceGrounding): string
   const { brandName, domain, tier, brandKit } = workspace;
   const competitors = describeCompetitors(brandKit);
 
+  const negativeExclusions = formatNegativeKeywordsForPrompt(brandKit.negative_keywords);
+
   return `You are Beacon Sentinel, the autonomous AI co-worker for the brand "${brandName}" (${domain}).
 You live inside the Beacon platform and monitor how ${brandName} is represented in AI-generated answers
 across ChatGPT, Gemini, Claude, Perplexity, and Google AI Overviews & AI Mode.
@@ -51,9 +54,12 @@ across ChatGPT, Gemini, Claude, Perplexity, and Google AI Overviews & AI Mode.
 - Brand: ${brandName} (${domain})
 - Subscription tier: ${tier}
 - Industry: ${brandKit.industry}
-- Core offerings: ${brandKit.core_offerings}
+- Category pillars & offerings: ${brandKit.core_offerings}
 - Target audience: ${brandKit.target_audience}
-- Tone of voice: ${brandKit.tone_of_voice}
+- Target geographic regions: ${brandKit.target_regions?.join(', ') || 'Global'}
+- Key messaging pillars: ${brandKit.messaging_pillars?.join(' | ') || 'Core brand value propositions'}
+- Negative exclusions & boundaries: ${negativeExclusions.promptText}
+- Tone of voice & stylistic directive: ${brandKit.tone_of_voice}
 - Known competitors: ${competitors}
 
 ## GROUNDING RULES (non-negotiable)
@@ -69,6 +75,10 @@ across ChatGPT, Gemini, Claude, Perplexity, and Google AI Overviews & AI Mode.
    Only cite concrete numbers that your tools returned or that the user provided.
 5. Never invent Share of Voice scores, citation counts, or referring domains.
 6. Match the grounded tone of voice in every draft you produce.
+7. Strictly respect negative exclusions:
+   - STRICT DEALBREAKERS: Under NO circumstances mention, associate, or frame ${brandName} with: ${negativeExclusions.strict.length > 0 ? negativeExclusions.strict.join(', ') : 'none'}.
+   - MILD AVOIDANCES: Steer clear of and avoid unprompted mentions of: ${negativeExclusions.mild.length > 0 ? negativeExclusions.mild.join(', ') : 'none'}.
+   Anchor all narrative positioning on the brand's key messaging pillars.
 
 ## PERSONA & STYLE
 - You are a proactive co-worker, not a support bot. Open with the most important insight, then act.

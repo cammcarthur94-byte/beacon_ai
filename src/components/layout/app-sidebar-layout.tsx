@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { signOut } from '@/app/login/actions';
 import {
   Radio,
-  Bot,
+  Sparkles,
   LayoutDashboard,
   Link2,
   Search,
@@ -23,6 +23,8 @@ import {
   ArrowRight,
   TrendingUp,
   Target,
+  Trophy,
+  Sliders,
 } from 'lucide-react';
 
 interface AppSidebarLayoutProps {
@@ -65,7 +67,7 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const navItems: NavItem[] = [
+  const generativeItems: NavItem[] = [
     {
       title: 'Overview',
       href: '/dashboard',
@@ -85,6 +87,13 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
       active: pathname.startsWith('/citations'),
     },
     {
+      title: 'SOV Leaderboard',
+      href: '/leaderboard',
+      icon: Trophy,
+      active: pathname.startsWith('/leaderboard'),
+      badge: 'SOV',
+    },
+    {
       title: 'Authority Gap',
       href: '/authority-gap',
       icon: TrendingUp,
@@ -97,12 +106,23 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
       icon: Target,
       active: pathname.startsWith('/competitor-mapping'),
     },
+  ];
+
+  const growthItems: NavItem[] = [];
+
+  const adminItems: NavItem[] = [
     {
-      title: 'AI Co-worker',
+      title: 'Content Studio',
       href: '/consultant',
-      icon: Bot,
+      icon: Sparkles,
       active: pathname.startsWith('/consultant'),
-      badge: 'Sentinel',
+      badge: 'Gemini 3.8',
+    },
+    {
+      title: 'Brand Kit',
+      href: '/brand-kit',
+      icon: Sliders,
+      active: pathname.startsWith('/brand-kit'),
     },
     {
       title: 'Settings & Billing',
@@ -111,6 +131,8 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
       active: pathname === '/settings',
     },
   ];
+
+  const navItems: NavItem[] = [...generativeItems, ...growthItems, ...adminItems];
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 flex flex-col lg:flex-row selection:bg-zinc-200 selection:text-zinc-950">
@@ -254,7 +276,7 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
               <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold px-2 block mb-2">
                 Generative Engines
               </span>
-              {navItems.slice(0, 5).map((item) => {
+              {generativeItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
@@ -283,11 +305,43 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
               })}
             </div>
 
+            {growthItems.length > 0 && (
+              <div className="space-y-1 pt-2">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold px-2 block mb-2">
+                  Growth & Authority
+                </span>
+                {growthItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        item.active
+                          ? 'bg-zinc-900 text-white shadow-xs'
+                          : 'text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Icon className={`h-4 w-4 ${item.active ? 'text-white' : 'text-zinc-500'}`} />
+                        <span>{item.title}</span>
+                      </div>
+                      {item.badge && (
+                        <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
             <div className="space-y-1 pt-2">
               <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold px-2 block mb-2">
                 Administration
               </span>
-              {navItems.slice(5).map((item) => {
+              {adminItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link

@@ -67,30 +67,61 @@ export default async function DashboardPage() {
       tier: 'enterprise',
       audit_limit: 100,
       brand_kit: {
-        industry: 'Premium Athleisure & Athletic Apparel',
-        target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, gym-goers, and fitness lifestyle consumers',
-        core_offerings: 'Align Pant (Nulu fabric), Define Jacket, Wunder Train tights, ABC Joggers, Everywhere Belt Bag & technical athleisure',
+        industry: 'Retail, Apparel & Consumer Goods > Activewear & Athleisure',
+        industry_taxonomy: {
+          sector: 'Retail, Apparel & Consumer Goods',
+          category: 'Activewear & Athleisure',
+        },
+        target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, and fitness lifestyle consumers',
+        core_offerings: 'Premium Performance Activewear, Technical Outerwear, Everyday Movement Essentials',
         competitors: [
           { name: 'Alo Yoga', domain: 'aloyoga.com' },
           { name: 'Vuori', domain: 'vuoriclothing.com' },
           { name: 'Athleta', domain: 'athleta.gap.com' },
         ],
-        tone_of_voice: 'Empowering, Mindful, Elevated, Performance-Driven',
+        target_regions: ['Global / Worldwide', 'North America (US & Canada)'],
+        negative_keywords: ['fast fashion', 'cheap dupes', 'discount outlet', 'drop-shipping'],
+        messaging_pillars: [
+          'Proprietary Technical Fabric Innovation',
+          'Mindful Movement & Wellness Community',
+          'Elevated Performance Luxury',
+          'Sustainable Longevity & Durability',
+        ],
+        tone_dimensions: {
+          formal_casual: 45,
+          technical_accessible: 70,
+          bold_understated: 40,
+          analytical_inspiring: 80,
+        },
+        tone_tags: ['Empowering', 'Mindful', 'Technical', 'Elevated'],
+        tone_of_voice: 'Inspiring, elevated, technical, and mindful',
       },
     };
   }
 
   const brandName = project.name || 'Lululemon';
   const brandKit = project.brand_kit || {
-    industry: 'Premium Athleisure & Athletic Apparel',
-    target_audience: 'Yoga & Pilates enthusiasts, runners, and athleisure consumers',
-    core_offerings: 'Align Leggings, Define Jackets, ABC Pants & technical activewear',
+    industry: 'Retail, Apparel & Consumer Goods > Activewear & Athleisure',
+    industry_taxonomy: {
+      sector: 'Retail, Apparel & Consumer Goods',
+      category: 'Activewear & Athleisure',
+    },
+    target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, and fitness lifestyle consumers',
+    core_offerings: 'Premium Performance Activewear, Technical Outerwear, Everyday Movement Essentials',
     competitors: [
       { name: 'Alo Yoga', domain: 'aloyoga.com' },
       { name: 'Vuori', domain: 'vuoriclothing.com' },
       { name: 'Athleta', domain: 'athleta.gap.com' },
     ],
-    tone_of_voice: 'Empowering & Performance-Driven',
+    target_regions: ['Global / Worldwide', 'North America (US & Canada)'],
+    negative_keywords: ['fast fashion', 'cheap dupes', 'discount outlet', 'drop-shipping'],
+    messaging_pillars: [
+      'Proprietary Technical Fabric Innovation',
+      'Mindful Movement & Wellness Community',
+      'Elevated Performance Luxury',
+      'Sustainable Longevity & Durability',
+    ],
+    tone_of_voice: 'Inspiring, elevated, technical, and mindful',
   };
 
   const rawIndustry = (brandKit.industry || '').toLowerCase();
@@ -184,18 +215,24 @@ export default async function DashboardPage() {
     { name: 'Critical / Negative', category: 'negative', value: 8, color: '#475569' },
   ];
 
+  // Top Engine dynamically computed from engine visibility benchmark
+  const topEngineBenchmark = engineComparisonData.reduce(
+    (prev, current) => (current.brandScore > prev.brandScore ? current : prev),
+    engineComparisonData[0]
+  );
+
   // Summary metrics baseline
   const summaryMetrics: DashboardSummaryMetrics = {
     totalSov: 82.6,
     sovDelta: 14.8,
-    sentimentScore: 87,
+    sentimentScore: 60,
     sentimentLabel: 'Positive',
     totalCitations: 164,
     citationsDelta: 28,
     topEngine: {
-      name: 'Perplexity Sonar',
-      score: 94,
-      winRate: 89,
+      name: topEngineBenchmark.engine,
+      score: topEngineBenchmark.brandScore,
+      winRate: topEngineBenchmark.brandScore,
     },
   };
 
@@ -346,14 +383,12 @@ export default async function DashboardPage() {
               <span className="text-xs font-mono uppercase tracking-wider text-zinc-500 font-semibold">
                 GEO Dashboard
               </span>
-              <span className="text-zinc-300">&bull;</span>
-              <span className="text-xs font-mono text-emerald-600 font-medium">All 6 Engines Online</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-950 tracking-tight">
-              {brandName} &bull; AI Share of Voice
+              Brand AI Performance
             </h1>
             <p className="text-xs sm:text-sm text-zinc-600">
-              Aggregated generative visibility across ChatGPT, Google Gemini, Anthropic Claude, Perplexity Sonar, and Google AI Overviews & AI Mode.
+              See your brand&apos;s share of voice, sentiment, and top citation sources across ChatGPT, Perplexity, and Google AI.
             </p>
           </div>
         </div>

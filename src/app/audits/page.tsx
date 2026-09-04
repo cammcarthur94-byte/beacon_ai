@@ -224,19 +224,14 @@ export default async function AuditsPage() {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              Audits &amp; Monitoring Engine
+              SEARCH MANAGEMENT
             </span>
-            <span className="text-slate-300">&bull;</span>
-            <div className="inline-flex items-center gap-1.5 text-xs font-mono text-emerald-600 font-medium">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Automated Telemetry Active</span>
-            </div>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            Prompt &amp; Query Intelligence
+            Tracked Search Questions
           </h1>
           <p className="text-sm text-slate-600 leading-relaxed max-w-4xl font-normal">
-            Manage and schedule the exact questions your buyers ask AI search engines. Beacon continuously monitors your brand visibility, tracks rank placement, and alerts you instantly when competitors steal your citations.
+            Set up and manage the queries you want Beacon to continuously test across generative search engines.
           </p>
         </div>
 

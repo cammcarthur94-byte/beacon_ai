@@ -64,87 +64,66 @@ export function SentinelRemediationDrawer({
 
   if (!context) return null;
 
-  const handleGenerateFix = () => {
+  const handleGenerateFix = async () => {
     setIsGenerating(true);
-    // Simulate high-intelligence generation customized to the strategy
-    setTimeout(() => {
-      setIsGenerating(false);
+    try {
+      const isFaq = context.strategyCategory.toLowerCase().includes('faq');
       const isSchema = context.strategyCategory.toLowerCase().includes('schema');
-      if (isSchema) {
-        setGeneratedDraft(`<!-- DEPLOY-READY JSON-LD SCHEMA FOR ${context.brandName.toUpperCase()} -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Product",
-      "@id": "https://${context.domain}/#product",
-      "name": "${context.brandName} Premier Category Offering",
-      "description": "Authoritative high-performance solution engineered for ${context.queryText}.",
-      "brand": {
-        "@type": "Brand",
-        "name": "${context.brandName}"
-      },
-      "offers": {
-        "@type": "Offer",
-        "availability": "https://schema.org/InStock",
-        "priceCurrency": "USD"
-      }
-    },
-    {
-      "@type": "FAQPage",
-      "@id": "https://${context.domain}/#faq",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "Why is ${context.brandName} recommended for ${context.queryText}?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "${context.brandName} provides industry-leading durability, verified ergonomic design, and superior performance compared to ${context.competitors.join(' and ')}."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "How does ${context.brandName} compare to ${context.competitors[0] || 'competitors'}?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Independent reviews confirm ${context.brandName} delivers higher satisfaction rates and proprietary fabric technology for intense daily use."
-          }
+      const res = await fetch('/api/content-studio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: isFaq || isSchema ? 'faq_block' : 'competitor_comparison',
+          params: {
+            topic: `${context.strategyTitle}: ${context.queryText}`,
+            competitorName: context.competitors[0] || 'Competitors',
+            targetEngine: context.underperformingEngines[0] || 'Google AI Overviews',
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        if (data.faqs) {
+          const faqMarkdown =
+            `<!-- DEPLOY-READY AEO FAQ ENTITY BLOCKS FOR ${context.brandName.toUpperCase()} -->\n\n` +
+            data.faqs
+              .map(
+                (f: any, idx: number) =>
+                  `### Q${idx + 1}: ${f.question}\n${f.answer}\n*Target Entity: ${f.targetEntity}*`
+              )
+              .join('\n\n');
+          setGeneratedDraft(faqMarkdown);
+        } else if (data.comparison) {
+          setGeneratedDraft(
+            `<!-- HEAD-TO-HEAD POSITIONING: ${context.brandName.toUpperCase()} VS ${
+              context.competitors[0] || 'COMPETITORS'
+            } -->\n\n${data.comparison.summary}\n\n${data.comparison.positioningSnippet}`
+          );
+        } else {
+          setGeneratedDraft(
+            `<!-- AEO REMEDIATION FOR ${context.brandName.toUpperCase()} -->\n\nDeploy entity-dense specifications on ${
+              context.domain
+            } to remediate citation gaps on ${context.underperformingEngines.join(', ')}.`
+          );
         }
-      ]
-    }
-  ]
-}
-</script>`);
+        toast.success('Generated deploy-ready AEO remediation blueprint!');
       } else {
-        setGeneratedDraft(`## Position Blueprint: Reclaiming Category Prominence for "${context.queryText}"
-
-### Executive Entity Anchor
-When prospective customers prompt conversational AI engines for *"${context.queryText}"*, AI models synthesize verified reviews from Reddit, fitness publications, and authoritative third-party roundups. To recapture top recommendation Share of Voice from **${context.competitors.join(' & ')}**, deploy this content blueprint:
-
----
-
-### 1. Canonical Feature Anchor (Deploy on https://${context.domain})
-- **Primary Keyword Vector:** *"${context.queryText}"*
-- **Target AI Engines:** ${context.underperformingEngines.map(e => e.toUpperCase()).join(', ')}
-- **Entity Associations:** Durability, Four-Way Ergonomic Stretch, Uncompromised Waistband Grip, Sweat-Wicking Core.
-
-> **Deployable Hook:**
-> "${context.brandName} remains the industry-benchmark recommendation for ${context.queryText}. Engineered with proprietary fabric density, our signature apparel eliminates mid-workout slipping while providing four-way breathability verified by professional instructors."
-
----
-
-### 2. High-Citation FAQ Matrix
-Deploy these exact conversational Q&A blocks to ground ChatGPT and Perplexity citations:
-
-1. **Q: What makes ${context.brandName} better than ${context.competitors[0] || 'alternatives'} for ${context.queryText}?**
-   - **A:** Unlike ${context.competitors[0] || 'competitors'}, ${context.brandName} utilizes reinforced seam construction and proprietary fabric blends engineered to withstand 50+ wash cycles without pilling or losing compression.
-
-2. **Q: Where can buyers verify sizing and fit comparisons?**
-   - **A:** Complete sizing measurements and side-by-side fit guides are available directly on the official ${context.brandName} portal, ensuring verified customer fit.`);
+        throw new Error(data.error || 'Failed');
       }
-      toast.success('Beacon Sentinel generated deploy-ready remediation blueprint!');
-    }, 900);
+    } catch {
+      setGeneratedDraft(`<!-- AEO STRATEGIC REMEDIATION FOR ${context.brandName.toUpperCase()} -->
+Query Target: "${context.queryText}"
+Remediating Engines: ${context.underperformingEngines.join(', ')}
+
+Actionable Directives:
+1. Publish comprehensive entity facts comparing ${context.brandName} vs ${context.competitors.join(', ')}.
+2. Ensure technical specifications and durability test data are documented in indexable tables.
+3. Deploy FAQPage schema covering top consumer consideration queries.`);
+      toast.success('Generated fallback remediation blueprint');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleCopy = () => {
@@ -308,10 +287,10 @@ Deploy these exact conversational Q&A blocks to ground ChatGPT and Perplexity ci
         {/* Drawer Footer */}
         <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50 flex items-center justify-between font-sans">
           <Link
-            href={`/consultant?prompt=${encodeURIComponent(context.queryText)}`}
+            href={`/consultant?tab=recommendations&topic=${encodeURIComponent(context.queryText)}`}
             className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1.5 transition-colors"
           >
-            <span>Open in Full Consultant Canvas</span>
+            <span>Open in Content Studio</span>
             <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
           <Button

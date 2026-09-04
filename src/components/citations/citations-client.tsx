@@ -117,17 +117,15 @@ export function CitationsClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-5">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs uppercase tracking-wider text-zinc-500 font-semibold">
-              GEO Backlink Telemetry
+            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
+              BACKLINK MONITOR
             </span>
-            <span className="text-zinc-300">&bull;</span>
-            <span className="text-xs text-emerald-600 font-medium">Grounding Matrix Active</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-950 tracking-tight">
-            AI Citations & Backlink Intelligence
+            AI Source &amp; Citation Tracking
           </h1>
           <p className="text-xs sm:text-sm text-zinc-600">
-            Track where ChatGPT, Google Gemini, Claude, and Perplexity source evidence for <span className="font-semibold text-zinc-900">{brandName}</span>.
+            Monitor the websites, articles, and forums ChatGPT, Claude, and Perplexity reference when recommending your brand.
           </p>
         </div>
 

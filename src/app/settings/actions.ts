@@ -7,29 +7,97 @@ import { revalidatePath } from 'next/cache';
 import { stripe, BILLING_PLANS } from '@/lib/stripe';
 import type { BrandKit } from '@/types/database.types';
 
+import { compileToneOfVoice, normalizeNegativeKeywords } from '@/lib/brand-kit/taxonomy';
+
 export async function updateProjectSettings(formData: FormData) {
   const brandName = (formData.get('brandName') as string) || '';
   const domain = (formData.get('domain') as string) || '';
   const industry = (formData.get('industry') as string) || '';
   const targetAudience = (formData.get('targetAudience') as string) || '';
   const coreOfferings = (formData.get('coreOfferings') as string) || '';
-  const toneOfVoice = (formData.get('toneOfVoice') as string) || '';
   const competitorsRaw = (formData.get('competitors') as string) || '[]';
+  const targetRegionsRaw = (formData.get('targetRegions') as string) || '[]';
+  const negativeKeywordsRaw = (formData.get('negativeKeywords') as string) || '[]';
+  const messagingPillarsRaw = (formData.get('messagingPillars') as string) || '[]';
+  const toneDimensionsRaw = (formData.get('toneDimensions') as string) || '';
+  const toneTagsRaw = (formData.get('toneTags') as string) || '[]';
+  const industryTaxonomyRaw = (formData.get('industryTaxonomy') as string) || '';
 
-  let competitors = [];
-  try {
-    competitors = JSON.parse(competitorsRaw);
-  } catch {
-    competitors = [];
+  const hasBrandKitPayload =
+    formData.has('industryTaxonomy') ||
+    formData.has('competitors') ||
+    formData.has('messagingPillars') ||
+    formData.has('toneDimensions') ||
+    formData.has('targetRegions');
+
+  let updatedBrandKit: BrandKit | undefined = undefined;
+
+  if (hasBrandKitPayload) {
+    let competitors = [];
+    try {
+      competitors = JSON.parse(competitorsRaw);
+    } catch {
+      competitors = [];
+    }
+
+    let targetRegions: string[] = [];
+    try {
+      targetRegions = JSON.parse(targetRegionsRaw);
+    } catch {
+      targetRegions = [];
+    }
+
+    let negativeKeywords: any[] = [];
+    try {
+      const parsed = JSON.parse(negativeKeywordsRaw);
+      negativeKeywords = normalizeNegativeKeywords(parsed);
+    } catch {
+      negativeKeywords = [];
+    }
+
+    let messagingPillars: string[] = [];
+    try {
+      messagingPillars = JSON.parse(messagingPillarsRaw);
+    } catch {
+      messagingPillars = [];
+    }
+
+    let toneDimensions = undefined;
+    try {
+      if (toneDimensionsRaw) toneDimensions = JSON.parse(toneDimensionsRaw);
+    } catch {}
+
+    let toneTags: string[] = [];
+    try {
+      toneTags = JSON.parse(toneTagsRaw);
+    } catch {
+      toneTags = [];
+    }
+
+    let industryTaxonomy = undefined;
+    try {
+      if (industryTaxonomyRaw) industryTaxonomy = JSON.parse(industryTaxonomyRaw);
+    } catch {}
+
+    let toneOfVoice = (formData.get('toneOfVoice') as string) || '';
+    if (toneDimensions) {
+      toneOfVoice = compileToneOfVoice(toneDimensions, toneTags);
+    }
+
+    updatedBrandKit = {
+      industry: industryTaxonomy ? `${industryTaxonomy.sector} > ${industryTaxonomy.category}` : industry,
+      industry_taxonomy: industryTaxonomy,
+      target_audience: targetAudience,
+      core_offerings: coreOfferings,
+      competitors,
+      target_regions: targetRegions,
+      negative_keywords: negativeKeywords,
+      messaging_pillars: messagingPillars,
+      tone_of_voice: toneOfVoice,
+      tone_dimensions: toneDimensions,
+      tone_tags: toneTags,
+    };
   }
-
-  const updatedBrandKit: BrandKit = {
-    industry,
-    target_audience: targetAudience,
-    core_offerings: coreOfferings,
-    competitors,
-    tone_of_voice: toneOfVoice,
-  };
 
   const cookieStore = await cookies();
   const supabase = await createClient();
@@ -43,15 +111,18 @@ export async function updateProjectSettings(formData: FormData) {
         const parsed = JSON.parse(existing);
         const updated = {
           ...parsed,
-          name: brandName,
-          domain,
-          brand_kit: updatedBrandKit,
+          ...(brandName ? { name: brandName } : {}),
+          ...(domain ? { domain } : {}),
+          ...(hasBrandKitPayload && updatedBrandKit ? { brand_kit: updatedBrandKit } : {}),
         };
         cookieStore.set('beacon_active_project', JSON.stringify(updated), { path: '/' });
       } catch {}
     }
     revalidatePath('/settings');
+    revalidatePath('/brand-kit');
     revalidatePath('/dashboard');
+    revalidatePath('/audits');
+    revalidatePath('/consultant');
     return { success: true };
   }
 
@@ -61,21 +132,30 @@ export async function updateProjectSettings(formData: FormData) {
 
   if (!user) return { error: 'Authentication required' };
 
+  const updatePayload: {
+    name?: string;
+    domain?: string;
+    brand_kit?: BrandKit;
+    updated_at: string;
+  } = {
+    updated_at: new Date().toISOString(),
+  };
+  if (brandName) updatePayload.name = brandName;
+  if (domain) updatePayload.domain = domain;
+  if (hasBrandKitPayload && updatedBrandKit) updatePayload.brand_kit = updatedBrandKit;
+
   const { error } = await supabase
     .from('projects')
-    .update({
-      name: brandName,
-      domain,
-      brand_kit: updatedBrandKit,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updatePayload as any)
     .eq('user_id', user.id);
 
   if (error) return { error: error.message };
 
   revalidatePath('/settings');
+  revalidatePath('/brand-kit');
   revalidatePath('/dashboard');
   revalidatePath('/audits');
+  revalidatePath('/consultant');
   return { success: true };
 }
 
@@ -183,4 +263,52 @@ export async function createPortalSessionAction() {
     if (err?.message?.includes('NEXT_REDIRECT')) throw err;
     return { error: err.message || 'Failed to create customer billing portal' };
   }
+}
+
+export async function updateWorkspaceBrandingAndLocalizationAction(formData: FormData) {
+  const cookieStore = await cookies();
+  const logoUrl = (formData.get('logoUrl') as string) || '';
+  const faviconUrl = (formData.get('faviconUrl') as string) || '';
+  const timezone = (formData.get('timezone') as string) || 'America/New_York';
+  const language = (formData.get('language') as string) || 'en-US';
+  const dateFormat = (formData.get('dateFormat') as string) || 'MM/DD/YYYY';
+  const ssoEnabled = formData.get('ssoEnabled') === 'true';
+
+  const existingCookie = cookieStore.get('beacon_active_project')?.value;
+  if (existingCookie) {
+    try {
+      const parsed = JSON.parse(existingCookie);
+      parsed.workspace_settings = {
+        ...(parsed.workspace_settings || {}),
+        logoUrl,
+        faviconUrl,
+        timezone,
+        language,
+        dateFormat,
+        ssoEnabled,
+      };
+      cookieStore.set('beacon_active_project', JSON.stringify(parsed), { path: '/' });
+    } catch {}
+  }
+
+  revalidatePath('/settings');
+  return { success: true };
+}
+
+export async function deleteWorkspaceAction(domainConfirmation: string) {
+  const cookieStore = await cookies();
+  const existingCookie = cookieStore.get('beacon_active_project')?.value;
+  if (existingCookie) {
+    try {
+      const parsed = JSON.parse(existingCookie);
+      if (parsed.domain && parsed.domain.toLowerCase().trim() !== domainConfirmation.toLowerCase().trim()) {
+        return { error: `Domain confirmation does not match '${parsed.domain}'` };
+      }
+    } catch {}
+  }
+
+  cookieStore.delete('beacon_active_project');
+  revalidatePath('/settings');
+  revalidatePath('/dashboard');
+  return { success: true };
 }

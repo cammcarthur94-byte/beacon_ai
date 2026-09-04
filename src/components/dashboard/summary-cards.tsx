@@ -128,7 +128,7 @@ export function SummaryCards({ metrics }: { metrics: DashboardSummaryMetrics }) 
               variant="outline"
               className="text-[11px] font-mono px-2 py-0.5 border-emerald-200 bg-emerald-50 text-emerald-700"
             >
-              {metrics.topEngine.winRate}% Win Rate
+              {metrics.topEngine.winRate}% Visibility
             </Badge>
           </div>
         </CardContent>

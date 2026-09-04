@@ -45,6 +45,7 @@ import {
   FileText,
   Flame,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { DomainFavicon } from '@/components/citations/domain-favicon';
 import { cn } from '@/lib/utils';
 import type { AuthorityGapItem } from '@/app/api/authority-gap/route';
@@ -73,11 +74,21 @@ export function AuthorityGapClient() {
   // Drawer state
   const [activeDrawerGap, setActiveDrawerGap] = useState<AuthorityGapItem | null>(null);
   const [pitchLoading, setPitchLoading] = useState(false);
+  const [selectedVariationIndex, setSelectedVariationIndex] = useState(0);
   const [pitchData, setPitchData] = useState<{
     pitchSubject: string;
     pitchBody: string;
     editorAngle: string;
     suggestedHook: string;
+    variations?: Array<{
+      id: string;
+      angleTitle: string;
+      targetAngle: string;
+      subject: string;
+      body: string;
+      editorHook: string;
+      keyDifferentiator: string;
+    }>;
   } | null>(null);
   const [copiedSubject, setCopiedSubject] = useState(false);
   const [copiedBody, setCopiedBody] = useState(false);
@@ -163,7 +174,9 @@ export function AuthorityGapClient() {
           pitchBody: pitch.pitchBody,
           editorAngle: pitch.editorAngle,
           suggestedHook: pitch.suggestedHook,
+          variations: pitch.variations || [],
         });
+        setSelectedVariationIndex(0);
       }
     } catch (err) {
       console.error('Failed to generate pitch:', err);
@@ -200,19 +213,17 @@ export function AuthorityGapClient() {
     <div className="space-y-8 font-sans pb-16">
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-6">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-              Authority Gap Finder
-            </h1>
-            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-semibold px-2.5 py-0.5">
-              AEO Opportunity Matrix
-            </Badge>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
+              PR &amp; CITATION GAPS
+            </span>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            Missing Authority Targets
+          </h1>
           <p className="text-sm text-slate-600 max-w-3xl">
-            Identify high-authority domains citing your competitors in AI answer grounding where{' '}
-            <span className="font-semibold text-slate-900">{data?.brandName || 'your brand'}</span> is
-            currently omitted. Turn authority voids into targeted PR and editorial outreach.
+            Discover high-authority publisher websites that currently recommend your competitors in AI search results while omitting your brand, and turn those gaps into PR opportunities.
           </p>
         </div>
 
@@ -234,7 +245,7 @@ export function AuthorityGapClient() {
               className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm"
             >
               <Sparkles className="h-3.5 w-3.5 mr-2" />
-              Ask Sentinel Strategy
+              Open Content Studio
             </Button>
           </Link>
         </div>
@@ -740,13 +751,13 @@ export function AuthorityGapClient() {
                   <h2 className="text-base font-bold text-slate-900">
                     Beacon Sentinel Outreach Engine
                   </h2>
-                  <span className="text-[10px] text-purple-700 font-semibold bg-purple-50 border border-purple-200/80 px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <Sparkles className="h-2.5 w-2.5 text-purple-600" />
-                    Claude Sonnet 5
+                  <span className="text-[10px] text-emerald-800 font-semibold bg-emerald-50 border border-emerald-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Sparkles className="h-2.5 w-2.5 text-emerald-600" />
+                    Gemini 3.8 Flash
                   </span>
                 </div>
                 <p className="text-xs text-slate-500">
-                  AI-engineered editorial pitch angle to displace competitors on{' '}
+                  AI-engineered editorial pitch variations to displace competitors on{' '}
                   <span className="font-semibold text-slate-800">{activeDrawerGap.domain}</span>
                 </p>
               </div>
@@ -760,7 +771,7 @@ export function AuthorityGapClient() {
             </div>
 
             {/* Drawer Body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-5">
               {/* Target Metadata Card */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between text-xs">
@@ -795,21 +806,52 @@ export function AuthorityGapClient() {
                 <div className="h-64 flex flex-col items-center justify-center text-center gap-3">
                   <RefreshCw className="h-6 w-6 animate-spin text-emerald-600" />
                   <p className="text-xs font-semibold text-slate-800">
-                    Analyzing grounding authority & drafting customized pitch...
+                    Synthesizing 3 brand-tailored pitch angles with Gemini 3.8 Flash...
                   </p>
                   <p className="text-[11px] text-slate-400 max-w-xs">
-                    Cross-referencing laboratory proof points with editor submission standards
+                    Generating benchmark hooks, review unit collaboration, and direct executive angles
                   </p>
                 </div>
               ) : pitchData ? (
                 <div className="space-y-4">
+                  {/* 3 Variations Tab Selector if available */}
+                  {pitchData.variations && pitchData.variations.length > 0 && (
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">
+                        Select Pitch Angle (3 Tailored Examples)
+                      </label>
+                      <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-lg border border-slate-200">
+                        {pitchData.variations.map((v, idx) => (
+                          <button
+                            key={v.id}
+                            onClick={() => setSelectedVariationIndex(idx)}
+                            className={`px-2 py-1.5 rounded-md text-left text-xs transition-all ${
+                              selectedVariationIndex === idx
+                                ? 'bg-white text-slate-950 font-bold shadow-2xs'
+                                : 'text-slate-600 hover:text-slate-900 font-medium'
+                            }`}
+                          >
+                            <span className="text-[10px] font-mono block text-emerald-800 uppercase font-bold truncate">
+                              Angle {idx + 1}
+                            </span>
+                            <span className="text-[11px] block leading-tight truncate">
+                              {v.angleTitle.split('&')[0].trim()}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Strategic Hook */}
                   <div className="p-3.5 rounded-lg bg-emerald-50/70 border border-emerald-200">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 mb-1">
-                      <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
-                      Sentinel Strategic Hook
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-900 mb-1">
+                      <Sparkles className="h-3.5 w-3.5 text-emerald-700" />
+                      {pitchData.variations?.[selectedVariationIndex]?.angleTitle || 'Strategic Hook'}
                     </div>
-                    <p className="text-xs text-emerald-900">{pitchData.suggestedHook}</p>
+                    <p className="text-xs text-emerald-950 leading-relaxed">
+                      {pitchData.variations?.[selectedVariationIndex]?.editorHook || pitchData.suggestedHook}
+                    </p>
                   </div>
 
                   {/* Subject Line */}
@@ -819,7 +861,12 @@ export function AuthorityGapClient() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleCopy(pitchData.pitchSubject, 'subject')}
+                        onClick={() =>
+                          handleCopy(
+                            pitchData.variations?.[selectedVariationIndex]?.subject || pitchData.pitchSubject,
+                            'subject'
+                          )
+                        }
                         className="h-7 text-[11px] text-slate-500 hover:text-emerald-700 px-2"
                       >
                         {copiedSubject ? (
@@ -830,8 +877,8 @@ export function AuthorityGapClient() {
                         {copiedSubject ? 'Copied!' : 'Copy Subject'}
                       </Button>
                     </div>
-                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800">
-                      {pitchData.pitchSubject}
+                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 font-semibold">
+                      {pitchData.variations?.[selectedVariationIndex]?.subject || pitchData.pitchSubject}
                     </div>
                   </div>
 
@@ -842,7 +889,12 @@ export function AuthorityGapClient() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleCopy(pitchData.pitchBody, 'body')}
+                        onClick={() =>
+                          handleCopy(
+                            pitchData.variations?.[selectedVariationIndex]?.body || pitchData.pitchBody,
+                            'body'
+                          )
+                        }
                         className="h-7 text-[11px] text-slate-500 hover:text-emerald-700 px-2"
                       >
                         {copiedBody ? (
@@ -853,9 +905,26 @@ export function AuthorityGapClient() {
                         {copiedBody ? 'Copied!' : 'Copy Pitch'}
                       </Button>
                     </div>
-                    <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 whitespace-pre-wrap font-sans leading-relaxed">
-                      {pitchData.pitchBody}
+                    <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 whitespace-pre-wrap font-sans leading-relaxed max-h-56 overflow-y-auto">
+                      {pitchData.variations?.[selectedVariationIndex]?.body || pitchData.pitchBody}
                     </div>
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const s = pitchData.variations?.[selectedVariationIndex]?.subject || pitchData.pitchSubject;
+                        const b = pitchData.variations?.[selectedVariationIndex]?.body || pitchData.pitchBody;
+                        handleCopy(`Subject: ${s}\n\n${b}`, 'body');
+                        toast.success('Full email copied to clipboard!');
+                      }}
+                      className="text-xs border-slate-200 text-slate-700 bg-white hover:bg-slate-50 font-medium"
+                    >
+                      <Copy className="h-3.5 w-3.5 mr-1.5" />
+                      Copy Complete Pitch
+                    </Button>
                   </div>
                 </div>
               ) : null}
@@ -863,28 +932,32 @@ export function AuthorityGapClient() {
 
             {/* Drawer Footer */}
             <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setActiveDrawerGap(null)}
-                className="text-xs border-slate-200 text-slate-600"
-              >
-                Close
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setActiveDrawerGap(null)}
+                  className="text-xs border-slate-200 text-slate-600"
+                >
+                  Close
+                </Button>
+              </div>
 
               <Link
-                href={`/consultant?q=${encodeURIComponent(
-                  `Sentinel, please help me execute PR outreach for ${activeDrawerGap.domain}. We want to displace ${
-                    activeDrawerGap.competitorsCited[0]?.name || 'competitors'
-                  } on their article about "${activeDrawerGap.relevanceTopic}". Provide a 3-step follow-up strategy.`
+                href={`/consultant?tab=email&domain=${encodeURIComponent(
+                  activeDrawerGap.domain
+                )}&topic=${encodeURIComponent(
+                  activeDrawerGap.relevanceTopic
+                )}&competitor=${encodeURIComponent(
+                  activeDrawerGap.competitorsCited[0]?.name || ''
                 )}`}
               >
                 <Button
                   size="sm"
-                  className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm"
+                  className="text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shadow-2xs"
                 >
-                  <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
-                  Continue in AI Co-Worker
+                  <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                  Open in Content Studio
                   <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
                 </Button>
               </Link>

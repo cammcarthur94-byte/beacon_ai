@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { executiveReportSchema, type ExecutiveReportData } from '@/lib/schemas/executive-report';
 import type { BrandKit } from '@/types/database.types';
+import { formatNegativeKeywordsForPrompt } from '@/lib/brand-kit/taxonomy';
 
 export async function generateProjectReportAction(
   dateRange: '7d' | '30d' | 'all' = '30d'
@@ -204,8 +205,11 @@ Brand Details:
 - Domain: ${domain}
 - Industry Vertical: ${industry}
 - Target Audience: ${brandKit.target_audience}
-- Core Offerings: ${brandKit.core_offerings}
+- Core Category Pillars: ${brandKit.core_offerings}
 - Benchmarked Competitors: ${competitorsList.join(', ')}
+- Target Regions: ${brandKit.target_regions?.join(', ') || 'Global'}
+- Negative Exclusions: ${formatNegativeKeywordsForPrompt(brandKit.negative_keywords).promptText}
+- Key Messaging Pillars: ${brandKit.messaging_pillars?.join(' | ') || 'Core value propositions'}
 - Brand Tone: ${brandKit.tone_of_voice}`;
 
     const consolidatedPayload = {
