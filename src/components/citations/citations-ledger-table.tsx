@@ -355,10 +355,10 @@ export function CitationsLedgerTable({
         <div className="space-y-1">
           <CardTitle className="text-base font-semibold text-zinc-900 flex items-center gap-2">
             <Globe className="h-4 w-4 text-zinc-500" />
-            Referring Domain Ledger
+            Websites Citing Your Brand
           </CardTitle>
           <CardDescription className="text-xs text-zinc-500">
-            Audit catalog of unique authority domains grounding LLM answer block syntheses
+            List of websites, publications, and forums AI tools cite when recommending your brand
           </CardDescription>
         </div>
 
@@ -366,7 +366,7 @@ export function CitationsLedgerTable({
           variant="outline"
           className="text-xs border-zinc-200 bg-zinc-50 text-zinc-700 self-start sm:self-auto font-medium"
         >
-          {filteredRows.length} Domains Indexed
+          {filteredRows.length} Websites Tracked
         </Badge>
       </CardHeader>
 
@@ -376,7 +376,7 @@ export function CitationsLedgerTable({
         <div className="relative w-full lg:w-[35%] lg:min-w-[260px] shrink-0">
           <Search className={cn("absolute left-2.5 top-2.5 h-3.5 w-3.5 transition-colors", searchTerm ? "text-emerald-600" : "text-zinc-400")} />
           <Input
-            placeholder="Filter referring domains (e.g. reddit, runnersworld)..."
+            placeholder="Filter websites (e.g. reddit, nytimes)..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -473,15 +473,15 @@ export function CitationsLedgerTable({
                   <Cpu className="h-3.5 w-3.5 text-zinc-400" />
                 )}
                 <span>
-                  Engine: {selectedEngine === 'all' ? 'All' : selectedEngine}
+                  AI Tool: {selectedEngine === 'all' ? 'All' : selectedEngine}
                 </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 font-sans">
-              <DropdownMenuLabel>Filter by Citing Engine</DropdownMenuLabel>
+              <DropdownMenuLabel>Filter by AI Tool</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => { setSelectedEngine('all'); setCurrentPage(1); }}>
-                All Engines
+                All AI Tools
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setSelectedEngine('chatgpt'); setCurrentPage(1); }}>
                 ChatGPT
@@ -522,19 +522,19 @@ export function CitationsLedgerTable({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 font-sans">
-              <DropdownMenuLabel>Filter by Mentions Volume</DropdownMenuLabel>
+              <DropdownMenuLabel>Filter by Mentions</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => { setMentionsFilter('all'); setCurrentPage(1); }}>
                 All Volumes
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setMentionsFilter('high'); setCurrentPage(1); }}>
-                High (≥20 citations)
+                Frequently Cited (≥20 times)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setMentionsFilter('medium'); setCurrentPage(1); }}>
-                Medium (10-19 citations)
+                Regularly Cited (10-19 times)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setMentionsFilter('low'); setCurrentPage(1); }}>
-                Low (&lt;10 citations)
+                Occasionally Cited (&lt;10 times)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -566,7 +566,7 @@ export function CitationsLedgerTable({
                   <Smile className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
                 )}
                 <span>
-                  Sentiment: {sentimentFilter === 'all' ? 'All' : sentimentFilter}
+                  Tone: {sentimentFilter === 'all' ? 'All' : sentimentFilter}
                 </span>
               </Button>
             </DropdownMenuTrigger>
@@ -620,7 +620,7 @@ export function CitationsLedgerTable({
                   className="w-[18%] min-w-[170px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
-                    <span>Referring Domain</span>
+                    <span>Website / Domain</span>
                     {getSortIcon('domain')}
                   </div>
                 </TableHead>
@@ -631,14 +631,14 @@ export function CitationsLedgerTable({
                   className="w-[14%] min-w-[140px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
-                    <span>Source Category</span>
+                    <span>Source Type</span>
                     {getSortIcon('sourceType')}
                   </div>
                 </TableHead>
 
                 {/* Column 3: Citing Engines (11%) - Centered */}
                 <TableHead className="w-[11%] min-w-[110px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
-                  Citing Engines
+                  AI Tools Citing
                 </TableHead>
 
                 {/* Column 4: Sentiment (12%) - Centered */}
@@ -647,7 +647,7 @@ export function CitationsLedgerTable({
                   className="w-[12%] min-w-[120px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
-                    <span>Sentiment</span>
+                    <span>Tone</span>
                     {getSortIcon('sentiment')}
                   </div>
                 </TableHead>
@@ -658,7 +658,7 @@ export function CitationsLedgerTable({
                   className="w-[10%] min-w-[90px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
-                    <span>Mentions</span>
+                    <span>Times Cited</span>
                     {getSortIcon('totalMentions')}
                   </div>
                 </TableHead>
@@ -669,23 +669,23 @@ export function CitationsLedgerTable({
                   className="w-[13%] min-w-[120px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold py-3.5 group text-center whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
-                    <span>Prompts Cited</span>
+                    <span>Searches Citing</span>
                     {getSortIcon('promptsCount')}
                   </div>
                 </TableHead>
 
                 {/* Column 7: Recent Evidence URL (12%) - Centered, shortened */}
                 <TableHead className="w-[12%] min-w-[140px] text-xs font-semibold py-3.5 text-center whitespace-nowrap">
-                  Most Recent URL
+                  Latest Article / Link
                 </TableHead>
 
-                {/* Column 8: Last Grounded (10%) - Centered */}
+                {/* Column 8: Last Cited (10%) - Centered */}
                 <TableHead
                   onClick={() => toggleSort('lastCitedAt')}
                   className="w-[10%] min-w-[90px] cursor-pointer hover:text-zinc-950 select-none text-xs font-semibold text-center py-3.5 group whitespace-nowrap"
                 >
                   <div className="flex items-center justify-center gap-1.5">
-                    <span>Last Grounded</span>
+                    <span>Last Cited</span>
                     {getSortIcon('lastCitedAt')}
                   </div>
                 </TableHead>
@@ -699,7 +699,7 @@ export function CitationsLedgerTable({
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Filter className="h-6 w-6 text-zinc-400" />
                       <span className="font-medium text-zinc-700">
-                        No referring domains match your filter criteria.
+                        No websites match your filter criteria.
                       </span>
                       {hasActiveFilters && (
                         <button
@@ -821,11 +821,11 @@ export function CitationsLedgerTable({
                                 prompts: domainPrompts,
                               })
                             }
-                            title={`View ${domainPrompts.length} prompts that cited ${row.domain}`}
+                            title={`View ${domainPrompts.length} searches that cited ${row.domain}`}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-50 hover:bg-emerald-50 text-slate-800 hover:text-emerald-800 border border-slate-200/90 hover:border-emerald-300 shadow-2xs transition-all cursor-pointer group"
                           >
                             <span className="tabular-nums font-bold">
-                              {domainPrompts.length} {domainPrompts.length === 1 ? 'Prompt' : 'Prompts'}
+                              {domainPrompts.length} {domainPrompts.length === 1 ? 'Search' : 'Searches'}
                             </span>
                             <ArrowUpRight className="h-3.5 w-3.5 text-slate-400 group-hover:text-emerald-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
                           </button>

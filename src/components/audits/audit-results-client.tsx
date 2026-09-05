@@ -202,7 +202,7 @@ export function AuditResultsClient({
         <Card className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-slate-500 block uppercase tracking-wider">
-              Average Visibility (SOV)
+              Average Recommendation Rate
             </span>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-slate-900 tracking-tight tabular-nums">
@@ -227,14 +227,14 @@ export function AuditResultsClient({
         <Card className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-slate-500 block uppercase tracking-wider">
-              Engines Responding
+              AI Tools Responding
             </span>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-slate-900 tracking-tight tabular-nums">
                 {totalRuns} / {prompt.target_engines?.length || totalRuns}
               </span>
               <span className="text-xs font-semibold text-slate-500">
-                100% telemetry
+                100% complete
               </span>
             </div>
           </div>

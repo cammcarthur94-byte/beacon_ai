@@ -86,11 +86,11 @@ export function SentinelRemediationDrawer({
       if (data.success) {
         if (data.faqs) {
           const faqMarkdown =
-            `<!-- DEPLOY-READY AEO FAQ ENTITY BLOCKS FOR ${context.brandName.toUpperCase()} -->\n\n` +
+            `<!-- DEPLOY-READY FAQ CONTENT BLOCKS FOR ${context.brandName.toUpperCase()} -->\n\n` +
             data.faqs
               .map(
                 (f: any, idx: number) =>
-                  `### Q${idx + 1}: ${f.question}\n${f.answer}\n*Target Entity: ${f.targetEntity}*`
+                  `### Q${idx + 1}: ${f.question}\n${f.answer}\n*Product Focus: ${f.targetEntity}*`
               )
               .join('\n\n');
           setGeneratedDraft(faqMarkdown);
@@ -102,25 +102,25 @@ export function SentinelRemediationDrawer({
           );
         } else {
           setGeneratedDraft(
-            `<!-- AEO REMEDIATION FOR ${context.brandName.toUpperCase()} -->\n\nDeploy entity-dense specifications on ${
+            `<!-- RECOMMENDATION IMPROVEMENT PLAN FOR ${context.brandName.toUpperCase()} -->\n\nAdd clear product information and FAQs on ${
               context.domain
-            } to remediate citation gaps on ${context.underperformingEngines.join(', ')}.`
+            } to improve recommendations on ${context.underperformingEngines.join(', ')}.`
           );
         }
-        toast.success('Generated deploy-ready AEO remediation blueprint!');
+        toast.success('Generated recommendation improvement plan!');
       } else {
         throw new Error(data.error || 'Failed');
       }
     } catch {
-      setGeneratedDraft(`<!-- AEO STRATEGIC REMEDIATION FOR ${context.brandName.toUpperCase()} -->
+      setGeneratedDraft(`<!-- ACTION PLAN FOR ${context.brandName.toUpperCase()} -->
 Query Target: "${context.queryText}"
-Remediating Engines: ${context.underperformingEngines.join(', ')}
+Target AI Tools: ${context.underperformingEngines.join(', ')}
 
 Actionable Directives:
-1. Publish comprehensive entity facts comparing ${context.brandName} vs ${context.competitors.join(', ')}.
-2. Ensure technical specifications and durability test data are documented in indexable tables.
-3. Deploy FAQPage schema covering top consumer consideration queries.`);
-      toast.success('Generated fallback remediation blueprint');
+1. Publish comprehensive facts comparing ${context.brandName} vs ${context.competitors.join(', ')}.
+2. Ensure product specifications and customer review highlights are clearly documented on your website.
+3. Add clear FAQ answers covering top customer questions.`);
+      toast.success('Generated recommendation improvement plan');
     } finally {
       setIsGenerating(false);
     }
@@ -187,7 +187,7 @@ Actionable Directives:
             <div className="flex items-center justify-between">
               <span className="text-slate-500 font-medium">Gaps in Models:</span>
               <span className="font-semibold text-amber-700 capitalize">
-                {context.underperformingEngines.join(', ') || 'General category SOV'}
+                {context.underperformingEngines.join(', ') || 'General category visibility'}
               </span>
             </div>
           </div>
@@ -214,10 +214,10 @@ Actionable Directives:
               </div>
               <div className="space-y-1">
                 <h5 className="text-sm font-bold text-slate-900">
-                  Ready to generate custom remediation
+                  Ready to generate improvement plan
                 </h5>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Click below to generate a tailored copy blueprint, FAQ schema, and entity-rich copy blocks.
+                  Click below to generate a tailored content guide, FAQ answers, and copy blocks.
                 </p>
               </div>
               <Button

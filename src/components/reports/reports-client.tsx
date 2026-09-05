@@ -34,7 +34,7 @@ export function ReportsClient({
 
   const handleGenerate = (selectedRange = dateRange) => {
     startTransition(async () => {
-      toast.info(`Synthesizing executive report across ${selectedRange} telemetry...`);
+      toast.info(`Generating executive report across ${selectedRange} search data...`);
       const res = await generateProjectReportAction(selectedRange);
       if (res.error) {
         toast.error(res.error);
@@ -62,7 +62,7 @@ export function ReportsClient({
             <Radio className="h-4 w-4 text-white" />
           </div>
           <div>
-            <span className="font-bold text-lg tracking-tight text-black">Beacon GEO Platform</span>
+            <span className="font-bold text-lg tracking-tight text-black">Beacon AI Platform</span>
             <p className="text-[10px] font-mono text-zinc-600">Confidential Executive Strategy Audit</p>
           </div>
         </div>

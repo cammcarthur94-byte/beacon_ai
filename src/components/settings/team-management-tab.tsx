@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import * as React from 'react';
 import { useState, useEffect, useTransition } from 'react';
@@ -436,7 +436,7 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
               </Badge>
             </div>
             <p className="text-slate-500 text-[11px] leading-relaxed">
-              Read-only telemetry access to Share of Voice benchmarks, citations, and executive reports.
+              Read-only access to recommendation rate benchmarks, website citations, and reports.
             </p>
           </div>
         </div>
@@ -533,9 +533,9 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
                   onChange={(e) => setInviteRole(e.target.value as TeamMemberRole)}
                   className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
                 >
-                  <option value="admin">Admin - Workspace management &amp; Brand Kit calibration</option>
-                  <option value="editor">Editor - Prompt audits &amp; Content Studio PR pitches</option>
-                  <option value="viewer">Viewer - Read-only telemetry &amp; reporting</option>
+                  <option value="admin">Admin - Workspace management &amp; Brand Profile</option>
+                  <option value="editor">Editor - Search audits &amp; Content Studio PR pitches</option>
+                  <option value="viewer">Viewer - Read-only results &amp; reporting</option>
                 </select>
                 <span className="text-[11px] text-slate-500 block">
                   The member will create their own password and gain access strictly to <strong>{project.name}</strong>.

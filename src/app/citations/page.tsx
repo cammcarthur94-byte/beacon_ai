@@ -512,7 +512,7 @@ export default async function CitationsPage() {
           domain: 'quora.com',
           sourceType: 'forum',
           totalMentions: 5,
-          recentUrl: `https://quora.com/What-is-the-best-AEO-software-in-2026`,
+          recentUrl: `https://quora.com/What-is-the-best-ai-search-software-in-2026`,
           lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 6).toISOString(),
           engines: ['perplexity'],
         },

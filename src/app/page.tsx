@@ -34,7 +34,7 @@ export default function LandingPage() {
           {/* Top Indicator Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 shadow-2xs text-xs font-semibold text-slate-700">
             <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Generative Engine Optimization (GEO) Platform</span>
+            <span>AI Search Visibility Platform</span>
             <span className="text-slate-300">&bull;</span>
             <span className="text-emerald-600 font-semibold">2026 Ready</span>
           </div>
@@ -64,7 +64,7 @@ export default function LandingPage() {
             </Link>
             <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/80 border border-slate-200 text-xs font-medium text-slate-600 shadow-2xs">
               <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              <span>No credit card required · Live 5-minute setup</span>
+              <span>No credit card required · Live 2-minute setup</span>
             </div>
           </div>
 
@@ -92,7 +92,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
                   <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-                  <span>Telemetry Live</span>
+                  <span>Active Tracking</span>
                 </div>
               </div>
 
@@ -119,14 +119,14 @@ export default function LandingPage() {
           <div className="max-w-3xl mx-auto text-center space-y-3">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
               <Zap className="h-3.5 w-3.5 text-emerald-600" />
-              <span>Core Intelligence Engine</span>
+              <span>Smart Visibility Tools</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
-              Everything you need to own your category in AI answers
+              Everything you need to be the top recommendation in AI answers
             </h2>
             <p className="text-base text-slate-600 leading-relaxed">
-              Conversational search engines evaluate your brand differently than traditional web crawlers.
-              Beacon gives you the full telemetry to monitor, diagnose, and optimize.
+              Conversational search engines evaluate your brand differently than traditional search engines.
+              Beacon gives you the insights to monitor, improve, and win recommendations.
             </p>
           </div>
 
@@ -143,11 +143,11 @@ export default function LandingPage() {
                 </h3>
                 <p className="text-sm text-slate-600 leading-relaxed font-normal">
                   Monitor how ChatGPT, Claude, Perplexity, and Gemini evaluate your brand in real time.
-                  Track whether you are named as a top recommendation or excluded from category syntheses.
+                  Track whether you are named as a top recommendation or left out when buyers search.
                 </p>
               </div>
               <div className="pt-6 border-t border-slate-200/70 mt-6 flex items-center justify-between text-xs font-semibold text-emerald-700">
-                <span>Audits run every 24 hours</span>
+                <span>Checks run every 24 hours</span>
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
@@ -167,12 +167,12 @@ export default function LandingPage() {
                   </span>
                 </div>
                 <p className="text-sm text-slate-600 leading-relaxed font-normal">
-                  Google now displays AI answer syntheses above standard organic results for majority search queries.
-                  Beacon captures the exact answer blocks and citations shown to prospective buyers.
+                  Google now displays AI answers above standard website links for most searches.
+                  Beacon captures the exact recommendations and websites shown to prospective buyers.
                 </p>
               </div>
               <div className="pt-6 border-t border-slate-200/70 mt-6 flex items-center justify-between text-xs font-semibold text-blue-700">
-                <span>SERP generative capture</span>
+                <span>Google AI overview tracking</span>
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
@@ -184,15 +184,15 @@ export default function LandingPage() {
                   <Globe className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                  Backlink &amp; Citation Discovery
+                  Sources &amp; Citation Discovery
                 </h3>
                 <p className="text-sm text-slate-600 leading-relaxed font-normal">
-                  Uncover the exact authority domains, Reddit threads, and editorial publications LLMs use
-                  to justify their answers. See which backlink opportunities will unlock citation growth.
+                  Discover the exact websites, articles, reviews, and forums AI tools read when
+                  recommending products. See where your business needs to be mentioned next.
                 </p>
               </div>
               <div className="pt-6 border-t border-slate-200/70 mt-6 flex items-center justify-between text-xs font-semibold text-purple-700">
-                <span>Referring domain ledger</span>
+                <span>Sources &amp; articles list</span>
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
@@ -204,11 +204,11 @@ export default function LandingPage() {
                   <Bot className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                  Beacon Sentinel (AI Co-Worker)
+                  Beacon Assistant (AI Marketing Helper)
                 </h3>
                 <p className="text-sm text-slate-600 leading-relaxed font-normal">
-                  Receive proactive alerts the moment your brand loses citations to a competitor.
-                  Sentinel diagnoses the root cause and generates deploy-ready content blueprints to recapture your top spot.
+                  Receive instant alerts the moment a competitor gets recommended over you.
+                  Beacon Assistant explains why and creates ready-to-use articles and outreach emails to win customers back.
                 </p>
               </div>
               <div className="pt-6 border-t border-slate-200/70 mt-6 flex items-center justify-between text-xs font-semibold text-amber-800">
@@ -232,7 +232,7 @@ export default function LandingPage() {
               Explore the Beacon platform in detail
             </h2>
             <p className="text-base text-slate-600 leading-relaxed">
-              Click any capability below to preview the live interface and see how Beacon monitors your generative search footprint.
+              Click any capability below to preview the live interface and see how Beacon tracks your brand across AI search.
             </p>
           </div>
 
@@ -258,7 +258,7 @@ export default function LandingPage() {
             <div className="relative space-y-6 max-w-2xl mx-auto">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/90 border border-slate-700 text-xs font-semibold text-emerald-400">
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>Start Tracking in 5 Minutes</span>
+                <span>Start Tracking in 2 Minutes</span>
               </div>
 
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
@@ -266,7 +266,7 @@ export default function LandingPage() {
               </h2>
 
               <p className="text-base text-slate-400 leading-relaxed font-normal">
-                Join modern marketing teams and brands tracking their generative search share across
+                Join modern marketing teams and business owners tracking their AI search recommendations across
                 ChatGPT, Perplexity, Claude, and Google AI Overviews.
               </p>
 
@@ -298,7 +298,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                  <span>Instant domain calibration</span>
+                  <span>Instant 2-minute setup</span>
                 </div>
               </div>
             </div>
@@ -315,7 +315,7 @@ export default function LandingPage() {
             </div>
             <span className="font-semibold text-slate-800 text-sm">Beacon</span>
             <span className="text-slate-300">&bull;</span>
-            <span>Generative Engine Optimization &amp; AI Share of Voice</span>
+            <span>AI Search Tracking &amp; Visibility</span>
           </div>
 
           <div className="flex items-center gap-6">

@@ -170,7 +170,7 @@ export default async function DashboardPage() {
       { date: 'Day 4', brand: 66.8, comp1: 57.5, comp2: 47.2, comp3: 41.5, shiftDriver: 'Brand mentioned in Women\'s Health best leggings roundup' },
       { date: 'Day 7', brand: 65.4, comp1: 59.0, comp2: 48.0, comp3: 43.0, shiftDriver: 'Alo Yoga seasonal studio campaign push' },
       { date: 'Day 10', brand: 69.1, comp1: 58.2, comp2: 47.5, comp3: 41.0, shiftDriver: 'Verified buyer feedback surge on r/lululemon and r/xxfitness' },
-      { date: 'Day 13', brand: 72.5, comp1: 56.4, comp2: 48.2, comp3: 40.5, shiftDriver: 'Athletic authority domain citations refreshed by LLMs' },
+      { date: 'Day 13', brand: 72.5, comp1: 56.4, comp2: 48.2, comp3: 40.5, shiftDriver: 'Athletic review website citations updated across AI tools' },
       { date: 'Day 16', brand: 70.8, comp1: 55.0, comp2: 49.0, comp3: 41.2, shiftDriver: 'Vuori launches new DreamKnit colorways' },
       { date: 'Day 19', brand: 74.3, comp1: 54.2, comp2: 48.0, comp3: 39.0, shiftDriver: 'Reddit community thread discussion on Align pilling prevention' },
       { date: 'Day 22', brand: 73.0, comp1: 53.8, comp2: 49.5, comp3: 40.2, shiftDriver: 'Competitor sale noted across third-party style review portals' },
@@ -179,13 +179,13 @@ export default async function DashboardPage() {
       { date: 'Today', brand: 82.6, comp1: 50.8, comp2: 47.9, comp3: 36.8, shiftDriver: 'Top recommendation on ChatGPT for performance queries' },
     ],
     '90d': [
-      { date: 'Wk 1', brand: 58.0, comp1: 62.0, comp2: 44.0, comp3: 45.0, shiftDriver: 'Quarterly baseline telemetry established' },
-      { date: 'Wk 3', brand: 61.2, comp1: 60.5, comp2: 45.1, comp3: 44.0, shiftDriver: 'Initial citation footprint indexing across engines' },
+      { date: 'Wk 1', brand: 58.0, comp1: 62.0, comp2: 44.0, comp3: 45.0, shiftDriver: 'Quarterly baseline search data established' },
+      { date: 'Wk 3', brand: 61.2, comp1: 60.5, comp2: 45.1, comp3: 44.0, shiftDriver: 'Initial brand mentions indexed across AI tools' },
       { date: 'Wk 5', brand: 64.8, comp1: 58.2, comp2: 46.5, comp3: 43.1, shiftDriver: 'Publication of expert testing benchmarks' },
       { date: 'Wk 7', brand: 68.5, comp1: 57.0, comp2: 47.0, comp3: 42.0, shiftDriver: 'Perplexity citations added from tech publications' },
       { date: 'Wk 9', brand: 71.9, comp1: 55.4, comp2: 48.2, comp3: 40.8, shiftDriver: 'Community trust signals boosted on forum rankings' },
       { date: 'Wk 11', brand: 76.4, comp1: 53.2, comp2: 49.0, comp3: 39.5, shiftDriver: 'Product update reviews cited by Claude & ChatGPT' },
-      { date: 'Wk 13', brand: 82.6, comp1: 50.8, comp2: 47.9, comp3: 36.8, shiftDriver: 'Dominant #1 recommendation across all 4 target engines' },
+      { date: 'Wk 13', brand: 82.6, comp1: 50.8, comp2: 47.9, comp3: 36.8, shiftDriver: 'Dominant #1 recommendation across all 4 target AI tools' },
     ],
   };
 
@@ -381,14 +381,14 @@ export default async function DashboardPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono uppercase tracking-wider text-zinc-500 font-semibold">
-                GEO Dashboard
+                Overview
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-950 tracking-tight">
-              Brand AI Performance
+              AI Recommendation Performance
             </h1>
             <p className="text-xs sm:text-sm text-zinc-600">
-              See your brand&apos;s share of voice, sentiment, and top citation sources across ChatGPT, Perplexity, and Google AI.
+              See how often AI tools recommend your brand, whether they speak positively, and which websites they reference.
             </p>
           </div>
         </div>

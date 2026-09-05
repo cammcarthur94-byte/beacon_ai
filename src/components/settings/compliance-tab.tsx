@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import * as React from 'react';
 import { useState, useTransition } from 'react';
@@ -106,7 +106,7 @@ export function ComplianceTab({ project }: ComplianceTabProps) {
         if (res?.error) {
           toast.error(res.error);
         } else {
-          toast.success('Workspace and all associated telemetry permanently deleted.');
+          toast.success('Workspace and all associated data permanently deleted.');
           window.location.href = '/login';
         }
       } catch {
@@ -123,25 +123,25 @@ export function ComplianceTab({ project }: ComplianceTabProps) {
           <div className="flex items-center gap-2">
             <Database className="h-4 w-4 text-emerald-700" />
             <CardTitle className="text-base font-bold text-slate-950 font-sans">
-              Data Portability &amp; Historical Exports
+              Export Your Data
             </CardTitle>
           </div>
           <CardDescription className="text-xs text-slate-600 font-sans">
-            Download your raw engine telemetry, grounded citations, and calibrated Brand Kit directives in standard CSV and JSON formats.
+            Download your search history, citing websites, and brand guidelines in standard CSV and JSON spreadsheet files.
           </CardDescription>
         </CardHeader>
 
         <CardContent className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Export Telemetry */}
+            {/* Export Search History */}
             <div className="p-4 rounded-xl border border-slate-200/90 bg-slate-50/50 flex flex-col justify-between space-y-3">
               <div className="space-y-1.5">
                 <div className="h-9 w-9 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-800">
                   <FileSpreadsheet className="h-5 w-5" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-900 font-sans">Audit Telemetry</h4>
+                <h4 className="text-sm font-bold text-slate-900 font-sans">Search History</h4>
                 <p className="text-xs text-slate-500 font-sans">
-                  Complete historical search queries, engine SOV scores, and grounded sentiment.
+                  Full list of tracked search queries, AI recommendation scores, and tone.
                 </p>
               </div>
               <Button
@@ -161,9 +161,9 @@ export function ComplianceTab({ project }: ComplianceTabProps) {
                 <div className="h-9 w-9 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-800">
                   <FileSpreadsheet className="h-5 w-5" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-900 font-sans">Grounded Citations</h4>
+                <h4 className="text-sm font-bold text-slate-900 font-sans">Websites Citing Your Brand</h4>
                 <p className="text-xs text-slate-500 font-sans">
-                  All publisher URLs, domain authority ranks, and AI answer engine references.
+                  All websites, articles, and reviews AI platforms use when recommending your brand.
                 </p>
               </div>
               <Button
@@ -183,9 +183,9 @@ export function ComplianceTab({ project }: ComplianceTabProps) {
                 <div className="h-9 w-9 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-800">
                   <FileCode className="h-5 w-5" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-900 font-sans">Brand Kit Directive</h4>
+                <h4 className="text-sm font-bold text-slate-900 font-sans">Brand Profile &amp; Guidelines</h4>
                 <p className="text-xs text-slate-500 font-sans">
-                  Formatted JSON containing taxonomy, messaging pillars, negative exclusions, and tone weights.
+                  File containing your products, key selling points, excluded terms, and brand voice guidelines.
                 </p>
               </div>
               <Button
@@ -207,11 +207,11 @@ export function ComplianceTab({ project }: ComplianceTabProps) {
         <div className="flex items-center gap-2">
           <Lock className="h-4 w-4 text-emerald-700" />
           <h4 className="text-xs font-mono uppercase tracking-wider font-bold text-slate-900">
-            Enterprise Privacy &amp; LLM Zero-Training Guarantee
+            Privacy Guarantee: Never Used for AI Training
           </h4>
         </div>
         <p className="text-xs text-slate-600 font-sans leading-relaxed">
-          Beacon operates under a strict Zero-Data-Retention agreement with frontier model providers (OpenAI, Anthropic, Google). Your proprietary brand taxonomy, key messaging pillars, and competitor benchmarks are <strong>never used to train public foundation models</strong>.
+          Beacon protects your business data. Your product details, selling points, and competitors are <strong>never used to train public AI models</strong> (OpenAI, Anthropic, or Google).
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
           <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex items-center gap-2 text-slate-700 font-medium">
@@ -224,7 +224,7 @@ export function ComplianceTab({ project }: ComplianceTabProps) {
           </div>
           <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex items-center gap-2 text-slate-700 font-medium">
             <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-            <span>Isolated Tenancy RLS</span>
+            <span>Private &amp; Isolated Data</span>
           </div>
         </div>
       </Card>
@@ -236,10 +236,10 @@ export function ComplianceTab({ project }: ComplianceTabProps) {
             <div className="space-y-1">
               <CardTitle className="text-base font-bold text-rose-950 font-sans flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-rose-700" />
-                Danger Zone: Workspace Termination
+                Danger Zone: Delete Workspace
               </CardTitle>
               <CardDescription className="text-xs text-rose-700 font-sans">
-                Permanently delete this brand workspace, all prompt telemetry, citation maps, and vector embeddings.
+                Permanently delete this workspace, including all search history, tracked competitors, and citing websites.
               </CardDescription>
             </div>
             <Badge variant="outline" className="border-rose-300 bg-rose-100 text-rose-900 text-[10px] font-mono">
@@ -254,7 +254,7 @@ export function ComplianceTab({ project }: ComplianceTabProps) {
               Delete workspace for {project.name} ({project.domain})
             </span>
             <p className="text-xs text-rose-700/80 font-sans">
-              All team access will be revoked immediately and active Stripe subscriptions will be terminated.
+              All team access will be revoked immediately and active subscriptions will be terminated.
             </p>
           </div>
 
@@ -290,7 +290,7 @@ export function ComplianceTab({ project }: ComplianceTabProps) {
 
             <form onSubmit={handleDeleteWorkspace} className="p-5 space-y-4">
               <p className="text-xs text-slate-600 font-sans leading-relaxed">
-                This will permanently delete the <strong>{project.name}</strong> workspace and purge all associated audit telemetry, search questions, and citation backlinks. This action <strong>cannot be undone</strong>.
+                This will permanently delete the <strong>{project.name}</strong> workspace and remove all associated search history, tracked queries, and citing websites. This action <strong>cannot be undone</strong>.
               </p>
 
               <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1">

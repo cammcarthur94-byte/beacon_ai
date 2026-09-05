@@ -51,11 +51,11 @@ export function AiReportView({ promptId, initialReport }: AiReportViewProps) {
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <CardTitle className="text-base font-semibold text-zinc-950 flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-emerald-600" />
-              Generative Engine Audit Report (AEO Intelligence)
+              AI Search Audit Summary
             </CardTitle>
           </div>
           <CardDescription className="text-xs text-zinc-500">
-            Synthesized by LLM using Vercel AI SDK <code className="text-zinc-700 font-mono bg-zinc-100 px-1 py-0.5 rounded">generateObject</code> with strict Zod schema validation
+            Synthesized insights based on live AI search results and your Brand Profile
           </CardDescription>
         </div>
 
@@ -66,7 +66,7 @@ export function AiReportView({ promptId, initialReport }: AiReportViewProps) {
         >
           {isPending ? (
             <>
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Analyzing Telemetry...
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Analyzing Search Data...
             </>
           ) : (
             <>
@@ -86,7 +86,7 @@ export function AiReportView({ promptId, initialReport }: AiReportViewProps) {
             <div className="space-y-1 max-w-md mx-auto">
               <h4 className="text-sm font-semibold text-zinc-900">No AI Report Generated Yet</h4>
               <p className="text-xs text-zinc-500 leading-relaxed">
-                Click &quot;Generate AI Report&quot; above to pass raw audit telemetry and your Brand Kit into our generative analysis engine.
+                Click &quot;Generate AI Report&quot; above to analyze your search results and Brand Profile.
               </p>
             </div>
           </div>
@@ -98,8 +98,8 @@ export function AiReportView({ promptId, initialReport }: AiReportViewProps) {
                 <span className="text-xs font-mono uppercase tracking-wider text-zinc-600 font-semibold flex items-center gap-1.5">
                   <Sparkles className="h-3.5 w-3.5 text-emerald-600" /> Executive Summary
                 </span>
-                <Badge variant="outline" className="border-emerald-200 bg-emerald-50 font-mono text-[10px] text-emerald-700">
-                  Zod Validated
+                <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-[10px] text-emerald-700 font-semibold">
+                  Verified Analysis
                 </Badge>
               </div>
               <p className="text-sm text-zinc-800 leading-relaxed">

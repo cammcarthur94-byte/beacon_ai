@@ -5,8 +5,8 @@ import { LeaderboardClient } from '@/components/leaderboard/leaderboard-client';
 import type { BrandKit } from '@/types/database.types';
 
 export const metadata = {
-  title: 'Share of Voice (SOV) Leaderboard | Beacon',
-  description: 'AI Engine Market Dominance and Competitor SOV Tracking across ChatGPT, Gemini, Claude, and Perplexity.',
+  title: 'Market Share Leaderboard | Beacon',
+  description: 'AI Search Visibility and Competitor Recommendation Rate Tracking across ChatGPT, Gemini, Claude, and Perplexity.',
 };
 
 export default async function LeaderboardPage() {

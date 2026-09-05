@@ -41,7 +41,7 @@ export function CitationMetricsCards({
       )}>
         <CardContent className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-            <span>{isFiltered ? 'Filtered AI Citations' : 'Total AI Citations'}</span>
+            <span>{isFiltered ? 'Filtered Mentions' : 'Total Times Cited'}</span>
             <Quote className="h-4 w-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
           </div>
           <div className="flex items-baseline justify-between pt-1">
@@ -74,7 +74,7 @@ export function CitationMetricsCards({
       )}>
         <CardContent className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-            <span>Unique Referring Domains</span>
+            <span>Websites Citing You</span>
             <Globe className="h-4 w-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
           </div>
           <div className="flex items-baseline justify-between pt-1">
@@ -105,7 +105,7 @@ export function CitationMetricsCards({
                 ? activeCount === 1
                   ? 'Active Category'
                   : 'Leading Active Category'
-                : 'Top Source Category'}
+                : 'Top Source Type'}
             </span>
             <CitationSourceIcon
               sourceType={metrics.topSourceType}
@@ -137,7 +137,7 @@ export function CitationMetricsCards({
       <Card className="border-slate-200 bg-white shadow-xs group hover:border-slate-300 transition-colors">
         <CardContent className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-            <span>LLM Consensus Index</span>
+            <span>AI Source Agreement</span>
             <Award className="h-4 w-4 text-emerald-600" />
           </div>
           <div className="flex items-baseline justify-between pt-1">
@@ -148,7 +148,7 @@ export function CitationMetricsCards({
               variant="outline"
               className="text-[11px] font-medium border-emerald-200 bg-emerald-50 text-emerald-700 px-2 py-0.5"
             >
-              {isFiltered ? 'Active Grounding' : 'High Grounding'}
+              {isFiltered ? 'Active Sources' : 'Strong Consensus'}
             </Badge>
           </div>
         </CardContent>

@@ -255,9 +255,9 @@ export function OnboardingWizard() {
                 {step === 3 && 'Calibrate AI Brand Kit & tone'}
               </CardTitle>
               <CardDescription className="text-zinc-600">
-                {step === 1 && 'Beacon uses your domain and brand name to track citations across LLM engines.'}
-                {step === 2 && 'Identify the competitors who compete with you for generative search real estate.'}
-                {step === 3 && 'Downstream agents use this context to generate optimization recommendations and content.'}
+                {step === 1 && 'Beacon uses your domain and brand name to track recommendations across AI search tools.'}
+                {step === 2 && 'Identify the competitors who compete with you for customer recommendations.'}
+                {step === 3 && 'Our AI uses this information to suggest ways to improve your visibility and create content.'}
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -301,7 +301,7 @@ export function OnboardingWizard() {
                   autoFocus
                 />
                 <p className="text-[11px] text-zinc-500">
-                  The exact brand entity to scan for within LLM response outputs.
+                  The exact brand name to look for in AI search answers.
                 </p>
               </div>
 
@@ -367,9 +367,9 @@ export function OnboardingWizard() {
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Key Competitors (AEO Rivals)</Label>
+                    <Label>Key Competitors</Label>
                     <p className="text-[11px] text-zinc-500">
-                      Who is currently winning citations when prospects ask AI about your category?
+                      Who is currently being recommended when customers search for your product or service?
                     </p>
                   </div>
                   <Button

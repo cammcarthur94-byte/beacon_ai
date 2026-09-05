@@ -123,13 +123,13 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               Workspace Configuration
             </span>
             <span className="text-zinc-300">&bull;</span>
-            <span className="text-xs font-mono text-emerald-600 font-medium">Tenancy RLS Verified</span>
+            <span className="text-xs font-mono text-emerald-600 font-medium">Account Secured</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-950 tracking-tight">
-            Settings & Stripe Subscriptions
+            Settings &amp; Billing Plans
           </h1>
           <p className="text-xs sm:text-sm text-zinc-600">
-            Configure brand parameters, calibrate your Brand Kit context, monitor audit quotas, and manage subscription billing.
+            Configure brand settings, adjust your Brand Profile, monitor search limits, and manage billing.
           </p>
         </div>
 

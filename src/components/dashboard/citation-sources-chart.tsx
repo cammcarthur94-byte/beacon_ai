@@ -60,7 +60,7 @@ function CustomCitationTooltip({ active, payload }: { active?: boolean; payload?
           <p className="text-zinc-500">{item.percentage}% of all answer citations</p>
         </div>
         <p className="text-[10px] text-zinc-900 font-semibold mt-1.5 pt-1 border-t border-zinc-100 flex items-center gap-1">
-          👉 Click to drill down into prompts referencing this source
+          👉 Click to filter searches referencing this website
         </p>
       </div>
     );
@@ -128,10 +128,10 @@ export function CitationSourcesChart({
         <div className="space-y-0.5">
           <CardTitle className="text-base font-semibold text-zinc-900 flex items-center gap-1.5 font-sans">
             <Link2 className="h-4 w-4 text-emerald-600" />
-            Top Cited Authority Domains
+            Top Websites Citing Your Brand
           </CardTitle>
           <CardDescription className="text-xs text-zinc-500 font-sans">
-            Primary sources LLMs link to when recommending <span className="text-zinc-900 font-medium">{brandName}</span>
+            Top websites AI tools link to when recommending <span className="text-zinc-900 font-medium">{brandName}</span>
           </CardDescription>
         </div>
         {selectedDomain && (

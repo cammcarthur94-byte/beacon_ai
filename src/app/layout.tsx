@@ -3,9 +3,9 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
-  title: "Beacon | Generative Engine Optimization (GEO) & AI Share of Voice",
+  title: "Beacon | AI Search Visibility & Recommendation Rate",
   description:
-    "Track your brand's AI visibility, share of voice, and sentiment across ChatGPT, Google Gemini, Anthropic Claude, and Perplexity.",
+    "Track your brand's AI search visibility, recommendation rate, and customer sentiment across ChatGPT, Google Gemini, Anthropic Claude, and Perplexity.",
 };
 
 export default function RootLayout({

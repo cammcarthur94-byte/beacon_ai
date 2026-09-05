@@ -31,7 +31,7 @@ export function LandingNavbar() {
             <span className="font-bold text-base text-slate-900 tracking-tight">Beacon</span>
             <span className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-50 text-[10px] font-semibold text-emerald-700 border border-emerald-200/80">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              GEO Platform
+              AI Visibility
             </span>
           </div>
         </Link>

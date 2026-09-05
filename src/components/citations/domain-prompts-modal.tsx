@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
@@ -131,7 +131,7 @@ export function DomainPromptsModal({
                 </span>
               </div>
               <DialogDescription className="text-xs sm:text-sm text-slate-600 font-sans">
-                Tracked audit prompts whose AI responses cited evidence from{' '}
+                Tracked searches where AI responses cited{' '}
                 <span className="font-semibold text-slate-900">{domainRow.domain}</span>.
               </DialogDescription>
             </div>
@@ -149,16 +149,16 @@ export function DomainPromptsModal({
           <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-4 font-sans">
             <div className="bg-white rounded-xl border border-slate-200/80 p-3 shadow-2xs">
               <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-                Prompts Grounded
+                Searches Citing This
               </div>
               <div className="text-lg sm:text-xl font-bold text-slate-950 mt-0.5 tabular-nums">
-                {prompts.length} {prompts.length === 1 ? 'Prompt' : 'Prompts'}
+                {prompts.length} {prompts.length === 1 ? 'Search' : 'Searches'}
               </div>
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200/80 p-3 shadow-2xs">
               <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-                Total Citations
+                Times Cited
               </div>
               <div className="text-lg sm:text-xl font-bold text-slate-950 mt-0.5 tabular-nums">
                 {domainRow.totalMentions} Mentions
@@ -167,7 +167,7 @@ export function DomainPromptsModal({
 
             <div className="bg-white rounded-xl border border-slate-200/80 p-3 shadow-2xs">
               <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-                Avg Visibility (SOV)
+                Avg Recommendation Rate
               </div>
               <div className="text-lg sm:text-xl font-bold text-emerald-600 mt-0.5 tabular-nums flex items-center gap-1">
                 <span>{avgSov}%</span>
@@ -180,13 +180,13 @@ export function DomainPromptsModal({
         {/* PROMPTS LIST BODY */}
         <div className="overflow-y-auto p-5 sm:p-6 space-y-3.5 flex-1 font-sans bg-slate-50/30">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-0.5">
-            Active Prompts Citing This Domain ({prompts.length})
+            Searches Citing This Website ({prompts.length})
           </div>
 
           {prompts.length === 0 ? (
             <div className="text-center py-10 bg-white rounded-xl border border-slate-200 p-6">
               <p className="text-xs text-slate-500">
-                No active prompts currently associated with this domain.
+                No searches currently associated with this website.
               </p>
             </div>
           ) : (
@@ -229,9 +229,9 @@ export function DomainPromptsModal({
                   {/* Metrics & Metadata Strip */}
                   <div className="flex items-center justify-between gap-3 flex-wrap pt-1 text-xs border-t border-slate-100">
                     <div className="flex items-center gap-2 flex-wrap">
-                      {/* SOV Score */}
+                      {/* Rec Rate Score */}
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-900 font-semibold font-mono text-xs">
-                        <span className="text-slate-500 font-sans font-normal text-[11px]">SOV:</span>
+                        <span className="text-slate-500 font-sans font-normal text-[11px]">Rec Rate:</span>
                         <span className={prompt.visibilityScore >= 85 ? 'text-emerald-600' : 'text-amber-600'}>
                           {prompt.visibilityScore}%
                         </span>

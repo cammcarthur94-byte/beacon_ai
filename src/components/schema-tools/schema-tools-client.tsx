@@ -136,15 +136,15 @@ export function SchemaToolsClient() {
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-800 font-mono text-[11px]">
               <Sparkles className="h-3 w-3 mr-1 text-emerald-600 inline" />
-              LLM Crawler & AI Overview Inspection
+              AI Search &amp; Web Inspection
             </Badge>
-            <span className="text-xs text-slate-400">Schema.org JSON-LD & Entity Grounding</span>
+            <span className="text-xs text-slate-400">Structured Data &amp; Website Code</span>
           </div>
           <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 font-sans">
             Schema & Markup Validator
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Audit pages for AI search engine crawl readiness, diagnose missing structured data, and auto-generate corrective JSON-LD.
+            Audit pages for AI search engine readiness, diagnose missing website details, and generate website code.
           </p>
         </div>
 
@@ -156,7 +156,7 @@ export function SchemaToolsClient() {
             className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs self-start md:self-auto"
           >
             <Sparkles className={cn('h-3.5 w-3.5 mr-1.5', generatingFix && 'animate-spin')} />
-            {generatingFix ? 'Synthesizing JSON-LD...' : 'Auto-Generate Corrective JSON-LD'}
+            {generatingFix ? 'Generating Website Code...' : 'Generate Website Code'}
           </Button>
         )}
       </div>
@@ -215,7 +215,7 @@ export function SchemaToolsClient() {
             <Card className="border-slate-200 shadow-xs bg-white">
               <CardContent className="p-5 flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-mono text-slate-500 block mb-1">LLM CRAWLER READINESS</span>
+                  <span className="text-xs font-mono text-slate-500 block mb-1">AI SEARCH READINESS</span>
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-bold font-sans text-slate-900">
                       {auditResult.llmReadinessScore}
@@ -223,7 +223,7 @@ export function SchemaToolsClient() {
                     <span className="text-sm font-mono text-slate-400">/ 100</span>
                   </div>
                   <span className="text-xs text-slate-500 block mt-1">
-                    {auditResult.llmReadinessScore >= 80 ? 'Optimal for Generative Grounding' : 'Structured Data Improvements Required'}
+                    {auditResult.llmReadinessScore >= 80 ? 'Optimal for AI Recommendations' : 'Structured Data Improvements Recommended'}
                   </span>
                 </div>
                 <div className={cn('h-14 w-14 rounded-2xl border flex items-center justify-center font-bold text-xl', getScoreColor(auditResult.llmReadinessScore))}>
@@ -271,7 +271,7 @@ export function SchemaToolsClient() {
                     ))}
                   </div>
                   <span className="text-xs text-slate-500 block mt-2">
-                    {auditResult.detectedJsonLd.length} JSON-LD blocks parsed
+                    {auditResult.detectedJsonLd.length} structured code blocks found
                   </span>
                 </div>
                 <div className="h-14 w-14 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700">
@@ -287,7 +287,7 @@ export function SchemaToolsClient() {
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-emerald-600" />
                   <CardTitle className="text-sm font-bold text-slate-900">
-                    Optimized Corrective Schema (Google AI Overview & LLM Grounding Ready)
+                    Optimized Website Code (Ready for Google AI &amp; AI Search Tools)
                   </CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
@@ -298,7 +298,7 @@ export function SchemaToolsClient() {
                     className="h-8 text-xs border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-50"
                   >
                     {copiedCode ? <Check className="h-3 w-3 mr-1 text-emerald-600" /> : <Copy className="h-3 w-3 mr-1" />}
-                    {copiedCode ? 'Copied' : 'Copy JSON-LD'}
+                    {copiedCode ? 'Copied' : 'Copy Code'}
                   </Button>
                   <Button
                     size="sm"
@@ -386,10 +386,10 @@ export function SchemaToolsClient() {
             <Card className="border-slate-200 shadow-xs bg-white">
               <CardHeader className="py-4 px-5 border-b border-slate-200">
                 <CardTitle className="text-sm font-semibold text-slate-900">
-                  Verified Grounding Signals
+                  Verified Information Signals
                 </CardTitle>
                 <CardDescription className="text-xs text-slate-500">
-                  Confirmed structured tags and entities recognized by LLM web parsers
+                  Confirmed tags and details recognized by AI search tools
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 space-y-2.5">
@@ -405,7 +405,7 @@ export function SchemaToolsClient() {
 
                 <div className="pt-3 border-t border-slate-100">
                   <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block mb-2 font-semibold">
-                    Discovered Entity Associations:
+                    Discovered Brand &amp; Product Details:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {auditResult.semanticEntitiesIdentified.map((ent) => (

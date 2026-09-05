@@ -54,20 +54,20 @@ function CustomBarTooltip({ active, payload, label }: { active?: boolean; payloa
           <div className="flex items-center justify-between gap-4">
             <span className="text-zinc-900 flex items-center gap-1.5 font-medium">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              Brand Visibility:
+              Your Brand:
             </span>
             <span className="font-bold text-zinc-950">{item.brandScore}%</span>
           </div>
           <div className="flex items-center justify-between gap-4">
             <span className="text-zinc-600 flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-amber-400" />
-              Competitor Benchmark:
+              Competitor Average:
             </span>
             <span className="text-zinc-700 font-medium">{item.competitorAvg}%</span>
           </div>
         </div>
         <p className="text-[10px] text-zinc-800 font-semibold mt-1.5 pt-1 border-t border-zinc-100 flex items-center gap-1">
-          👉 Click to isolate {item.engine} across telemetry
+          👉 Click to filter searches for {item.engine}
         </p>
       </div>
     );
@@ -93,10 +93,10 @@ export function EngineComparisonChart({
         <div className="space-y-0.5">
           <CardTitle className="text-base font-semibold text-zinc-900 flex items-center gap-1.5">
             <Cpu className="h-4 w-4 text-emerald-600" />
-            Engine Visibility Benchmark
+            AI Platform Comparison
           </CardTitle>
           <CardDescription className="text-xs text-zinc-500">
-            Comparing <span className="text-zinc-900 font-medium">{brandName}</span> mention prominence across answer engines
+            Comparing how often <span className="text-zinc-900 font-medium">{brandName}</span> is recommended across AI tools
           </CardDescription>
         </div>
         {isAnyFiltered ? (
@@ -105,7 +105,7 @@ export function EngineComparisonChart({
           </Badge>
         ) : (
           <Badge variant="outline" className="font-mono text-xs border-zinc-200 text-zinc-600 bg-zinc-50 rounded-full">
-            {data.length} Engines
+            {data.length} Platforms
           </Badge>
         )}
       </CardHeader>

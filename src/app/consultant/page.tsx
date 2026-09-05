@@ -5,7 +5,7 @@ import { ContentStudioClient } from '@/components/consultant/content-studio-clie
 import type { BrandKit } from '@/types/database.types';
 
 export const metadata = {
-  title: 'AEO Content Studio | Beacon',
+  title: 'AI Content Studio | Beacon',
   description: 'AI-powered content creation, 3-angle PR outreach email generator, and competitor positioning matrices.',
 };
 

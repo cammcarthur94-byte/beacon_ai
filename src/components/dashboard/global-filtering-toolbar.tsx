@@ -274,7 +274,7 @@ export function GlobalFilteringToolbar({
 
             <div className="flex items-center gap-3">
               <span className="text-[11px] text-zinc-500">
-                <span className="font-bold text-zinc-900">{totalFilteredPromptsCount}</span> telemetry prompts match
+                <span className="font-bold text-zinc-900">{totalFilteredPromptsCount}</span> tracked searches match
               </span>
               <button
                 type="button"

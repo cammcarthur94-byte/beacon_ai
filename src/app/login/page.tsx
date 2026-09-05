@@ -34,12 +34,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <div>
               <span className="font-semibold text-zinc-900 tracking-tight text-lg">Beacon</span>
               <span className="ml-2 text-[10px] uppercase font-mono tracking-widest px-2 py-0.5 rounded bg-zinc-200 text-zinc-700 border border-zinc-300">
-                GEO / AEO
+                AI Search
               </span>
             </div>
           </Link>
           <Badge variant="outline" className="border-zinc-200 text-zinc-600 bg-white">
-            Autonomous Visibility Engine
+            AI Search Visibility
           </Badge>
         </div>
 
@@ -54,7 +54,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               Is your brand visible when buyers consult AI?
             </h2>
             <p className="text-base text-zinc-600 leading-relaxed">
-              Traditional SEO tracks links. Beacon tracks LLM consensus across ChatGPT, Gemini, Claude, and Perplexity — monitoring citations, sentiment, and share of voice in real time.
+              Traditional search tracking only checks blue links. Beacon tracks what ChatGPT, Gemini, Claude, and Perplexity recommend to buyers — monitoring mentions, reviews, and market share in real time.
             </p>
           </div>
 
@@ -121,11 +121,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <div className="flex items-center gap-6 pt-4 text-xs text-zinc-500 font-mono border-t border-zinc-200">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              <span>SOC2 Type II telemetry</span>
+              <span>Enterprise-grade security</span>
             </div>
             <div className="flex items-center gap-1.5">
               <TrendingUp className="h-4 w-4 text-zinc-500" />
-              <span>Real-time AEO synthesis</span>
+              <span>Real-time search updates</span>
             </div>
           </div>
         </div>

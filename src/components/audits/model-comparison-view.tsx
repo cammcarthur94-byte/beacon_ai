@@ -135,10 +135,10 @@ export function ModelComparisonView({ runs, brandName, competitors }: ModelCompa
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 leading-tight">
-                    {selectedMeta.label} Synthesized Response
+                    {selectedMeta.label} AI Answer
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
-                    Verbatim LLM answer captured during live audit scan
+                    Direct answer captured during live search scan
                   </p>
                 </div>
               </div>
@@ -233,7 +233,7 @@ export function ModelComparisonView({ runs, brandName, competitors }: ModelCompa
 
             <div className="space-y-3 text-xs">
               <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
-                <span className="text-slate-600 font-medium">Visibility (SOV):</span>
+                <span className="text-slate-600 font-medium">Recommendation Rate:</span>
                 <span className="font-bold text-slate-900 text-sm tabular-nums">
                   {selectedRun.visibilityScore}%
                 </span>

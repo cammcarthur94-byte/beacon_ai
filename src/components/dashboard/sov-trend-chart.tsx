@@ -75,7 +75,7 @@ function CustomMultiLineTooltip({ active, payload, label }: CustomTooltipProps) 
           <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-start gap-1.5 text-[11px] text-zinc-600 font-sans leading-tight">
             <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
             <div>
-              <span className="font-semibold text-zinc-900">Shift Driver: </span>
+              <span className="font-semibold text-zinc-900">Key Reason: </span>
               <span>{shiftDriver}</span>
             </div>
           </div>
@@ -126,10 +126,10 @@ export function SovTrendChart({
       <CardHeader className="pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="space-y-0.5">
           <CardTitle className="text-base font-semibold text-zinc-900 flex items-center gap-2">
-            AI Share of Voice Trend ({dateRangeLabel})
+            Recommendation Rate Over Time ({dateRangeLabel})
           </CardTitle>
           <CardDescription className="text-xs text-zinc-500">
-            Trajectory of <span className="text-zinc-900 font-medium">{brandName}</span> vs category rivals
+            How often <span className="text-zinc-900 font-medium">{brandName}</span> is recommended compared to competitors
           </CardDescription>
         </div>
         <Badge variant="outline" className="font-mono text-xs text-emerald-700 border-emerald-200 bg-emerald-50 self-start sm:self-auto">
@@ -140,7 +140,7 @@ export function SovTrendChart({
       <CardContent className="pt-2 flex flex-col justify-between flex-1">
         {/* Interactive Legend with click-to-toggle pills */}
         <div className="flex items-center gap-2 flex-wrap mb-3 text-xs font-mono">
-          <span className="text-zinc-400 text-[11px] font-medium mr-1">Curves:</span>
+          <span className="text-zinc-400 text-[11px] font-medium mr-1">Compare:</span>
 
           {/* Brand Toggle */}
           <button

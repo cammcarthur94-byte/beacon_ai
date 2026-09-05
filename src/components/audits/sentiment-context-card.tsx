@@ -85,7 +85,7 @@ export function extractEngineQuote(rawText: string, brandName: string): string {
 
 export function formatGroundingSources(citedUrls: string[], engineLabel: string): string {
   if (!citedUrls || citedUrls.length === 0) {
-    return `${engineLabel} Grounding & Web Index`;
+    return `${engineLabel} Search Index`;
   }
 
   const domains = citedUrls
@@ -101,7 +101,7 @@ export function formatGroundingSources(citedUrls: string[], engineLabel: string)
 
   const unique = Array.from(new Set(domains));
   if (unique.length === 0) {
-    return `${engineLabel} Grounding & Web Index`;
+    return `${engineLabel} Search Index`;
   }
 
   if (unique.length === 1) {
@@ -205,7 +205,7 @@ export function SentimentContextCard({
               </Badge>
             </div>
             <CardDescription className="text-xs text-slate-500 mt-0.5">
-              Natural language tone and contextual framing extracted from grounding search engine answer blocks
+              Overall tone and customer perception extracted from AI search answers
             </CardDescription>
           </div>
         </div>
@@ -297,7 +297,7 @@ export function SentimentContextCard({
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
               <Quote className="h-3.5 w-3.5 text-slate-400" />
-              Extracted Grounding Context &amp; Key Quotes
+              Extracted Answer Context &amp; Key Quotes
             </h4>
 
             {excerpts.length === 0 ? (
@@ -339,7 +339,7 @@ export function SentimentContextCard({
                     </p>
 
                     <div className="flex items-center justify-between text-[11px] text-slate-400">
-                      <span>Grounding Source: {item.source}</span>
+                      <span>Source: {item.source}</span>
                     </div>
                   </div>
                 ))}
@@ -352,12 +352,12 @@ export function SentimentContextCard({
             <div className="space-y-1">
               <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
-                Sentinel Tone Remediation Blueprint
+                Recommendation Improvement Plan
               </span>
               <p className="text-xs text-slate-600 max-w-2xl">
                 {hasFriction
-                  ? `Neutralize competitive friction in AI search models for "${brandName}" by indexing structured FAQs, feature comparisons, and high-authority verification schema.`
-                  : `Solidify top-tier model sentiment for "${brandName}" with active schema entity linking and recurring multi-model index refreshes.`}
+                  ? `Address competitor advantages in AI search results for "${brandName}" by publishing clear FAQs, product comparisons, and verified customer reviews.`
+                  : `Maintain positive sentiment for "${brandName}" with regularly updated product facts and clear website information.`}
               </p>
             </div>
 
@@ -367,8 +367,8 @@ export function SentimentContextCard({
                 onClick={() =>
                   onOpenSentinel({
                     strategyTitle: hasFriction
-                      ? `Sentiment Neutralization & Authority Schema for ${brandName}`
-                      : `Entity Authority & Knowledge Graph Optimization for ${brandName}`,
+                      ? `Brand Sentiment & Authority Guide for ${brandName}`
+                      : `Brand Trust & Reputation Guide for ${brandName}`,
                     strategyCategory: 'Sentiment & Value Framing',
                     queryText: queryText || `Sentiment optimization for ${brandName}`,
                     brandName: brandName,

@@ -35,7 +35,7 @@ export default function OnboardingPage() {
             Initialize your AI Brand Kit
           </h1>
           <p className="text-sm text-zinc-600">
-            Beacon scans LLM synthesis through the lens of your brand positioning, category, and competitors.
+            Beacon monitors AI search recommendations through the lens of your brand positioning, category, and competitors.
           </p>
         </div>
 

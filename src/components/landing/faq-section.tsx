@@ -12,29 +12,29 @@ interface FAQItem {
 
 const FAQS: FAQItem[] = [
   {
-    question: 'What is Generative Engine Optimization (GEO)?',
+    question: 'What is AI Search Optimization?',
     answer:
-      'Generative Engine Optimization (GEO) is the practice of ensuring AI models—like ChatGPT, Google Gemini, and Perplexity—recommend your brand when prospective customers ask conversational questions. Unlike traditional SEO that targets blue links, GEO focuses on positioning your brand as the direct, authoritative answer syntheses provided by AI.',
+      'AI Search Optimization is the practice of making sure AI tools—like ChatGPT, Google Gemini, and Perplexity—recommend your business when potential customers ask for suggestions. While traditional search optimization focuses on web links, AI Search Optimization ensures your business is the direct, trusted recommendation AI gives to buyers.',
   },
   {
     question: 'How does Beacon track what AI engines say about my business?',
     answer:
-      'Beacon runs automated daily and weekly query audits across ChatGPT, Gemini, Claude, Perplexity, and Google AI Overviews. We simulate realistic buyer questions in your category, analyze whether your brand is mentioned, measure your AI Share of Voice against competitors, and identify the exact web pages AI engines cite as evidence.',
+      'Beacon runs automated searches every day across ChatGPT, Gemini, Claude, Perplexity, and Google AI. We ask the real questions your potential buyers ask, check if your business is recommended, compare how often you are suggested vs. your competitors, and show you the exact websites AI references.',
   },
   {
-    question: 'Why did my brand lose citations on Perplexity or ChatGPT?',
+    question: 'Why did AI stop recommending my brand or cite a competitor instead?',
     answer:
-      'AI models update their citation sources continually. When a competitor publishes more structured comparison data, earns tier-1 press coverage, or gains traction in community forums (like Reddit), AI engines will cite them instead. Beacon Sentinel detects these drops immediately and drafts the exact content needed to reclaim your spot.',
+      'AI tools update their recommendations constantly. When a competitor gets featured in new articles, reviews, or discussions (like Reddit), AI tools may start recommending them instead. Beacon alerts you when this happens and gives you ready-to-use content and email outreach to win back top recommendations.',
   },
   {
     question: 'How quickly can I start tracking my brand on Beacon?',
     answer:
-      'Setup takes under 5 minutes. You simply enter your company domain and core product categories. Beacon instantly calibrates your brand kit, seeds your first audit prompts, and begins telemetry monitoring across all 7 major AI search engines.',
+      'Setup takes under 2 minutes. You simply enter your company website and what products or services you sell. Beacon automatically sets up your tracked searches and begins monitoring across all major AI search tools.',
   },
   {
-    question: 'Can Beacon help my team create content that AI engines cite?',
+    question: 'Can Beacon help my team create content that AI engines recommend?',
     answer:
-      'Yes. Beacon Sentinel, your built-in AI co-worker, analyzes citation gaps between your brand and category competitors. It deterministically drafts deploy-ready content blueprints, structured FAQ blocks, and Schema markup tailored specifically to satisfy the entity requirements of AI answer engines.',
+      'Yes! Beacon analyzes the websites and information AI relies on in your industry. It then drafts ready-to-publish articles, outreach emails, and FAQ sections tailored to help AI tools understand and recommend your business.',
   },
 ];
 

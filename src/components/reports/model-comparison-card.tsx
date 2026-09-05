@@ -29,10 +29,10 @@ export function ModelComparisonCard({
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-700 font-semibold flex items-center gap-1.5">
                 <Trophy className="h-3.5 w-3.5 text-emerald-600" />
-                Best Performing Engine
+                Best Performing AI Tool
               </span>
               <Badge variant="outline" className="font-mono text-xs border-emerald-300 bg-emerald-100 text-emerald-800">
-                {modelComparison.bestEngine.sov}% SOV
+                {modelComparison.bestEngine.sov}% Rec Rate
               </Badge>
             </div>
             <CardTitle className="text-base font-semibold text-zinc-950 font-mono pt-1 flex items-center gap-2">
@@ -53,10 +53,10 @@ export function ModelComparisonCard({
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-mono uppercase tracking-wider text-amber-700 font-semibold flex items-center gap-1.5">
                 <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-                Lagging Engine
+                Lowest Performing AI Tool
               </span>
               <Badge variant="outline" className="font-mono text-xs border-amber-300 bg-amber-100 text-amber-800">
-                {modelComparison.laggingEngine.sov}% SOV
+                {modelComparison.laggingEngine.sov}% Rec Rate
               </Badge>
             </div>
             <CardTitle className="text-base font-semibold text-zinc-950 font-mono pt-1 flex items-center gap-2">
@@ -79,10 +79,10 @@ export function ModelComparisonCard({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-zinc-950 flex items-center gap-2">
               <Cpu className="h-4 w-4 text-zinc-500" />
-              Engine Retrieval Discrepancy Analysis
+              AI Search Tool Discrepancy Analysis
             </CardTitle>
             <CardDescription className="text-xs text-zinc-500">
-              Technical reasoning for why specific engines favor {brandName} while others show latency
+              Why specific AI tools favor {brandName} more than others
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
@@ -98,7 +98,7 @@ export function ModelComparisonCard({
             <div className="space-y-0.5">
               <CardTitle className="text-sm font-semibold text-zinc-950 flex items-center gap-2">
                 <Users className="h-4 w-4 text-zinc-500" />
-                Competitor Share of Voice Benchmark
+                Competitor Recommendation Rate Benchmark
               </CardTitle>
               <CardDescription className="text-xs text-zinc-500">
                 Estimated mention prominence across tracked industry rivals
@@ -118,7 +118,7 @@ export function ModelComparisonCard({
                   {brandName} (Your Brand)
                 </span>
                 <span className="font-mono font-bold text-blue-600">
-                  {modelComparison.bestEngine.sov}% SOV
+                  {modelComparison.bestEngine.sov}% Rec Rate
                 </span>
               </div>
               <Progress value={modelComparison.bestEngine.sov} className="h-2 bg-zinc-100" />
@@ -129,7 +129,7 @@ export function ModelComparisonCard({
               <div key={idx} className="space-y-1 pt-1">
                 <div className="flex items-center justify-between text-xs text-zinc-700">
                   <span className="font-mono text-zinc-800">{comp.competitorName}</span>
-                  <span className="font-mono text-zinc-600 font-semibold">{comp.estimatedSov}% SOV</span>
+                  <span className="font-mono text-zinc-600 font-semibold">{comp.estimatedSov}% Rec Rate</span>
                 </div>
                 <Progress value={comp.estimatedSov} className="h-1.5 bg-zinc-100" />
               </div>

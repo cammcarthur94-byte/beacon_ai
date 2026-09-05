@@ -144,12 +144,12 @@ export function SourceDistributionChart({
             Source Type Distribution
           </CardTitle>
           <CardDescription className="text-xs text-slate-500">
-            Categorization breakdown of citations grounding LLM responses
+            Categorization breakdown of websites cited in AI answers
           </CardDescription>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="font-sans text-xs border-slate-200 bg-slate-50 text-slate-700 rounded-full">
-            AEO Grounding Mix
+            Source Breakdown
           </Badge>
           {isFiltered && (
             <span className="inline-flex items-center gap-1.5 text-xs bg-slate-900 text-white font-medium px-2.5 py-0.5 rounded-full shadow-2xs whitespace-nowrap">

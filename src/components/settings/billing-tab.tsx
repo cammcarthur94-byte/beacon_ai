@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import * as React from 'react';
 import { useState, useTransition } from 'react';
@@ -101,7 +101,7 @@ export function BillingTab({ project, activeAuditsCount }: BillingTabProps) {
 
   const handleDownloadReceipt = (inv: InvoiceItem) => {
     const receiptContent = `=======================================================
-BEACON AEO PLATFORM - OFFICIAL PAYMENT RECEIPT
+BEACON PLATFORM - OFFICIAL PAYMENT RECEIPT
 =======================================================
 Invoice Number : ${inv.invoiceNumber}
 Date           : ${inv.date}
@@ -143,7 +143,7 @@ Thank you for your business!
                 <span className="text-xs text-slate-500 font-medium">Auto-renewing Monthly</span>
               </div>
               <CardTitle className="text-lg font-bold text-slate-950 font-sans">
-                Audit Quota &amp; Engine Telemetry Capacity
+                Audit Quota &amp; Search Capacity
               </CardTitle>
               <CardDescription className="text-xs text-slate-600 font-sans">
                 Real-time tracking capacity against your subscribed tier limit.
@@ -283,7 +283,7 @@ Thank you for your business!
             Available Plans &amp; Scaling Tiers
           </h3>
           <p className="text-xs text-slate-500 font-sans">
-            Scale tracking frequencies, engine coverage, and LLM consultant capacity.
+            Scale tracking frequency, AI tool coverage, and consultant capacity.
           </p>
         </div>
 

@@ -35,7 +35,7 @@ export function SummaryCards({ metrics }: { metrics: DashboardSummaryMetrics }) 
       <Card className="border-zinc-200 bg-white shadow-xs relative overflow-hidden group hover:border-zinc-300 transition-colors">
         <CardContent className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-zinc-500 font-mono">
-            <span>AI Share of Voice</span>
+            <span>Recommendation Rate</span>
             <Sparkles className="h-4 w-4 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
           </div>
           <div className="flex items-baseline justify-between pt-1">
@@ -61,7 +61,7 @@ export function SummaryCards({ metrics }: { metrics: DashboardSummaryMetrics }) 
       <Card className="border-zinc-200 bg-white shadow-xs relative overflow-hidden group hover:border-zinc-300 transition-colors">
         <CardContent className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-zinc-500 font-mono">
-            <span>Net Sentiment</span>
+            <span>AI Sentiment</span>
             <Smile className="h-4 w-4 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
           </div>
           <div className="flex items-baseline justify-between pt-1">
@@ -82,7 +82,7 @@ export function SummaryCards({ metrics }: { metrics: DashboardSummaryMetrics }) 
       <Card className="border-zinc-200 bg-white shadow-xs relative overflow-hidden group hover:border-zinc-300 transition-colors">
         <CardContent className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-zinc-500 font-mono">
-            <span>Verified Citations</span>
+            <span>Websites Citing You</span>
             <Quote className="h-4 w-4 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
           </div>
           <div className="flex items-baseline justify-between pt-1">
@@ -103,7 +103,7 @@ export function SummaryCards({ metrics }: { metrics: DashboardSummaryMetrics }) 
       <Card className="border-zinc-200 bg-white shadow-xs relative overflow-hidden group hover:border-zinc-300 transition-colors">
         <CardContent className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-zinc-500 font-mono">
-            <span>Top Performing Engine</span>
+            <span>Best AI Platform</span>
             <Award className="h-4 w-4 text-emerald-600" />
           </div>
           <div className="flex items-center justify-between pt-1 h-9">
@@ -128,7 +128,7 @@ export function SummaryCards({ metrics }: { metrics: DashboardSummaryMetrics }) 
               variant="outline"
               className="text-[11px] font-mono px-2 py-0.5 border-emerald-200 bg-emerald-50 text-emerald-700"
             >
-              {metrics.topEngine.winRate}% Visibility
+              {metrics.topEngine.winRate}% Recommended
             </Badge>
           </div>
         </CardContent>

@@ -44,14 +44,14 @@ export function RawOutputViewer({ runs }: { runs: AuditRunDetail[] }) {
           <div className="space-y-1">
             <CardTitle className="text-base font-semibold text-zinc-900 flex items-center gap-2">
               <Terminal className="h-4 w-4 text-zinc-500" />
-              Raw AI Answer Engine Telemetry
+              Raw AI Search Results &amp; Answers
             </CardTitle>
             <CardDescription className="text-xs text-zinc-500">
-              Chronological log of full verbatim LLM outputs and reference citations
+              Full answers and source citations recorded from AI tools
             </CardDescription>
           </div>
           <Badge variant="outline" className="font-mono text-xs border-zinc-200 bg-zinc-50 text-zinc-700">
-            {runs.length} Recorded Runs
+            {runs.length} Saved Results
           </Badge>
         </div>
       </CardHeader>
@@ -59,7 +59,7 @@ export function RawOutputViewer({ runs }: { runs: AuditRunDetail[] }) {
       <CardContent>
         {runs.length === 0 ? (
           <div className="text-center py-8 text-xs text-zinc-500 font-mono">
-            No raw outputs logged yet for this prompt.
+            No search results logged yet for this search prompt.
           </div>
         ) : (
           <Accordion type="single" defaultValue={runs[0]?.id}>

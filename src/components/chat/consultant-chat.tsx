@@ -319,7 +319,7 @@ export function ConsultantChat({ workspace, initialMessages, hasUnreadAlerts }: 
                           return (
                             <AnalyticsToolCard
                               key={`${message.id}-telemetry-${partIdx}`}
-                              label="queryAuditTelemetry"
+                              label="Search Performance Analysis"
                               icon={<TrendingUp className="h-3.5 w-3.5 text-emerald-600" />}
                               part={part}
                             />
@@ -329,7 +329,7 @@ export function ConsultantChat({ workspace, initialMessages, hasUnreadAlerts }: 
                           return (
                             <AnalyticsToolCard
                               key={`${message.id}-citations-${partIdx}`}
-                              label="analyzeCitationGap"
+                              label="Citing Sources Analysis"
                               icon={<Globe className="h-3.5 w-3.5 text-emerald-600" />}
                               part={part}
                             />

@@ -111,33 +111,33 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
       active: pathname === '/dashboard',
     },
     {
-      title: 'Prompts',
+      title: 'Tracked Searches',
       href: '/audits',
       icon: Search,
       active: pathname.startsWith('/audits'),
     },
     {
-      title: 'Citations',
+      title: 'Sources & Citations',
       href: '/citations',
       icon: Link2,
       active: pathname.startsWith('/citations'),
     },
     {
-      title: 'SOV Leaderboard',
+      title: 'Competitor Leaderboard',
       href: '/leaderboard',
       icon: Trophy,
       active: pathname.startsWith('/leaderboard'),
-      badge: 'SOV',
+      badge: 'Rankings',
     },
     {
-      title: 'Authority Gap',
+      title: 'Growth Opportunities',
       href: '/authority-gap',
       icon: TrendingUp,
       active: pathname.startsWith('/authority-gap'),
       badge: 'New',
     },
     {
-      title: 'Competitor Mapping',
+      title: 'Competitor Products',
       href: '/competitor-mapping',
       icon: Target,
       active: pathname.startsWith('/competitor-mapping'),
@@ -160,7 +160,7 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
     ...(canEditBrandKit || userRole === 'admin' || userRole === 'owner'
       ? [
           {
-            title: 'Brand Kit',
+            title: 'Brand Profile',
             href: '/brand-kit',
             icon: Sliders,
             active: pathname.startsWith('/brand-kit'),
@@ -306,7 +306,7 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
                 Beacon
               </span>
               <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">
-                AEO / GEO Platform
+                AI Search Visibility
               </span>
             </div>
           </Link>
@@ -338,7 +338,7 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
           <div className="space-y-4">
             <div className="space-y-1">
               <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold px-2 block mb-2">
-                Generative Engines
+                AI Search Tracking
               </span>
               {generativeItems.map((item) => {
                 const Icon = item.icon;
@@ -403,7 +403,7 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
 
             <div className="space-y-1 pt-2">
               <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold px-2 block mb-2">
-                Administration
+                Workspace &amp; Tools
               </span>
               {adminItems.map((item) => {
                 const Icon = item.icon;

@@ -49,14 +49,14 @@ export function CitationGapsCard({ citationAnalysis, brandName }: CitationGapsCa
           <div className="space-y-1">
             <CardTitle className="text-sm font-semibold text-zinc-950 flex items-center gap-2">
               <Globe className="h-4 w-4 text-zinc-500" />
-              Top Referring Authority Domains
+              Top Citing Websites
             </CardTitle>
             <CardDescription className="text-xs text-zinc-500">
-              Domains most cited across ChatGPT, Gemini, Claude, and Perplexity when grounding {brandName}
+              Websites most cited across ChatGPT, Gemini, Claude, and Perplexity when recommending {brandName}
             </CardDescription>
           </div>
           <Badge variant="outline" className="font-mono text-xs border-zinc-200 bg-zinc-50 text-zinc-700 rounded-full">
-            AEO Grounding Graph
+            Source Breakdown
           </Badge>
         </CardHeader>
 

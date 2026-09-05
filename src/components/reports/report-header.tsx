@@ -67,7 +67,7 @@ export function ReportHeader(props: ReportHeaderProps) {
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-950 tracking-tight">
-            Comprehensive AI Audit & GEO Strategy Report
+            Comprehensive AI Search Visibility Report
           </h1>
 
           <p className="text-xs sm:text-sm text-zinc-600">
@@ -118,7 +118,7 @@ export function ReportHeader(props: ReportHeaderProps) {
             {isGenerating ? (
               <>
                 <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
-                Synthesizing...
+                Generating...
               </>
             ) : (
               <>
@@ -147,7 +147,7 @@ export function ReportHeader(props: ReportHeaderProps) {
         <Card className="border-zinc-200 bg-white shadow-xs">
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center justify-between text-xs text-zinc-500 font-mono">
-              <span>Average Generative SOV</span>
+              <span>Average Recommendation Rate</span>
               <Activity className="h-4 w-4 text-zinc-400" />
             </div>
             <div className="flex items-baseline justify-between pt-1">
@@ -218,7 +218,7 @@ export function ReportHeader(props: ReportHeaderProps) {
                 variant="outline"
                 className="font-mono text-xs border-emerald-200 bg-emerald-50 text-emerald-800 px-2 py-0.5"
               >
-                Top-Tier Grounding
+                Top-Tier Visibility
               </Badge>
             </div>
             <p className="text-[11px] text-zinc-500">

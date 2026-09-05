@@ -137,18 +137,18 @@ export function CompetitorMappingClient() {
       setChatMessages([
         {
           sender: 'sentinel',
-          text: `I've analyzed the competitive grounding disparity for "${feat.featureName}" in ${feat.category}.
+          text: `I've analyzed how competitors compare for "${feat.featureName}" in ${feat.category}.
 
-**Current Market Share**:
-• ${topComp?.name || 'Competitors'}: **${topComp?.citationShare || 45}% SOV** in AI engine answers
-• ${brandName}: **${feat.brandCitationShare}% SOV**
-• Parity Status: **${feat.brandStatus.toUpperCase()}**
+**Current Recommendation Rate**:
+• ${topComp?.name || 'Competitors'}: **${topComp?.citationShare || 45}% recommendation share** in AI answers
+• ${brandName}: **${feat.brandCitationShare}% recommendation share**
+• Standing: **${feat.brandStatus.toUpperCase()}**
 
-**3-Step Remediation Strategy**:
-1. **Schema Grounding**: Inject verified 100-wash durability and tensile specifications into JSON-LD product markup.
+**3-Step Action Plan to Win More AI Recommendations**:
+1. **Website Product Info**: Add clear durability specifications and details to your product pages.
 2. **Comparison Content**: Publish an objective specification breakdown contrasting ${brandName} against ${topComp?.name || 'competitor'} materials.
-3. **Citation Authority**: Syndicate technical fabric testing whitepapers to testing editors and community forums.`,
-          code: `<!-- DEPLOY-READY JSON-LD SCHEMA FOR ${brandName.toUpperCase()} -->
+3. **Expert Reviews**: Share product testing results with reviewers and buyer guides to get cited more often.`,
+          code: `<!-- WEBSITE CODE FOR ${brandName.toUpperCase()} -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -200,8 +200,8 @@ export function CompetitorMappingClient() {
       let codeSnippet: string | undefined = undefined;
 
       const lower = text.toLowerCase();
-      if (lower.includes('schema') || lower.includes('json')) {
-        reply = `Here is the expanded FAQPage and Product structured data markup optimized specifically for Google AI Overviews and Perplexity crawl pipelines:`;
+      if (lower.includes('schema') || lower.includes('json') || lower.includes('code')) {
+        reply = `Here is the ready-to-use FAQ website code to help AI platforms understand your product advantages:`;
         codeSnippet = `<script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -219,14 +219,14 @@ export function CompetitorMappingClient() {
 }
 </script>`;
       } else if (lower.includes('copy') || lower.includes('page') || lower.includes('landing')) {
-        reply = `### Draft Head-to-Head Landing Section
+        reply = `### Draft Comparison Web Section
 **Headline**: Engineered for Longevity: ${brandName} vs. ${topComp?.name}
 
 * **Tensile Recovery**: 99.4% shape retention after 24h continuous wear tests.
 * **Seam Construction**: Flatlock ergonomic stitching designed for zero friction under load.
 * **Alterations & Warranty**: Complimentary lifetime in-store hemming on any style.
 
-*Recommendation*: Place this section above the fold on your core product PDP and collection landing pages to immediately influence AI crawler grounding.`;
+*Recommendation*: Place this section on your main product page so AI tools see and recommend your product advantages.`;
       } else if (lower.includes('pitch') || lower.includes('pr') || lower.includes('editor')) {
         reply = `### Targeted Editorial PR Hook
 **Subject**: Review Sample Offer: 2026 Wear Test Data for ${activeDrawerFeature.featureName}
@@ -235,9 +235,9 @@ export function CompetitorMappingClient() {
 
 I saw your recent roundup reviewing activewear performance and noticed ${topComp?.name} was highlighted. 
 
-We just concluded an independent biomechanical laboratory wear test comparing ${brandName} with category alternatives across 100 wash cycles. Would you be open to review units for your gear testing team to evaluate firsthand in your upcoming roundups?`;
+We just concluded an independent laboratory wear test comparing ${brandName} with category alternatives across 100 wash cycles. Would you be open to review samples for your team to evaluate firsthand in your upcoming guides?`;
       } else {
-        reply = `I've analyzed that angle for ${activeDrawerFeature.featureName}. To maximize AI model citation velocity, combine this with structured FAQ schema and submit your updated sitemap directly to Bing and Google Search Console for real-time model retraining.`;
+        reply = `I've analyzed that angle for ${activeDrawerFeature.featureName}. To help AI tools recommend you more often, add clear comparison details and FAQ sections to your website.`;
       }
 
       setChatMessages([
@@ -340,7 +340,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
             className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
           >
             <RefreshCw className={cn('h-3.5 w-3.5 mr-1.5 text-white', crawling && 'animate-spin')} />
-            {crawling ? 'Crawling Catalogs...' : 'Run AI Crawl & Sync'}
+            {crawling ? 'Updating Competitor Data...' : 'Refresh Competitor Data'}
           </Button>
         </div>
       </div>
@@ -363,7 +363,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
                 {data?.summary.trackedCompetitorsCount ?? 3}
               </span>
               <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                Direct Peers
+                Key Rivals
               </span>
             </div>
             <div className="mt-2 text-xs text-slate-500 flex items-center gap-1.5 truncate">
@@ -377,7 +377,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-                Feature Parity Index
+                Competitive Match Score
               </span>
               <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
                 <ShieldCheck className="h-4 w-4" />
@@ -402,7 +402,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-                High-Risk Feature Gaps
+                Missing Product Features
               </span>
               <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
                 <AlertTriangle className="h-4 w-4" />
@@ -417,7 +417,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
               </span>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Categories where rivals capture 50%+ AI citation share
+              Areas where competitors get recommended more often
             </p>
           </CardContent>
         </Card>
@@ -427,7 +427,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-                AI Citation Share
+                Recommendation Advantage
               </span>
               <div className="h-8 w-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
                 <TrendingUp className="h-4 w-4" />
@@ -439,7 +439,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
               </span>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Last catalog crawl synced: {lastSyncText}
+              Last updated: {lastSyncText}
             </p>
           </CardContent>
         </Card>
@@ -458,14 +458,14 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-                  Actionable Grounding Insights
+                  Key Recommendations &amp; Opportunities
                 </h2>
                 <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-bold px-2 py-0.5">
                   {data?.recommendations?.length || 3} Recommendations
                 </Badge>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Prioritized opportunities identified by Sentinel Crawler to outrank rivals in LLM grounding
+                Top opportunities to improve your brand&apos;s recommendations compared to competitors
               </p>
             </div>
           </div>
@@ -572,16 +572,16 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
                 >
                   <Filter className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
                   {selectedStatus === 'all'
-                    ? 'All Parity Statuses'
+                    ? 'All Standings'
                     : `Status: ${selectedStatus.toUpperCase()}`}
                   <ChevronDown className="h-3 w-3 ml-1.5 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 text-xs font-sans">
-                <DropdownMenuLabel>Filter by Parity</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-56 text-xs font-sans">
+                <DropdownMenuLabel>Filter by Standing</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setSelectedStatus('all')}>
-                  All Statuses
+                  All Standings
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setSelectedStatus('leader')}
@@ -593,19 +593,19 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
                   onClick={() => setSelectedStatus('parity')}
                   className="font-semibold text-blue-700"
                 >
-                  Parity (Equivalent)
+                  Even (Matching Competitors)
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setSelectedStatus('gap')}
                   className="font-semibold text-amber-700"
                 >
-                  Gap (Competitor Advantage)
+                  Behind (Competitors Ahead)
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setSelectedStatus('missing')}
                   className="font-semibold text-rose-700"
                 >
-                  Missing (Unindexed in LLMs)
+                  Missing (Not Found by AI)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -667,19 +667,19 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
         </div>
       </div>
 
-      {/* ── 5. FEATURE PARITY & COMPARISON MATRIX TABLE ──────────── */}
+      {/* ── 5. FEATURE COMPARISON MATRIX TABLE ──────────── */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h3 className="text-sm font-semibold text-slate-900">
-              Feature Parity &amp; Grounding Breakdown ({filteredFeatures.length} Tracked Features)
+              Competitor Comparison Table ({filteredFeatures.length} Tracked Features)
             </h3>
             <p className="text-xs text-slate-500">
-              Cross-referenced from public product schemas, technical specs, and multi-engine citation frequencies
+              Comparing your products and claims against rivals across major AI platforms
             </p>
           </div>
           <div className="text-xs text-slate-400">
-            Green bars indicate where your brand leads AI grounding share
+            Green bars show where your brand is recommended more often by AI
           </div>
         </div>
 
@@ -688,19 +688,19 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
             <TableHeader className="bg-slate-50/80 border-b border-slate-200">
               <TableRow>
                 <TableHead className="w-[240px] text-xs font-semibold text-slate-600 py-3.5 pl-6">
-                  Feature &amp; Specification
+                  Feature or Product Spec
                 </TableHead>
                 <TableHead className="w-[110px] text-xs font-semibold text-slate-600 text-center">
-                  Parity Status
+                  Standing
                 </TableHead>
                 <TableHead className="w-[260px] text-xs font-semibold text-slate-600">
-                  {data?.brandName || 'Our Brand'} Positioning
+                  {data?.brandName || 'Our Brand'} Details
                 </TableHead>
                 <TableHead className="min-w-[340px] text-xs font-semibold text-slate-600">
-                  Competitor Catalog Coverage
+                  Competitor Comparison
                 </TableHead>
                 <TableHead className="w-[160px] text-xs font-semibold text-slate-600 text-center">
-                  AI Citation Share
+                  AI Recommendation Rate
                 </TableHead>
                 <TableHead className="w-[130px] text-xs font-semibold text-slate-600 text-right pr-6">
                   Action
@@ -800,7 +800,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
                                   {comp.name}
                                 </span>
                                 <span className="text-[10px] font-mono font-semibold text-slate-600 bg-white px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
-                                  {comp.citationShare}% SOV
+                                  {comp.citationShare}% share
                                 </span>
                               </div>
 
@@ -827,7 +827,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
                                       : 'bg-transparent'
                                   )}
                                   style={{ width: `${comp.citationShare}%` }}
-                                  title={`${comp.name} AI Citation Share: ${comp.citationShare}%`}
+                                  title={`${comp.name} Recommendation Share: ${comp.citationShare}%`}
                                 />
                               </div>
                             </div>
@@ -903,11 +903,11 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
                     <Sparkles className="h-3.5 w-3.5" />
                   </div>
                   <h2 className="text-base font-bold text-slate-900">
-                    Beacon Sentinel Parity Remediation
+                    Competitor Gap Action Plan
                   </h2>
                 </div>
                 <p className="text-xs text-slate-500">
-                  Interactive AI assistant engineering parity copy &amp; grounding schema for{' '}
+                  AI Assistant helping you improve your product claims and visibility for{' '}
                   <span className="font-semibold text-slate-800">
                     &ldquo;{activeDrawerFeature.featureName}&rdquo;
                   </span>
@@ -925,7 +925,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
             {/* Feature Metadata Summary Card */}
             <div className="p-4 border-b border-slate-100 bg-slate-50/50 space-y-2.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Category &amp; Parity Status</span>
+                <span className="text-slate-500 font-medium">Category &amp; Standing</span>
                 <div className="flex items-center gap-1.5">
                   <Badge variant="outline" className="text-[10px] font-semibold border-slate-200 bg-white">
                     {activeDrawerFeature.category}
@@ -948,7 +948,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
               </div>
 
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">AI Citation Share</span>
+                <span className="text-slate-500 font-medium">AI Recommendation Rate</span>
                 <span className="font-bold text-slate-900">
                   <span className="text-emerald-700">{activeDrawerFeature.brandCitationShare}%</span> vs{' '}
                   <span className="text-amber-700">
@@ -959,7 +959,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
               </div>
 
               <div className="pt-2 border-t border-slate-200/60 text-xs">
-                <span className="text-slate-400 block text-[11px] mb-0.5">Brand Current Positioning:</span>
+                <span className="text-slate-400 block text-[11px] mb-0.5">Your Current Details:</span>
                 <p className="text-slate-800 font-medium leading-relaxed bg-white p-2 rounded border border-slate-200/60">
                   {activeDrawerFeature.brandDetail}
                 </p>
@@ -997,7 +997,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-mono font-bold text-slate-500 uppercase flex items-center gap-1">
                             <FileCode className="h-3 w-3" />
-                            Deployable Schema Markup
+                            Website Code / Schema Markup
                           </span>
                           <Button
                             variant="ghost"
@@ -1010,7 +1010,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
                             ) : (
                               <Copy className="h-3 w-3 mr-1" />
                             )}
-                            {copiedCode ? 'Copied!' : 'Copy Schema'}
+                            {copiedCode ? 'Copied!' : 'Copy Code'}
                           </Button>
                         </div>
                         <pre className="p-3 rounded-lg bg-slate-900 text-emerald-400 font-mono text-[11px] overflow-x-auto leading-normal">
@@ -1025,7 +1025,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
               {drawerLoading && (
                 <div className="flex gap-2.5 items-center text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-200 w-fit">
                   <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-600" />
-                  <span>Sentinel is reasoning and engineering parity solution...</span>
+                  <span>Analyzing competitors and generating recommendations...</span>
                 </div>
               )}
 
@@ -1037,14 +1037,14 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
               <span className="text-[11px] font-semibold text-slate-400 shrink-0">Quick Ask:</span>
               <button
                 type="button"
-                onClick={() => handleSendMessage('Generate FAQPage structured schema markup')}
+                onClick={() => handleSendMessage('Generate FAQ website code')}
                 className="text-[11px] font-medium text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 px-2 py-1 rounded-md shrink-0 transition-colors cursor-pointer"
               >
-                + FAQ Schema
+                + FAQ Code
               </button>
               <button
                 type="button"
-                onClick={() => handleSendMessage('Draft head-to-head comparison landing page copy')}
+                onClick={() => handleSendMessage('Draft comparison web page copy')}
                 className="text-[11px] font-medium text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 px-2 py-1 rounded-md shrink-0 transition-colors cursor-pointer"
               >
                 + Comparison Copy
@@ -1069,7 +1069,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
               >
                 <Input
                   type="text"
-                  placeholder="Draft schema, comparison copy, or PR pitch angle..."
+                  placeholder="Ask to draft comparison copy, website code, or PR pitch..."
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   className="h-9 text-xs bg-slate-50/70 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white font-sans"
@@ -1098,7 +1098,7 @@ We just concluded an independent biomechanical laboratory wear test comparing ${
 
               <Link
                 href={`/consultant?q=${encodeURIComponent(
-                  `Sentinel, analyze our feature parity gap for "${activeDrawerFeature.featureName}" (${activeDrawerFeature.category}). Currently competitors hold ${activeDrawerFeature.competitors[0]?.citationShare || 40}% citation share vs our ${activeDrawerFeature.brandCitationShare}%. Provide a complete AEO action plan.`
+                  `Sentinel, analyze how we compare for "${activeDrawerFeature.featureName}" (${activeDrawerFeature.category}). Currently competitors hold ${activeDrawerFeature.competitors[0]?.citationShare || 40}% recommendation share vs our ${activeDrawerFeature.brandCitationShare}%. Provide an action plan to win more AI recommendations.`
                 )}`}
               >
                 <Button

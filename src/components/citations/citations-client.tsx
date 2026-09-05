@@ -118,14 +118,14 @@ export function CitationsClient({
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              BACKLINK MONITOR
+              SOURCES &amp; CITATIONS
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-950 tracking-tight">
-            AI Source &amp; Citation Tracking
+            Websites Citing Your Brand
           </h1>
           <p className="text-xs sm:text-sm text-zinc-600">
-            Monitor the websites, articles, and forums ChatGPT, Claude, and Perplexity reference when recommending your brand.
+            Monitor the websites, articles, and reviews ChatGPT, Claude, and Perplexity reference when recommending your brand.
           </p>
         </div>
 

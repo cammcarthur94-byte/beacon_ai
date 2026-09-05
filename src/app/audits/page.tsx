@@ -149,7 +149,7 @@ export default async function AuditsPage() {
           <Card className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Overall Visibility (Avg SOV)
+                Overall Recommendation Rate
               </span>
               <div className="h-8 w-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-2xs">
                 <TrendingUp className="h-4 w-4" />
@@ -180,7 +180,7 @@ export default async function AuditsPage() {
                 {dailyCount} Daily · {weeklyCount} Weekly
               </div>
               <p className="text-xs text-slate-500 mt-1 font-sans">
-                Automated telemetry schedule
+                Automated search schedule
               </p>
             </div>
           </Card>
@@ -189,7 +189,7 @@ export default async function AuditsPage() {
           <Card className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Connected AI Engines
+                Connected AI Tools
               </span>
               <div className="h-8 w-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700 shadow-2xs">
                 <Cpu className="h-4 w-4" />

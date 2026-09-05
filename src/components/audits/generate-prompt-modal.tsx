@@ -211,7 +211,7 @@ export function GeneratePromptModal({
           return;
         }
 
-        toast.success(`Added ${itemsToAdd.length} prompts to active telemetry trackers!`);
+        toast.success(`Added ${itemsToAdd.length} prompts to active search trackers!`);
         if (res.newItems) {
           onPromptsAdded(res.newItems);
         }
@@ -233,7 +233,7 @@ export function GeneratePromptModal({
               className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1.5 px-2.5 py-0.5 text-xs font-medium"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              <span>AI Telemetry Generator</span>
+              <span>AI Search Prompt Generator</span>
             </Badge>
             <Badge
               variant="outline"

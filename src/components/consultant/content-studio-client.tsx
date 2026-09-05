@@ -401,7 +401,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
               <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
               Beacon AI Content Studio
             </Badge>
-            <span className="text-xs font-semibold text-slate-400">Hybrid AEO & Editorial Engine</span>
+            <span className="text-xs font-semibold text-slate-400">AI Search &amp; Editorial Content</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
             Brand-Calibrated Content Creator
@@ -562,7 +562,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
         <TabsList className="bg-slate-100/90 p-1 rounded-xl flex-wrap h-auto gap-1 border border-slate-200">
           <TabsTrigger value="blog" className="data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-xs rounded-lg py-2 px-3.5 gap-2 text-xs font-semibold">
             <BookOpen className="w-4 h-4 text-emerald-600" />
-            Authority Blog & AEO Guide
+            Authority Blog &amp; Guide
           </TabsTrigger>
           <TabsTrigger value="email" className="data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-xs rounded-lg py-2 px-3.5 gap-2 text-xs font-semibold">
             <Mail className="w-4 h-4 text-emerald-600" />
@@ -574,7 +574,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
           </TabsTrigger>
           <TabsTrigger value="faq" className="data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-xs rounded-lg py-2 px-3.5 gap-2 text-xs font-semibold">
             <HelpCircle className="w-4 h-4 text-emerald-600" />
-            Semantic FAQ Schema
+            FAQ &amp; Q&amp;A Blocks
           </TabsTrigger>
           <TabsTrigger value="comparison" className="data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-xs rounded-lg py-2 px-3.5 gap-2 text-xs font-semibold">
             <Scale className="w-4 h-4 text-emerald-600" />
@@ -583,16 +583,16 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
         </TabsList>
 
         {/* =================================================================== */}
-        {/* TAB 1: AUTHORITY BLOG & AEO GUIDE                                   */}
+        {/* TAB 1: AUTHORITY BLOG & GUIDE                                       */}
         {/* =================================================================== */}
         <TabsContent value="blog" className="space-y-6 focus-visible:outline-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Input Controls */}
             <Card className="lg:col-span-5 border-slate-200 shadow-sm h-fit">
               <CardHeader className="pb-4">
-                <CardTitle className="text-base font-bold text-slate-900">AEO Article Configuration</CardTitle>
+                <CardTitle className="text-base font-bold text-slate-900">Article Configuration</CardTitle>
                 <CardDescription className="text-xs text-slate-500">
-                  Engineer structured, entity-dense authority guides designed to earn citations across AI search engines.
+                  Create in-depth, helpful guides designed to earn recommendations across AI search engines.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-xs">
@@ -631,7 +631,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
 
                 {/* Target AI Query */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-700">Target AI Search Query (Grounding Anchor)</label>
+                  <label className="font-semibold text-slate-700">Target Customer Search Query</label>
                   <Input
                     value={blogTargetQuery}
                     onChange={(e) => setBlogTargetQuery(e.target.value)}
@@ -670,7 +670,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
 
                 {/* Primary Entity to Anchor */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-700">Primary Brand Entity to Anchor</label>
+                  <label className="font-semibold text-slate-700">Main Product or Brand Focus</label>
                   <Input
                     value={blogPrimaryEntity}
                     onChange={(e) => setBlogPrimaryEntity(e.target.value)}
@@ -723,7 +723,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
                           {blogResult.estimatedReadTime}
                         </Badge>
                         <Badge variant="outline" className="text-slate-600 border-slate-300 text-xs">
-                          Entity: {blogResult.primaryEntity}
+                          Focus: {blogResult.primaryEntity}
                         </Badge>
                       </div>
 
@@ -841,9 +841,9 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
                     {/* Embedded FAQ Schema Snippet */}
                     <div className="p-4 rounded-xl bg-slate-900 text-slate-100 text-xs space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-emerald-400">Schema.org FAQ Markup Included</span>
+                        <span className="font-semibold text-emerald-400">FAQ Section Included</span>
                         <Badge variant="outline" className="border-slate-700 text-slate-300 text-[10px]">
-                          JSON-LD
+                          Website Code
                         </Badge>
                       </div>
                       <div className="space-y-2 pt-1 text-slate-300">
@@ -862,7 +862,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
                   <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                   <h3 className="text-base font-bold text-slate-700">No Article Generated Yet</h3>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
-                    Select your topic focus and target AI query on the left, then click &ldquo;Generate Calibrated Article&rdquo; to build a long-form AEO authority guide.
+                    Select your topic focus and target AI query on the left, then click &ldquo;Generate Calibrated Article&rdquo; to build a comprehensive authority guide.
                   </p>
                 </Card>
               )}
@@ -1248,9 +1248,9 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     <span className="text-[10px] text-slate-400 self-center">Smart Suggest:</span>
                     {[
-                      'Seasonal drops destroy AEO equity',
-                      'LLMs reward verified lab durability',
-                      'Entity co-occurrence over backlinks',
+                      'Seasonal drops hurt search visibility',
+                      'AI tools reward verified product durability',
+                      'Clear product facts beat vanity metrics',
                     ].map((chip) => (
                       <button
                         key={chip}
@@ -1573,12 +1573,12 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
                       className="text-xs h-8 gap-1.5 border-slate-200"
                     >
                       {faqCopiedSchema ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                      {faqCopiedSchema ? 'Copied JSON-LD' : 'Copy Schema.org JSON-LD'}
+                      {faqCopiedSchema ? 'Copied Code' : 'Copy Website Code'}
                     </Button>
                   )}
                 </div>
                 <CardDescription className="text-xs text-slate-500">
-                  Structured question-and-answer pairs calibrated for entity clarity and LLM answer extraction.
+                  Structured question-and-answer pairs designed for clarity and easy quoting by AI search engines.
                 </CardDescription>
               </CardHeader>
 
@@ -1588,7 +1588,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
                     <HelpCircle className="h-10 w-10 text-slate-300 mb-3" />
                     <h4 className="text-sm font-bold text-slate-800 mb-1">No FAQ Blocks Generated</h4>
                     <p className="text-xs text-slate-500 max-w-sm mb-4">
-                      Configure your target buyer persona and topic to generate 4 high-yield, entity-dense FAQ pairs.
+                      Select your target audience and topic to generate 4 helpful, clear FAQ pairs.
                     </p>
                     <Button
                       variant="outline"
@@ -1615,7 +1615,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
                         </div>
                         <p className="text-xs text-slate-700 leading-relaxed pl-6">{faq.answer}</p>
                         <div className="pl-6 pt-1 text-[11px] text-slate-500 flex items-center gap-1.5 border-t border-slate-100">
-                          <span className="font-semibold text-slate-700">AEO Engine Rationale:</span>
+                          <span className="font-semibold text-slate-700">Why AI Recommends This:</span>
                           <span>{faq.llmRationale}</span>
                         </div>
                       </div>
@@ -1735,7 +1735,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
                   )}
                 </div>
                 <CardDescription className="text-xs text-slate-500">
-                  Deployable entity comparison blocks designed for citation in Google AI Overviews and ChatGPT search.
+                  Clear comparison blocks designed to help your brand get recommended in AI search.
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4 flex-1">
@@ -1744,7 +1744,7 @@ export function ContentStudioClient({ brandName, brandDomain, brandKit }: Conten
                     <Scale className="h-10 w-10 text-slate-300 mb-3" />
                     <h4 className="text-sm font-bold text-slate-800 mb-1">No Comparison Matrix Generated</h4>
                     <p className="text-xs text-slate-500 max-w-sm mb-4">
-                      Select a competitor and feature focus to generate a structured entity comparison matrix.
+                      Select a competitor and product focus to generate a side-by-side comparison.
                     </p>
                     <Button
                       variant="outline"

@@ -1,4 +1,4 @@
-﻿import { cookies } from 'next/headers';
+import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { AppSidebarLayout } from '@/components/layout/app-sidebar-layout';
 import { BrandKitView } from '@/components/brand-kit/brand-kit-view';
@@ -100,16 +100,16 @@ export default async function BrandKitPage() {
         <div className="border-b border-zinc-200 pb-6 space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono uppercase tracking-wider text-zinc-500 font-semibold">
-              AI CONTEXT CALIBRATION
+              BRAND PROFILE CALIBRATION
             </span>
             <span className="text-zinc-300">&bull;</span>
-            <span className="text-xs font-mono text-emerald-600 font-medium">Tenancy RLS Verified</span>
+            <span className="text-xs font-mono text-emerald-600 font-medium">Account Secured</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-950 tracking-tight">
-            Brand Kit &amp; AI Grounding
+            Brand Profile &amp; Identity
           </h1>
           <p className="text-xs sm:text-sm text-zinc-600">
-            Configure brand taxonomy, narrative pillars, regional search intent, and stylistic tone guardrails injected into all AI models.
+            Configure brand messaging, product categories, target regions, and tone guidelines used across all AI models.
           </p>
         </div>
 

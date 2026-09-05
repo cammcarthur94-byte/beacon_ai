@@ -478,14 +478,14 @@ export function SettingsView({ project, activeAuditsCount, initialTab }: Setting
                         Dedicated Calibration Studio
                       </span>
                       <span className="text-slate-300">&bull;</span>
-                      <span className="text-xs text-slate-500 font-medium">Model Grounding</span>
+                      <span className="text-xs text-slate-500 font-medium">Brand Identity</span>
                     </div>
                     <h3 className="text-lg font-bold text-slate-950 flex items-center gap-2 font-sans">
                       <Sliders className="h-5 w-5 text-emerald-600" />
-                      Brand Kit &amp; AI Grounding
+                      Brand Profile &amp; Identity
                     </h3>
                     <p className="text-xs text-slate-600 max-w-xl font-sans leading-relaxed">
-                      Configure industry taxonomy, core messaging pillars, regional search intent, negative exclusions, and 4-axis tone sliders injected into all AI models.
+                      Configure your industry, core messaging, target regions, brand exclusions, and tone settings used across all AI tools.
                     </p>
                   </div>
                   <Link href="/brand-kit" className="shrink-0">

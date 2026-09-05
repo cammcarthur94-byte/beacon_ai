@@ -102,7 +102,7 @@ function CustomMultiLineTooltip({
     return (
       <div className="rounded-xl border border-slate-200 bg-white/95 backdrop-blur-md p-3.5 shadow-xl text-xs font-sans text-slate-900 min-w-[230px] space-y-2.5">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-          <span className="font-semibold text-slate-800 text-xs">{label} Telemetry</span>
+          <span className="font-semibold text-slate-800 text-xs">{label} Search Data</span>
           <span className="text-[11px] font-mono font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
             Avg: {avgScore}%
           </span>
@@ -179,17 +179,17 @@ export function PromptTrendChart({ data, queryText }: PromptTrendChartProps) {
           <div className="space-y-1">
             <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
               <Activity className="h-4 w-4 text-emerald-600" />
-              Engine Prominence Over Time
+              AI Visibility Over Time
             </CardTitle>
             <CardDescription className="text-xs text-slate-500">
-              Historical visibility score trends across generative answer models for this prompt
+              Historical recommendation score trends across AI tools for this search
             </CardDescription>
           </div>
           <Badge
             variant="outline"
             className="self-start sm:self-auto font-mono text-xs border-slate-200 bg-slate-50 text-slate-700 rounded-full"
           >
-            Multi-Engine Telemetry
+            Multi-Tool Tracking
           </Badge>
         </div>
 

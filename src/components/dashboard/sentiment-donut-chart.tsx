@@ -48,11 +48,11 @@ function CustomDonutTooltip({ active, payload }: { active?: boolean; payload?: T
       <div className={cn(chartTooltipContainerClass, 'max-w-xs shadow-xl')}>
         <div className="flex items-center gap-2 mb-1">
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-          <span className="font-semibold text-zinc-900">{label} Sentiment</span>
+          <span className="font-semibold text-zinc-900">{label} Tone</span>
         </div>
-        <p className="text-zinc-600 font-medium">{item.value}% of evaluated queries</p>
+        <p className="text-zinc-600 font-medium">{item.value}% of AI responses</p>
         <p className="text-[10px] text-zinc-400 font-mono mt-1 pt-1 border-t border-zinc-100 flex items-center gap-1">
-          Click slice to filter telemetry
+          Click slice to filter searches
         </p>
       </div>
     );
@@ -94,10 +94,10 @@ export function SentimentDonutChart(props: SentimentDonutChartProps) {
           <div className="space-y-0.5">
             <CardTitle className="text-base font-semibold text-zinc-900 flex items-center gap-2">
               <HeartHandshake className="h-4 w-4 text-emerald-600" />
-              Brand Sentiment Distribution
+              How AI Speaks About Your Brand
             </CardTitle>
             <CardDescription className="text-xs text-zinc-500">
-              Net Index <span className="font-mono font-semibold text-emerald-600">+{netScore}</span> • Grounded tone across AI engine responses
+              Score <span className="font-mono font-semibold text-emerald-600">+{netScore}</span> • Overall tone across AI recommendations
             </CardDescription>
           </div>
           {selectedCategory !== 'all' && (

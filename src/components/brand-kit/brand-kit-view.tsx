@@ -298,14 +298,14 @@ export function BrandKitView({ project }: BrandKitViewProps) {
                   Active Context Engine
                 </span>
                 <span className="text-slate-300">&bull;</span>
-                <span className="text-xs text-slate-500 font-medium">Grounding: {brandName}</span>
+                <span className="text-xs text-slate-500 font-medium">Brand Profile: {brandName}</span>
               </div>
               <CardTitle className="text-lg font-bold text-slate-950 flex items-center gap-2 font-sans">
                 <Sparkles className="h-4 w-4 text-emerald-600" />
-                Calibrate AI Context & Narrative Guardrails
+                Calibrate Brand Profile &amp; Guidelines
               </CardTitle>
               <CardDescription className="text-xs text-slate-600 font-sans">
-                These settings establish the narrative perimeter for ChatGPT, Gemini, Claude, and Perplexity when generating citations and pitches.
+                These settings guide how ChatGPT, Gemini, Claude, and Perplexity describe your brand in answers.
               </CardDescription>
             </div>
             <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-800 font-mono text-[10px] hidden sm:inline-flex">
@@ -320,7 +320,7 @@ export function BrandKitView({ project }: BrandKitViewProps) {
             <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
               <Building className="h-4 w-4 text-emerald-700" />
               <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-slate-800">
-                1. Product &amp; Service Taxonomy
+                1. Industry &amp; Offerings
               </h3>
             </div>
 
@@ -385,7 +385,7 @@ export function BrandKitView({ project }: BrandKitViewProps) {
                 placeholder="e.g. Premium Performance Activewear, Technical Commuter Outerwear, Movement Accessories"
               />
               <p className="text-[11px] text-slate-500">
-                Focus entirely on category pillars and product families. Stripping individual SKU names and fabric specs prevents LLM token bloat.
+                Focus on main product categories and core offerings so AI search engines get a clear overview of what you sell.
               </p>
             </div>
           </div>
@@ -410,7 +410,7 @@ export function BrandKitView({ project }: BrandKitViewProps) {
               </Button>
             </div>
             <p className="text-xs text-slate-500">
-              Direct market alternatives benchmarked across SOV telemetry, Authority Gap queries, and competitive displacement pitches.
+              Direct market alternatives benchmarked across recommendation rates, content opportunities, and competitive pitches.
             </p>
 
             <div className="space-y-2.5">
@@ -633,7 +633,7 @@ export function BrandKitView({ project }: BrandKitViewProps) {
               )}
             </div>
             <p className="text-xs text-slate-500">
-              Core differentiators that establish narrative guardrails for the underlying LLM rewrite and citation outreach agents.
+              Key strengths that guide AI when creating content, answering customer questions, and suggesting outreach.
             </p>
 
             <div className="space-y-2.5">

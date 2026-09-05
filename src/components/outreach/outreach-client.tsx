@@ -317,7 +317,7 @@ export function OutreachClient() {
           <CardContent className="p-5">
             <div className="text-xs font-mono text-slate-500 mb-1">WON / PUBLISHED CITATIONS</div>
             <div className="text-3xl font-bold text-emerald-600 font-sans">{stats.won}</div>
-            <p className="text-xs text-slate-400 mt-1">Grounding secured in AI engines</p>
+            <p className="text-xs text-slate-400 mt-1">Recommendations secured in AI search</p>
           </CardContent>
         </Card>
 
@@ -685,7 +685,7 @@ export function OutreachClient() {
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-900">Add New Outreach Pitch</DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
-              Link an editorial pitch to target publications for AEO brand displacement.
+              Link an editorial pitch to target publications to get your brand recommended in AI search.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreatePitch} className="space-y-3 py-2 text-xs">

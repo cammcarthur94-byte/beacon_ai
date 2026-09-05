@@ -273,7 +273,7 @@ export function AuthorityGapClient() {
               </span>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Grounding domains citing competitors with 0 brand citations
+              Websites citing competitors where your brand has 0 mentions
             </p>
           </CardContent>
         </Card>
@@ -299,7 +299,7 @@ export function AuthorityGapClient() {
               </span>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              High search engine weight & LLM training authority
+              High search engine trust &amp; AI recommendation authority
             </p>
           </CardContent>
         </Card>
@@ -334,7 +334,7 @@ export function AuthorityGapClient() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-                Estimated SOV Opportunity
+                Estimated Recommendation Opportunity
               </span>
               <div className="h-8 w-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
                 <Sparkles className="h-4 w-4" />
@@ -342,11 +342,11 @@ export function AuthorityGapClient() {
             </div>
             <div className="mt-3 flex items-baseline gap-2">
               <span className="text-3xl font-bold tracking-tight text-purple-700">
-                {data?.summary.estimatedSovOpportunity || '+18.4% SOV'}
+                {data?.summary.estimatedSovOpportunity ? data.summary.estimatedSovOpportunity.replace('SOV', 'Growth') : '+18.4% Growth'}
               </span>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Projected share-of-voice gain once targets are bridged
+              Projected recommendation rate gain once opportunities are addressed
             </p>
           </CardContent>
         </Card>
@@ -533,7 +533,7 @@ export function AuthorityGapClient() {
               Prioritized Authority Gaps ({filteredGaps.length} Targets)
             </h3>
             <p className="text-xs text-slate-500">
-              Ranked by AI Grounding Opportunity Score (Domain Authority × Competitor Coverage × Void Impact)
+              Ranked by Growth Opportunity Score (Domain Authority × Competitor Coverage)
             </p>
           </div>
           <div className="text-xs text-slate-400">
@@ -574,7 +574,7 @@ export function AuthorityGapClient() {
                   <TableCell colSpan={7} className="h-48 text-center text-slate-400 text-xs">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <RefreshCw className="h-5 w-5 animate-spin text-emerald-600" />
-                      <span>Scanning AI answer grounding graphs for competitor authority gaps...</span>
+                      <span>Scanning AI search answers for competitor opportunities...</span>
                     </div>
                   </TableCell>
                 </TableRow>

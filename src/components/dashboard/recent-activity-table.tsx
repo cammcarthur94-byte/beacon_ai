@@ -110,17 +110,17 @@ export function RecentActivityTable({
       <CardHeader className="pb-3 border-b border-zinc-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <CardTitle className="text-base font-semibold text-zinc-900 flex items-center gap-2">
-            Recent Prompt Telemetry Runs
+            Recent Search Results
           </CardTitle>
           <CardDescription className="text-xs text-zinc-500">
-            Chronological audit log showing mention status, visibility score, and cited sources
+            Recent searches showing if your brand was recommended, visibility score, and sources
           </CardDescription>
         </div>
         <Link
           href="/audits"
           className="text-xs text-zinc-600 hover:text-zinc-900 flex items-center gap-1 font-medium transition-colors self-start sm:self-auto"
         >
-          View all audits <ExternalLink className="h-3 w-3" />
+          View all searches <ExternalLink className="h-3 w-3" />
         </Link>
       </CardHeader>
 
@@ -130,7 +130,7 @@ export function RecentActivityTable({
         <div className="relative w-full md:max-w-xs">
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
           <Input
-            placeholder="Filter prompts (e.g. shoes, platform)..."
+            placeholder="Filter searches (e.g. shoes, reviews)..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-8 h-8 text-xs bg-white border-zinc-200"
@@ -236,13 +236,13 @@ export function RecentActivityTable({
           <Table>
             <TableHeader>
               <TableRow className="bg-zinc-50/50">
-                <TableHead className="w-[360px] text-xs font-semibold">Search Query Tracked</TableHead>
-                <TableHead className="text-xs font-semibold">Engine</TableHead>
-                <TableHead className="text-xs font-semibold">Brand Mention</TableHead>
-                <TableHead className="text-xs font-semibold">Visibility</TableHead>
-                <TableHead className="text-xs font-semibold">Sentiment</TableHead>
-                <TableHead className="text-xs font-semibold">Citations</TableHead>
-                <TableHead className="text-right text-xs font-semibold">Timestamp</TableHead>
+                <TableHead className="w-[360px] text-xs font-semibold">Tracked Search</TableHead>
+                <TableHead className="text-xs font-semibold">AI Platform</TableHead>
+                <TableHead className="text-xs font-semibold">Recommended?</TableHead>
+                <TableHead className="text-xs font-semibold">Score</TableHead>
+                <TableHead className="text-xs font-semibold">Tone</TableHead>
+                <TableHead className="text-xs font-semibold">Sources Cited</TableHead>
+                <TableHead className="text-right text-xs font-semibold">Date &amp; Time</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -251,7 +251,7 @@ export function RecentActivityTable({
                   <TableCell colSpan={7} className="text-center py-12 text-zinc-500 text-xs font-mono">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Filter className="h-6 w-6 text-zinc-400" />
-                      <span>No prompt audits match your current filter criteria.</span>
+                      <span>No searches match your current filter criteria.</span>
                       {hasTableFilters && (
                         <button
                           type="button"

@@ -119,7 +119,7 @@ export function ModelGridMatrix({ runs, brandName }: ModelGridMatrixProps) {
                       : 'border-amber-200 bg-amber-50 text-amber-800'
                   )}
                 >
-                  {run.visibilityScore}% SOV
+                  {run.visibilityScore}% Rec Rate
                 </div>
               </div>
 

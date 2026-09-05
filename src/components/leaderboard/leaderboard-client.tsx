@@ -146,7 +146,7 @@ export function LeaderboardClient() {
         <Card className="border-slate-200 shadow-xs bg-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between text-xs font-mono text-slate-500 mb-2">
-              <span>BRAND SOV STANDING</span>
+              <span>BRAND RANK &amp; RECOMMENDATION RATE</span>
               <Trophy className="h-4 w-4 text-amber-500" />
             </div>
             <div className="flex items-baseline gap-2">
@@ -180,7 +180,7 @@ export function LeaderboardClient() {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-2">
-              Leads with <span className="font-semibold text-slate-800">{data?.metrics.marketLeaderShare ?? 37.4}%</span> total organic AI search grounding.
+              Leads with <span className="font-semibold text-slate-800">{data?.metrics.marketLeaderShare ?? 37.4}%</span> total organic AI search recommendations.
             </p>
           </CardContent>
         </Card>
@@ -198,7 +198,7 @@ export function LeaderboardClient() {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-2">
-              Across <span className="font-semibold text-slate-800">{data?.metrics.activeTrackedPrompts ?? 38}</span> target prompts & 5 generative engines.
+              Across <span className="font-semibold text-slate-800">{data?.metrics.activeTrackedPrompts ?? 38}</span> target searches &amp; 5 AI tools.
             </p>
           </CardContent>
         </Card>
@@ -207,7 +207,7 @@ export function LeaderboardClient() {
         <Card className="border-slate-200 shadow-xs bg-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between text-xs font-mono text-slate-500 mb-2">
-              <span>NET SOV MOMENTUM</span>
+              <span>RECOMMENDATION MOMENTUM</span>
               <Zap className="h-4 w-4 text-emerald-600" />
             </div>
             <div className="flex items-baseline gap-2">
@@ -309,10 +309,10 @@ export function LeaderboardClient() {
             <TableHeader className="bg-slate-50/70 border-b border-slate-200">
               <TableRow className="border-slate-200">
                 <TableHead className="w-16 font-mono text-xs font-semibold uppercase tracking-wider text-slate-700 py-3.5">Rank</TableHead>
-                <TableHead className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-700 py-3.5">Brand / Entity</TableHead>
-                <TableHead className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-700 py-3.5 w-64">SOV Dominance</TableHead>
+                <TableHead className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-700 py-3.5">Brand Name</TableHead>
+                <TableHead className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-700 py-3.5 w-64">Recommendation Share</TableHead>
                 <TableHead className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-700 text-right py-3.5">Total Citations</TableHead>
-                <TableHead className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-700 py-3.5">Engine Distribution</TableHead>
+                <TableHead className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-700 py-3.5">AI Tool Distribution</TableHead>
                 <TableHead className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-700 text-right py-3.5">Period Delta</TableHead>
                 <TableHead className="w-24 text-right font-mono text-xs font-semibold uppercase tracking-wider text-slate-700 py-3.5">Action</TableHead>
               </TableRow>
@@ -371,12 +371,12 @@ export function LeaderboardClient() {
                       </div>
                     </TableCell>
 
-                    {/* SOV Dominance Bar */}
+                    {/* Recommendation Share Bar */}
                     <TableCell className="py-4">
                       <div className="space-y-1.5 min-w-[170px]">
                         <div className="flex items-center justify-between text-xs">
                           <span className="font-bold text-slate-950 font-mono text-sm">{entry.citationShare}%</span>
-                          <span className="text-xs text-slate-600 font-mono font-medium">Score: {entry.sovScore}/100</span>
+                          <span className="text-xs text-slate-600 font-mono font-medium">Rating: {entry.sovScore}/100</span>
                         </div>
                         <div className="h-2.5 w-full rounded-full bg-slate-100 border border-slate-200/80 overflow-hidden">
                           <div
@@ -476,7 +476,7 @@ export function LeaderboardClient() {
                   {selectedEntry.name} Deep Intelligence
                 </CardTitle>
                 <CardDescription className="text-xs font-mono text-slate-500">
-                  {selectedEntry.domain} · Rank #{selectedEntry.rank} · SOV Score {selectedEntry.sovScore}/100
+                  {selectedEntry.domain} · Rank #{selectedEntry.rank} · Visibility Score {selectedEntry.sovScore}/100
                 </CardDescription>
               </div>
             </div>
@@ -528,7 +528,7 @@ export function LeaderboardClient() {
             {/* Top Cited Publication Sources */}
             <div className="space-y-2">
               <span className="font-semibold text-slate-800 uppercase tracking-wider text-[11px] block">
-                Top Grounding Publications
+                Top Cited Publications
               </span>
               <div className="space-y-1.5">
                 {selectedEntry.topCitedSources.map((source) => (
