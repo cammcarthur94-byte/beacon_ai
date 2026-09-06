@@ -50,10 +50,6 @@ import type {
   CompetitorMappingData,
 } from '@/app/api/competitor-mapping/route';
 import { CompetitorComparisonRow } from './competitor-comparison-row';
-import {
-  CompetitorActionModal,
-  type ActionModalType,
-} from './competitor-action-modal';
 
 function renderHighlightedDescription(text: string) {
   const highlightTerms = [
@@ -98,34 +94,6 @@ export function CompetitorMappingClient() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [insightsExpanded, setInsightsExpanded] = useState(true);
-  const [activeModal, setActiveModal] = useState<{
-    isOpen: boolean;
-    type: ActionModalType | null;
-    feat: CompetitorFeatureItem | null;
-    topCompetitor: CompetitorFeatureItem['competitors'][0] | null;
-  }>({
-    isOpen: false,
-    type: null,
-    feat: null,
-    topCompetitor: null,
-  });
-
-  const handleOpenActionModal = (
-    type: ActionModalType,
-    feat: CompetitorFeatureItem,
-    topComp: CompetitorFeatureItem['competitors'][0] | null
-  ) => {
-    setActiveModal({
-      isOpen: true,
-      type,
-      feat,
-      topCompetitor: topComp,
-    });
-  };
-
-  const handleCloseActionModal = () => {
-    setActiveModal((prev) => ({ ...prev, isOpen: false }));
-  };
 
 
   const fetchData = async () => {
@@ -587,18 +555,15 @@ export function CompetitorMappingClient() {
                 <TableHead className="min-w-[340px] text-xs font-semibold text-slate-600">
                   Competitor Comparison
                 </TableHead>
-                <TableHead className="w-[160px] text-xs font-semibold text-slate-600 text-center">
+                <TableHead className="w-[180px] text-xs font-semibold text-slate-600 text-center pr-6">
                   AI Recommendation Rate
-                </TableHead>
-                <TableHead className="w-[170px] min-w-[160px] text-xs font-semibold text-slate-600 text-center pr-6">
-                  Action
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-slate-100">
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-48 text-center text-slate-400 text-xs">
+                  <TableCell colSpan={5} className="h-48 text-center text-slate-400 text-xs">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <RefreshCw className="h-5 w-5 animate-spin text-purple-600" />
                       <span>Evaluating competitor product catalogues and citation shares...</span>
@@ -607,7 +572,7 @@ export function CompetitorMappingClient() {
                 </TableRow>
               ) : filteredFeatures.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-48 text-center text-slate-500 text-xs">
+                  <TableCell colSpan={5} className="h-48 text-center text-slate-500 text-xs">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Target className="h-8 w-8 text-slate-300" />
                       <p className="font-semibold text-slate-700">No matching features found</p>
@@ -628,7 +593,6 @@ export function CompetitorMappingClient() {
                     key={feat.id}
                     feat={feat}
                     brandName={data?.brandName || 'Our Brand'}
-                    onTriggerAction={handleOpenActionModal}
                   />
                 ))
               )}
@@ -637,15 +601,6 @@ export function CompetitorMappingClient() {
         </div>
       </div>
 
-      {/* ── 6. CLAUDE STREAMING ACTION MODAL ───────────── */}
-      <CompetitorActionModal
-        isOpen={activeModal.isOpen}
-        onClose={handleCloseActionModal}
-        actionType={activeModal.type}
-        feat={activeModal.feat}
-        brandName={data?.brandName || 'Our Brand'}
-        topCompetitor={activeModal.topCompetitor}
-      />
     </div>
   );
 }

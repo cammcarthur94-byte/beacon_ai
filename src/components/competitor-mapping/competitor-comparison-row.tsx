@@ -6,25 +6,18 @@ import { TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronUp, Info, Sparkles, Code2, Share2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { SimpleTooltip } from '@/components/ui/tooltip';
 import type { CompetitorFeatureItem } from '@/app/api/competitor-mapping/route';
-import type { ActionModalType } from './competitor-action-modal';
 
 interface CompetitorComparisonRowProps {
   feat: CompetitorFeatureItem;
   brandName: string;
-  onTriggerAction: (
-    actionType: ActionModalType,
-    feat: CompetitorFeatureItem,
-    topComp: CompetitorFeatureItem['competitors'][0] | null
-  ) => void;
 }
 
 export function CompetitorComparisonRow({
   feat,
   brandName,
-  onTriggerAction,
 }: CompetitorComparisonRowProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -241,8 +234,8 @@ export function CompetitorComparisonRow({
         </div>
       </TableCell>
 
-      {/* 5. AI Recommendation Rate (Vertically Centered) */}
-      <TableCell className="text-center py-4 align-middle">
+      {/* 5. AI Recommendation Rate (Vertically Centered, Last Column) */}
+      <TableCell className="text-center pr-6 py-4 align-middle">
         <div className="flex flex-col items-center justify-center gap-1.5">
           <div className="flex items-center gap-1 text-xs font-bold text-slate-900">
             <span className="text-emerald-700">{feat.brandCitationShare}%</span>
@@ -272,41 +265,6 @@ export function CompetitorComparisonRow({
             </SimpleTooltip>
           </div>
         </div>
-      </TableCell>
-
-      {/* 6. Action Column (Vertically Centered) */}
-      <TableCell className="text-center pr-6 py-4 align-middle">
-        {feat.brandStatus === 'leader' ? (
-          <div className="flex items-center justify-center">
-            <button
-              type="button"
-              onClick={() => onTriggerAction('proof-point', feat, topCompetitor)}
-              className="h-7 px-2.5 text-[11px] font-medium bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-900 rounded-md transition-colors shadow-2xs inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
-            >
-              <Share2 className="h-3 w-3 text-emerald-600 shrink-0" />
-              <span>Export Proof Point</span>
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-1.5 items-center justify-center">
-            <button
-              type="button"
-              onClick={() => onTriggerAction('pr-pitch', feat, topCompetitor)}
-              className="w-full h-7 px-2.5 text-[11px] font-medium bg-slate-900 text-white hover:bg-slate-800 rounded-md transition-colors shadow-2xs inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
-            >
-              <Sparkles className="h-3 w-3 text-amber-300 shrink-0" />
-              <span>Draft PR Pitch</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onTriggerAction('faq-schema', feat, topCompetitor)}
-              className="w-full h-7 px-2.5 text-[11px] font-medium bg-slate-800 text-white hover:bg-slate-700 rounded-md transition-colors shadow-2xs inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
-            >
-              <Code2 className="h-3 w-3 text-blue-300 shrink-0" />
-              <span>Generate FAQ</span>
-            </button>
-          </div>
-        )}
       </TableCell>
     </TableRow>
   );
