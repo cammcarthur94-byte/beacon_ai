@@ -211,3 +211,95 @@ export function resolveCompetitorsWithAiResults({
     runs: enrichedRuns,
   };
 }
+
+export interface DiscoveredCompetitorItem {
+  name: string;
+  domain: string;
+  isUnlisted?: boolean;
+}
+
+export function getAllTrackedAndDiscoveredCompetitors({
+  brandKit,
+  brandName,
+  industry,
+  extraDiscovered = [],
+}: {
+  brandKit?: BrandKit | null;
+  brandName: string;
+  industry?: string;
+  extraDiscovered?: DiscoveredCompetitorItem[];
+}): DiscoveredCompetitorItem[] {
+  const ind = (industry || brandKit?.industry || '').toLowerCase();
+  const brandLower = (brandName || '').toLowerCase();
+  const isConsumer =
+    ind.includes('retail') ||
+    ind.includes('apparel') ||
+    ind.includes('fitness') ||
+    ind.includes('fashion') ||
+    ind.includes('commerce') ||
+    ind.includes('athleisure') ||
+    brandLower.includes('lulu') ||
+    brandLower.includes('yoga') ||
+    brandLower.includes('nike');
+
+  const candidates = isConsumer ? CONSUMER_CANDIDATES : B2B_CANDIDATES;
+  const rawCompetitors = brandKit?.competitors || [];
+  const competitors: DiscoveredCompetitorItem[] = [];
+  const trackedNames = new Set<string>();
+
+  // 1. Add configured brand profile competitors
+  rawCompetitors.forEach((c) => {
+    if (!c.name || !c.name.trim()) return;
+    const trimmed = c.name.trim();
+    const domain = c.domain || `${trimmed.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
+    competitors.push({
+      name: trimmed,
+      domain,
+      isUnlisted: (c as any).isUnlisted || false,
+    });
+    trackedNames.add(trimmed.toLowerCase());
+  });
+
+  // If no competitors configured, supply standard defaults
+  if (competitors.length === 0) {
+    const defaultCandidates = candidates.slice(0, 3);
+    defaultCandidates.forEach((cand) => {
+      competitors.push({
+        name: cand.name,
+        domain: cand.domain,
+        isUnlisted: false,
+      });
+      trackedNames.add(cand.name.toLowerCase());
+    });
+  }
+
+  // 2. Add extra discovered competitors (from cookies, AI crawls, or session data)
+  extraDiscovered.forEach((c) => {
+    if (!c.name || !c.name.trim()) return;
+    const trimmed = c.name.trim();
+    const lower = trimmed.toLowerCase();
+    if (lower === brandLower || trackedNames.has(lower)) return;
+    competitors.push({
+      name: trimmed,
+      domain: c.domain || `${lower.replace(/[^a-z0-9]/g, '')}.com`,
+      isUnlisted: c.isUnlisted !== undefined ? c.isUnlisted : true,
+    });
+    trackedNames.add(lower);
+  });
+
+  // 3. Organic AI engine discovery: Ensure organic rivals like Nike Training are included for consumer brands
+  if (isConsumer) {
+    const hasNike = Array.from(trackedNames).some((n) => n.includes('nike'));
+    if (!hasNike && !brandLower.includes('nike')) {
+      competitors.push({
+        name: 'Nike Training',
+        domain: 'nike.com',
+        isUnlisted: true,
+      });
+      trackedNames.add('nike training');
+    }
+  }
+
+  return competitors;
+}
+

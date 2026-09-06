@@ -363,9 +363,21 @@ export function LeaderboardClient() {
                       <div className="flex items-center gap-3">
                         <DomainFavicon domain={entry.domain} size="md" />
                         <div>
-                          <span className="font-semibold text-slate-950 text-sm block leading-tight">
-                            {entry.name}
-                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-semibold text-slate-950 text-sm block leading-tight">
+                              {entry.name}
+                            </span>
+                            {entry.isCurrentBrand && (
+                              <Badge className="bg-slate-900 text-white text-[10px] font-mono py-0 px-1.5">
+                                You
+                              </Badge>
+                            )}
+                            {entry.isUnlisted && (
+                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-50 text-amber-700 border border-amber-200 font-mono font-semibold">
+                                AI Detected
+                              </span>
+                            )}
+                          </div>
                           <span className="text-xs font-mono text-slate-500 block mt-0.5">
                             {entry.domain}
                           </span>
@@ -492,10 +504,17 @@ export function LeaderboardClient() {
             <div className="flex items-center gap-3">
               <DomainFavicon domain={selectedEntry.domain} size="md" />
               <div>
-                <CardTitle className="text-base font-bold text-slate-900">
-                  {selectedEntry.name} Deep Intelligence
-                </CardTitle>
-                <CardDescription className="text-xs font-mono text-slate-500">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <CardTitle className="text-base font-bold text-slate-900">
+                    {selectedEntry.name} Deep Intelligence
+                  </CardTitle>
+                  {selectedEntry.isUnlisted && (
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 font-mono font-semibold">
+                      AI Detected Competitor
+                    </span>
+                  )}
+                </div>
+                <CardDescription className="text-xs font-mono text-slate-500 mt-0.5">
                   {selectedEntry.domain} · Rank #{selectedEntry.rank} · Visibility Score {selectedEntry.sovScore}/100
                 </CardDescription>
               </div>

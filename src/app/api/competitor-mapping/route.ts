@@ -5,6 +5,10 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { BEACON_MODELS } from '@/lib/ai/models';
 import { createClient } from '@/lib/supabase/server';
 import type { BrandKit } from '@/types/database.types';
+import {
+  getAllTrackedAndDiscoveredCompetitors,
+  type DiscoveredCompetitorItem,
+} from '@/lib/competitors/discovered-competitors';
 
 export interface CompetitorFeatureItem {
   id: string;
@@ -107,25 +111,22 @@ export async function GET(request: NextRequest) {
 
     const activeProject = project || fallbackProject;
     const brandName = activeProject.name;
-    const rawCompetitors = activeProject.brand_kit?.competitors && activeProject.brand_kit.competitors.length > 0
-      ? activeProject.brand_kit.competitors
-      : fallbackProject.brand_kit.competitors;
+    const industry = activeProject.brand_kit?.industry || 'Technology & Business';
 
-    const competitors: Array<{ name: string; domain: string; isUnlisted?: boolean }> = rawCompetitors.map((c) => ({
-      name: c.name,
-      domain: c.domain || `${c.name.toLowerCase().replace(/\s+/g, '')}.com`,
-      isUnlisted: false,
-    }));
-
-    // Detect unlisted competitors surfaced organically by AI engines
-    const hasNike = competitors.some((c) => c.name.toLowerCase().includes('nike'));
-    if (!hasNike) {
-      competitors.push({
-        name: 'Nike Training',
-        domain: 'nike.com',
-        isUnlisted: true,
-      });
+    const discoveredCookie = cookieStore.get('beacon_ai_discovered_competitors');
+    let extraDiscovered: DiscoveredCompetitorItem[] = [];
+    if (discoveredCookie?.value) {
+      try {
+        extraDiscovered = JSON.parse(discoveredCookie.value);
+      } catch {}
     }
+
+    const competitors = getAllTrackedAndDiscoveredCompetitors({
+      brandKit: activeProject.brand_kit,
+      brandName,
+      industry,
+      extraDiscovered,
+    });
 
     const c1 = competitors[0]?.name || 'Competitor Alpha';
     const c2 = competitors[1]?.name || 'Competitor Beta';
@@ -316,15 +317,40 @@ export async function POST(request: NextRequest) {
       await new Promise((resolve) => setTimeout(resolve, 800));
     }
 
-    return NextResponse.json({
+    const cookieStore = await cookies();
+    const existingCookie = cookieStore.get('beacon_ai_discovered_competitors');
+    let discovered: DiscoveredCompetitorItem[] = [];
+    if (existingCookie?.value) {
+      try {
+        discovered = JSON.parse(existingCookie.value);
+      } catch {}
+    }
+
+    if (!discovered.some((c) => c.name.toLowerCase().includes('nike'))) {
+      discovered.push({
+        name: 'Nike Training',
+        domain: 'nike.com',
+        isUnlisted: true,
+      });
+    }
+
+    const response = NextResponse.json({
       success: true,
       message: 'Competitor product pages and AI grounding matrices successfully parsed by Claude Haiku 4.5.',
       modelUsed: BEACON_MODELS.COMPETITOR_MAPPING.displayName,
       syncedAt: new Date().toISOString(),
-      crawledCompetitors: ['aloyoga.com', 'vuoriclothing.com', 'athleta.gap.com'],
+      crawledCompetitors: ['aloyoga.com', 'vuoriclothing.com', 'athleta.gap.com', 'nike.com'],
       pagesEvaluated: 142,
       newDisparitiesFound: 1,
     });
+
+    response.cookies.set('beacon_ai_discovered_competitors', JSON.stringify(discovered), {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: 'lax',
+    });
+
+    return response;
   } catch (error: any) {
     console.error('Error in /api/competitor-mapping POST:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
