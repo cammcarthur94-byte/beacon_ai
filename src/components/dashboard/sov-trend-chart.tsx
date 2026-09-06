@@ -222,14 +222,14 @@ export function SovTrendChart({
         <CardHeader className="pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="space-y-0.5">
             <CardTitle className="text-base font-semibold text-zinc-900 flex items-center gap-2">
-              Recommendation Rate Over Time ({dateRangeLabel})
+              Share of Voice Over Time ({dateRangeLabel})
             </CardTitle>
             <CardDescription className="text-xs text-zinc-500">
-              How often <span className="text-zinc-900 font-medium">{brandName}</span> is recommended compared to competitors
+              How <span className="text-zinc-900 font-medium">{brandName}</span>’s AI visibility compares to competitors
             </CardDescription>
           </div>
           <div className="flex items-center gap-2 self-start sm:self-auto">
-            <Badge variant="outline" className="font-mono text-xs text-emerald-700 border-emerald-200 bg-emerald-50">
+            <Badge variant="outline" className="font-sans text-xs text-emerald-700 border-emerald-200 bg-emerald-50">
               <TrendingUp className="h-3 w-3 mr-1" /> +{growth}% Growth
             </Badge>
             <ChartExpandButton onClick={() => setIsModalOpen(true)} />
@@ -245,12 +245,12 @@ export function SovTrendChart({
       <ExpandableChartModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={`Recommendation Rate Over Time (${dateRangeLabel})`}
-        description={`How often ${brandName} is recommended compared to competitors across search data.`}
-        exportFilename="recommendation-rate-over-time"
+        title={`Share of Voice Over Time (${dateRangeLabel})`}
+        description={`How ${brandName}’s AI visibility compares to competitors across search data.`}
+        exportFilename="share-of-voice-over-time"
         csvData={data}
         badge={
-          <Badge variant="outline" className="font-mono text-xs text-emerald-700 border-emerald-200 bg-emerald-50">
+          <Badge variant="outline" className="font-sans text-xs text-emerald-700 border-emerald-200 bg-emerald-50">
             <TrendingUp className="h-3 w-3 mr-1" /> +{growth}% Growth
           </Badge>
         }

@@ -25,26 +25,30 @@ export interface DashboardSummaryMetrics {
   };
 }
 
-export function SummaryCards({ metrics }: { metrics: DashboardSummaryMetrics }) {
+export function SummaryCards({
+  metrics,
+}: {
+  metrics: DashboardSummaryMetrics;
+}) {
   const isSovPositive = metrics.sovDelta >= 0;
   const isCitationsPositive = metrics.citationsDelta >= 0;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* 1. Total AI Share of Voice */}
+      {/* 1. Recommendation Rate */}
       <Card className="border-zinc-200 bg-white shadow-xs relative overflow-hidden group hover:border-zinc-300 transition-colors">
         <CardContent className="p-5 space-y-2">
-          <div className="flex items-center justify-between text-xs text-zinc-500 font-mono">
+          <div className="flex items-center justify-between text-xs text-zinc-500 font-sans font-medium">
             <span>Recommendation Rate</span>
             <Sparkles className="h-4 w-4 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
           </div>
           <div className="flex items-baseline justify-between pt-1">
-            <span className="text-3xl font-semibold tracking-tight text-zinc-950 font-mono">
+            <span className="text-3xl font-semibold tracking-tight text-zinc-950 font-sans">
               {metrics.totalSov.toFixed(1)}%
             </span>
             <Badge
               variant={isSovPositive ? "success" : "destructive"}
-              className="text-[11px] font-mono gap-1 px-2 py-0.5"
+              className="text-xs font-sans gap-1 px-2 py-0.5"
             >
               {isSovPositive ? (
                 <TrendingUp className="h-3 w-3" />
@@ -60,17 +64,17 @@ export function SummaryCards({ metrics }: { metrics: DashboardSummaryMetrics }) 
       {/* 2. Brand Sentiment */}
       <Card className="border-zinc-200 bg-white shadow-xs relative overflow-hidden group hover:border-zinc-300 transition-colors">
         <CardContent className="p-5 space-y-2">
-          <div className="flex items-center justify-between text-xs text-zinc-500 font-mono">
+          <div className="flex items-center justify-between text-xs text-zinc-500 font-sans font-medium">
             <span>AI Sentiment</span>
             <Smile className="h-4 w-4 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
           </div>
           <div className="flex items-baseline justify-between pt-1">
-            <span className="text-3xl font-semibold tracking-tight text-zinc-950 font-mono">
+            <span className="text-3xl font-semibold tracking-tight text-zinc-950 font-sans">
               {metrics.sentimentScore}%
             </span>
             <Badge
               variant="success"
-              className="text-[11px] font-mono px-2 py-0.5"
+              className="text-xs font-sans px-2 py-0.5"
             >
               {metrics.sentimentLabel}
             </Badge>
@@ -81,17 +85,17 @@ export function SummaryCards({ metrics }: { metrics: DashboardSummaryMetrics }) 
       {/* 3. Total Citations Extracted */}
       <Card className="border-zinc-200 bg-white shadow-xs relative overflow-hidden group hover:border-zinc-300 transition-colors">
         <CardContent className="p-5 space-y-2">
-          <div className="flex items-center justify-between text-xs text-zinc-500 font-mono">
+          <div className="flex items-center justify-between text-xs text-zinc-500 font-sans font-medium">
             <span>Websites Citing You</span>
             <Quote className="h-4 w-4 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
           </div>
           <div className="flex items-baseline justify-between pt-1">
-            <span className="text-3xl font-semibold tracking-tight text-zinc-950 font-mono">
+            <span className="text-3xl font-semibold tracking-tight text-zinc-950 font-sans">
               {metrics.totalCitations}
             </span>
             <Badge
               variant={isCitationsPositive ? "success" : "secondary"}
-              className="text-[11px] font-mono gap-1 px-2 py-0.5"
+              className="text-xs font-sans gap-1 px-2 py-0.5"
             >
               {isCitationsPositive ? `+${metrics.citationsDelta} this mo` : `${metrics.citationsDelta}`}
             </Badge>
@@ -102,7 +106,7 @@ export function SummaryCards({ metrics }: { metrics: DashboardSummaryMetrics }) 
       {/* 4. Top Performing Engine */}
       <Card className="border-zinc-200 bg-white shadow-xs relative overflow-hidden group hover:border-zinc-300 transition-colors">
         <CardContent className="p-5 space-y-2">
-          <div className="flex items-center justify-between text-xs text-zinc-500 font-mono">
+          <div className="flex items-center justify-between text-xs text-zinc-500 font-sans font-medium">
             <span>Best AI Platform</span>
             <Award className="h-4 w-4 text-emerald-600" />
           </div>
@@ -126,7 +130,7 @@ export function SummaryCards({ metrics }: { metrics: DashboardSummaryMetrics }) 
             </div>
             <Badge
               variant="outline"
-              className="text-[11px] font-mono px-2 py-0.5 border-emerald-200 bg-emerald-50 text-emerald-700"
+              className="text-xs font-sans px-2 py-0.5 border-emerald-200 bg-emerald-50 text-emerald-700"
             >
               {metrics.topEngine.winRate}% Recommended
             </Badge>
