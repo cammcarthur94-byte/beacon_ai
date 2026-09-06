@@ -49,6 +49,11 @@ import type {
   CompetitorFeatureItem,
   CompetitorMappingData,
 } from '@/app/api/competitor-mapping/route';
+import { CompetitorComparisonRow } from './competitor-comparison-row';
+import {
+  CompetitorActionModal,
+  type ActionModalType,
+} from './competitor-action-modal';
 
 function renderHighlightedDescription(text: string) {
   const highlightTerms = [
@@ -93,6 +98,34 @@ export function CompetitorMappingClient() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [insightsExpanded, setInsightsExpanded] = useState(true);
+  const [activeModal, setActiveModal] = useState<{
+    isOpen: boolean;
+    type: ActionModalType | null;
+    feat: CompetitorFeatureItem | null;
+    topCompetitor: CompetitorFeatureItem['competitors'][0] | null;
+  }>({
+    isOpen: false,
+    type: null,
+    feat: null,
+    topCompetitor: null,
+  });
+
+  const handleOpenActionModal = (
+    type: ActionModalType,
+    feat: CompetitorFeatureItem,
+    topComp: CompetitorFeatureItem['competitors'][0] | null
+  ) => {
+    setActiveModal({
+      isOpen: true,
+      type,
+      feat,
+      topCompetitor: topComp,
+    });
+  };
+
+  const handleCloseActionModal = () => {
+    setActiveModal((prev) => ({ ...prev, isOpen: false }));
+  };
 
 
   const fetchData = async () => {
@@ -557,7 +590,7 @@ export function CompetitorMappingClient() {
                 <TableHead className="w-[160px] text-xs font-semibold text-slate-600 text-center">
                   AI Recommendation Rate
                 </TableHead>
-                <TableHead className="w-[130px] text-xs font-semibold text-slate-600 text-right pr-6">
+                <TableHead className="w-[170px] min-w-[160px] text-xs font-semibold text-slate-600 text-center pr-6">
                   Action
                 </TableHead>
               </TableRow>
@@ -590,151 +623,29 @@ export function CompetitorMappingClient() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredFeatures.map((feat) => {
-                  return (
-                    <TableRow
-                      key={feat.id}
-                      className="hover:bg-slate-50/70 transition-colors group"
-                    >
-                      {/* Feature & Category */}
-                      <TableCell className="pl-6 py-4 align-top">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                            {feat.category}
-                          </span>
-                          <span className="text-xs font-bold text-slate-900">
-                            {feat.featureName}
-                          </span>
-                          <span className="text-[11px] text-slate-500 line-clamp-2">
-                            {feat.description}
-                          </span>
-                        </div>
-                      </TableCell>
-
-                      {/* Parity Status */}
-                      <TableCell className="text-center py-4 align-top">
-                        {feat.brandStatus === 'leader' && (
-                          <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[11px] font-semibold">
-                            Leader
-                          </Badge>
-                        )}
-                        {feat.brandStatus === 'parity' && (
-                          <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-[11px] font-semibold">
-                            Parity
-                          </Badge>
-                        )}
-                        {feat.brandStatus === 'gap' && (
-                          <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[11px] font-semibold">
-                            Gap
-                          </Badge>
-                        )}
-                        {feat.brandStatus === 'missing' && (
-                          <Badge className="bg-rose-50 text-rose-700 border-rose-200 text-[11px] font-semibold">
-                            Missing
-                          </Badge>
-                        )}
-                      </TableCell>
-
-                      {/* Our Brand Detail */}
-                      <TableCell className="py-4 align-top">
-                        <p className="text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 p-2.5 rounded-lg border border-slate-200/80">
-                          {feat.brandDetail}
-                        </p>
-                      </TableCell>
-
-                      {/* Competitor Coverage with Micro-Progress Bar beneath */}
-                      <TableCell className="py-4 align-top">
-                        <div className="space-y-2">
-                          {feat.competitors.map((comp) => (
-                            <div
-                              key={comp.name}
-                              className="bg-slate-50/70 p-2.5 rounded-lg border border-slate-200/70 space-y-1.5"
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-bold text-xs text-slate-800 shrink-0">
-                                    {comp.name}
-                                  </span>
-                                  {comp.isUnlisted && (
-                                    <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                                      AI Detected
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="text-[10px] font-mono font-semibold text-slate-600 bg-white px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
-                                  {comp.citationShare}% share
-                                </span>
-                              </div>
-
-                              <p
-                                className={cn(
-                                  'text-[11px] leading-relaxed',
-                                  comp.hasFeature ? 'text-slate-600' : 'text-slate-400 italic'
-                                )}
-                              >
-                                {comp.detail}
-                              </p>
-
-                              {/* Dedicated mini horizontal progress bar directly beneath the competitor text */}
-                              <div className="w-full h-1.5 bg-slate-200/70 rounded-full overflow-hidden">
-                                <div
-                                  className={cn(
-                                    'h-full rounded-full transition-all',
-                                    comp.citationShare >= 45
-                                      ? 'bg-amber-500'
-                                      : comp.citationShare >= 25
-                                      ? 'bg-indigo-500'
-                                      : comp.citationShare > 0
-                                      ? 'bg-slate-400'
-                                      : 'bg-transparent'
-                                  )}
-                                  style={{ width: `${comp.citationShare}%` }}
-                                  title={`${comp.name} Recommendation Share: ${comp.citationShare}%`}
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </TableCell>
-
-                      {/* AI Citation Share Bar */}
-                      <TableCell className="text-center py-4 align-top">
-                        <div className="flex flex-col items-center gap-1.5 pt-1">
-                          <div className="flex items-center gap-1 text-xs font-bold text-slate-900">
-                            <span className="text-emerald-700">{feat.brandCitationShare}%</span>
-                            <span className="text-slate-400 text-[10px]">vs rivals</span>
-                          </div>
-
-                          {/* Multi-segment Share bar */}
-                          <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden flex border border-slate-200">
-                            <div
-                              className="h-full bg-emerald-500"
-                              style={{ width: `${feat.brandCitationShare}%` }}
-                              title={`${data?.brandName || 'Our Brand'}: ${feat.brandCitationShare}%`}
-                            />
-                            <div
-                              className="h-full bg-amber-400"
-                              style={{ width: `${100 - feat.brandCitationShare}%` }}
-                              title={`Competitors: ${100 - feat.brandCitationShare}%`}
-                            />
-                          </div>
-
-                          <span className="text-[10px] text-slate-400">
-                            Impact: {feat.aiImpactScore}/100
-                          </span>
-                        </div>
-                      </TableCell>
-
-                      <TableCell className="text-right pr-6 py-4 align-top" />
-                    </TableRow>
-                  );
-                })
+                filteredFeatures.map((feat) => (
+                  <CompetitorComparisonRow
+                    key={feat.id}
+                    feat={feat}
+                    brandName={data?.brandName || 'Our Brand'}
+                    onTriggerAction={handleOpenActionModal}
+                  />
+                ))
               )}
             </TableBody>
           </Table>
         </div>
       </div>
 
+      {/* ── 6. CLAUDE STREAMING ACTION MODAL ───────────── */}
+      <CompetitorActionModal
+        isOpen={activeModal.isOpen}
+        onClose={handleCloseActionModal}
+        actionType={activeModal.type}
+        feat={activeModal.feat}
+        brandName={data?.brandName || 'Our Brand'}
+        topCompetitor={activeModal.topCompetitor}
+      />
     </div>
   );
 }
