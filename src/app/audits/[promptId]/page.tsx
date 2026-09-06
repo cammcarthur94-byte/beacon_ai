@@ -121,7 +121,35 @@ export default async function PromptResultsPage({ params }: PromptResultsPagePro
     runs = generateContextualAuditRuns(prompt, project);
   }
 
-  const competitors = [competitorA, competitorB];
+  // Detect all competitors: profile competitors + any competitor appearing in AI results or query
+  const competitorsSet = new Set<string>();
+  (project.brand_kit?.competitors || []).forEach((c) => {
+    if (c.name && c.name.trim()) competitorsSet.add(c.name.trim());
+  });
+
+  if (competitorsSet.size === 0) {
+    competitorsSet.add(competitorA);
+    competitorsSet.add(competitorB);
+  }
+
+  // Scan AI result text & citations for unlisted competitors
+  const allResultsText = [
+    prompt?.query_text || '',
+    ...runs.map((r) => `${r.rawText || ''} ${(r.citedUrls || []).join(' ')}`),
+  ].join(' ').toLowerCase();
+
+  const CANDIDATES = isConsumer
+    ? ['Alo Yoga', 'Vuori', 'Athleta', 'Nike', 'Beyond Yoga', 'Gymshark', 'Sweaty Betty']
+    : ['Legacy Incumbent', 'Alternative Leader', 'Market Challenger', 'Salesforce', 'HubSpot', 'Gartner'];
+
+  CANDIDATES.forEach((cand) => {
+    if (cand.toLowerCase() === brandName.toLowerCase()) return;
+    if (allResultsText.includes(cand.toLowerCase())) {
+      competitorsSet.add(cand);
+    }
+  });
+
+  const competitors = Array.from(competitorsSet);
 
   return (
     <AppSidebarLayout project={project}>

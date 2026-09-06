@@ -136,7 +136,10 @@ export function DashboardClientView({
         const q = tableSearchQuery.toLowerCase().trim();
         const matchesQuery = run.queryText.toLowerCase().includes(q);
         const matchesEngineName = run.engine.toLowerCase().includes(q);
-        if (!matchesQuery && !matchesEngineName) return false;
+        const matchesCompetitor = run.competitorsMentioned?.some((c) =>
+          c.name.toLowerCase().includes(q)
+        );
+        if (!matchesQuery && !matchesEngineName && !matchesCompetitor) return false;
       }
 
       // 5. Table Status Filter

@@ -194,8 +194,18 @@ export function CompetitorMappingClient() {
                 Key Rivals
               </span>
             </div>
-            <div className="mt-2 text-xs text-slate-500 flex items-center gap-1.5 truncate">
-              {data?.competitors?.map((c) => c.name).join(' • ') || 'Alo Yoga • Vuori • Athleta'}
+            <div className="mt-2 text-xs text-slate-500 flex items-center gap-1.5 flex-wrap">
+              {data?.competitors?.map((c, i) => (
+                <span key={c.name} className="inline-flex items-center gap-1">
+                  {i > 0 && <span className="text-slate-300 mr-1">•</span>}
+                  <span>{c.name}</span>
+                  {c.isUnlisted && (
+                    <span className="text-[9px] px-1 py-0.2 rounded bg-amber-50 text-amber-700 border border-amber-200 font-mono">
+                      AI Detected
+                    </span>
+                  )}
+                </span>
+              )) || 'Alo Yoga • Vuori • Athleta'}
             </div>
           </CardContent>
         </Card>
@@ -624,9 +634,16 @@ export function CompetitorMappingClient() {
                               className="bg-slate-50/70 p-2.5 rounded-lg border border-slate-200/70 space-y-1.5"
                             >
                               <div className="flex items-center justify-between gap-2">
-                                <span className="font-bold text-xs text-slate-800 shrink-0">
-                                  {comp.name}
-                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-bold text-xs text-slate-800 shrink-0">
+                                    {comp.name}
+                                  </span>
+                                  {comp.isUnlisted && (
+                                    <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                                      AI Detected
+                                    </span>
+                                  )}
+                                </div>
                                 <span className="text-[10px] font-mono font-semibold text-slate-600 bg-white px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
                                   {comp.citationShare}% share
                                 </span>

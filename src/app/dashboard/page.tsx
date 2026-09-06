@@ -12,6 +12,7 @@ import type { EngineVisibilityScore } from '@/components/dashboard/engine-compar
 import type { CitationDomainItem } from '@/components/dashboard/citation-sources-chart';
 import type { SentimentSliceData } from '@/components/dashboard/sentiment-donut-chart';
 import type { RecentAuditRun } from '@/components/dashboard/recent-activity-table';
+import { resolveCompetitorsWithAiResults } from '@/lib/competitors/discovered-competitors';
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
@@ -372,7 +373,58 @@ export default async function DashboardPage() {
       createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
       timeAgo: '45m ago',
     },
+    {
+      id: 'run-8',
+      promptId: 'prompt-seed-8',
+      queryText: isConsumer
+        ? `Athleta vs ${brandName}: studio fabric compression & waistband comfort comparison`
+        : `HubSpot vs ${brandName}: platform feature analysis for 2026`,
+      engine: 'ChatGPT',
+      visibilityScore: 84,
+      brandMentioned: true,
+      sentiment: 'positive',
+      sentimentScore: 0.81,
+      citedUrlsCount: 3,
+      citedUrls: [
+        'https://athleta.gap.com/browse/category',
+        'https://thestrategist.com/best-leggings',
+      ],
+      createdAt: new Date(Date.now() - 1000 * 60 * 110).toISOString(),
+      timeAgo: '1.8h ago',
+    },
+    {
+      id: 'run-9',
+      promptId: 'prompt-seed-9',
+      queryText: isConsumer
+        ? `Nike training gear vs ${brandName}: durability and gym workout performance`
+        : `Salesforce vs ${brandName}: enterprise data integration benchmarks`,
+      engine: 'Perplexity',
+      visibilityScore: 88,
+      brandMentioned: true,
+      sentiment: 'positive',
+      sentimentScore: 0.86,
+      citedUrlsCount: 3,
+      citedUrls: [
+        'https://nike.com/training',
+        'https://runnersworld.com/gear/reviews',
+      ],
+      createdAt: new Date(Date.now() - 1000 * 60 * 210).toISOString(),
+      timeAgo: '3.5h ago',
+    },
   ];
+
+  // Resolve all competitors: combines brand profile competitors with ANY competitor detected in AI results
+  const {
+    competitors: resolvedCompetitors,
+    fullSovTrendData: resolvedSovTrendData,
+    runs: enrichedRuns,
+  } = resolveCompetitorsWithAiResults({
+    brandKit,
+    runs: recentRuns,
+    isConsumer,
+    brandName,
+    fullSovTrendData,
+  });
 
   return (
     <AppSidebarLayout project={project}>
@@ -396,12 +448,12 @@ export default async function DashboardPage() {
         {/* MASTER INTERACTIVE DASHBOARD VIEW */}
         <DashboardClientView
           initialSummaryMetrics={summaryMetrics}
-          fullSovTrendData={fullSovTrendData}
+          fullSovTrendData={resolvedSovTrendData}
           initialEngineScores={engineComparisonData}
           initialCitationDomains={citationDomains}
           initialSentimentSlices={sentimentSlices}
-          initialRuns={recentRuns}
-          competitors={competitors}
+          initialRuns={enrichedRuns}
+          competitors={resolvedCompetitors}
           brandName={brandName}
         />
       </div>

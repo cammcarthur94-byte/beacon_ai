@@ -35,6 +35,7 @@ export interface CompetitorMeta {
   id: string;
   name: string;
   color: string;
+  isUnlisted?: boolean;
 }
 
 interface SovTrendChartProps {
@@ -50,9 +51,10 @@ interface CustomTooltipProps {
   active?: boolean;
   payload?: any[];
   label?: string;
+  competitors?: CompetitorMeta[];
 }
 
-function CustomMultiLineTooltip({ active, payload, label }: CustomTooltipProps) {
+function CustomMultiLineTooltip({ active, payload, label, competitors = [] }: CustomTooltipProps) {
   if (active && payload && payload.length) {
     const rawPoint = payload[0]?.payload as MultiLineSovDataPoint;
     const shiftDriver = rawPoint?.shiftDriver;
@@ -61,15 +63,24 @@ function CustomMultiLineTooltip({ active, payload, label }: CustomTooltipProps) 
       <div className={cn(chartTooltipContainerClass, 'max-w-xs shadow-xl')}>
         <p className="text-zinc-500 font-semibold mb-1.5">{label}</p>
         <div className="space-y-1">
-          {payload.map((entry) => (
-            <div key={entry.name} className="flex items-center justify-between gap-4 text-xs">
-              <span className="flex items-center gap-1.5 font-medium text-zinc-700">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                {entry.name}:
-              </span>
-              <span className="font-bold text-zinc-900">{entry.value}%</span>
-            </div>
-          ))}
+          {payload.map((entry) => {
+            const comp = competitors.find((c) => c.name === entry.name);
+            return (
+              <div key={entry.name} className="flex items-center justify-between gap-4 text-xs">
+                <span className="flex items-center gap-1.5 font-medium text-zinc-700">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                  <span>{entry.name}</span>
+                  {comp?.isUnlisted && (
+                    <span className="text-[9px] px-1 py-0.2 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                      AI Detected
+                    </span>
+                  )}
+                  :
+                </span>
+                <span className="font-bold text-zinc-900">{entry.value}%</span>
+              </div>
+            );
+          })}
         </div>
 
         {shiftDriver && (
@@ -133,7 +144,7 @@ export function SovTrendChart({
             domain={[0, 100]}
             tickFormatter={(val) => `${val}%`}
           />
-          <Tooltip content={<CustomMultiLineTooltip />} />
+          <Tooltip content={<CustomMultiLineTooltip competitors={competitors} />} />
 
           {/* Primary Brand Line (Vivid Emerald) */}
           {!isBrandHidden && (
@@ -210,6 +221,11 @@ export function SovTrendChart({
           >
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: comp.color || '#8b5cf6' }} />
             <span>{comp.name}</span>
+            {comp.isUnlisted && (
+              <span className="ml-1 text-[9px] font-sans px-1.5 py-0.2 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-medium">
+                AI Detected
+              </span>
+            )}
           </button>
         );
       })}

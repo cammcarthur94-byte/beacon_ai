@@ -39,6 +39,7 @@ export interface RecentAuditRun {
   citedUrls?: string[];
   createdAt: string;
   timeAgo: string;
+  competitorsMentioned?: Array<{ name: string; isUnlisted?: boolean }>;
 }
 
 export type ActivityTableStatusFilter = 'all' | 'mentioned' | 'missing';
@@ -276,6 +277,30 @@ export function RecentActivityTable({
                         <span>&quot;{run.queryText}&quot;</span>
                         <ExternalLink className="h-3 w-3 text-zinc-400 group-hover:text-zinc-900 shrink-0" />
                       </Link>
+                      {run.competitorsMentioned && run.competitorsMentioned.length > 0 && (
+                        <div className="flex items-center gap-1 flex-wrap mt-1">
+                          <span className="text-[10px] text-zinc-400 font-normal">AI surfaced:</span>
+                          {run.competitorsMentioned.map((comp) => (
+                            <span
+                              key={comp.name}
+                              className={cn(
+                                'inline-flex items-center text-[10px] px-1.5 py-0.2 rounded font-mono',
+                                comp.isUnlisted
+                                  ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                                  : 'bg-zinc-100 text-zinc-700 border border-zinc-200'
+                              )}
+                              title={comp.isUnlisted ? 'Detected in AI search results (unlisted competitor)' : 'Configured brand profile competitor'}
+                            >
+                              {comp.name}
+                              {comp.isUnlisted && (
+                                <span className="ml-1 text-[8px] uppercase tracking-wider font-semibold text-amber-600">
+                                  AI
+                                </span>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </TableCell>
 
                     {/* Engine */}
