@@ -76,7 +76,7 @@ export async function createProjectWithBrandKit(
 
   // Fallback for local development if live credentials aren't set
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    const mockProjectId = 'demo-project-' + Date.now();
+    const mockProjectId = 'project-' + Date.now();
     const demoProject = {
       id: mockProjectId,
       name: brandName,
@@ -87,6 +87,7 @@ export async function createProjectWithBrandKit(
       created_at: new Date().toISOString(),
     };
 
+    cookieStore.delete('beacon_demo_prompts');
     cookieStore.set('beacon_active_project', JSON.stringify(demoProject), {
       path: '/',
       maxAge: 60 * 60 * 24 * 7,

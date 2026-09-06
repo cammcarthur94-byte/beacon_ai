@@ -80,6 +80,18 @@ export function getEngineMeta(engineName: string) {
       dotColor: '#06b6d4',
     };
   }
+  if (e.includes('copilot_search') || e.includes('copilot search')) {
+    return {
+      id: 'copilot_search',
+      domain: 'bing.com',
+      label: 'Copilot Search',
+      colorClass: 'border-sky-200 bg-sky-50 text-sky-800',
+      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
+      iconColor: 'text-sky-600',
+      containerClass: 'bg-sky-50 text-sky-700 border-sky-200/80',
+      dotColor: '#0284c7',
+    };
+  }
   if (e.includes('copilot') || e.includes('bing') || e.includes('microsoft')) {
     return {
       id: 'copilot',
@@ -216,6 +228,24 @@ export function EngineIcon({
       >
         <title>Google Gemini</title>
         <path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81" />
+      </svg>
+    );
+  }
+
+  if (e.includes('copilot_search') || e.includes('copilot search')) {
+    return (
+      <svg
+        role="img"
+        viewBox="0 0 24 24"
+        width={size}
+        height={size}
+        fill="currentColor"
+        className={className}
+        aria-hidden="true"
+      >
+        <title>Copilot Search</title>
+        <path d="M10 2a8 8 0 105.293 14.707l4.387 4.386a1 1 0 001.414-1.414l-4.386-4.387A8 8 0 0010 2zm-6 8a6 6 0 1112 0 6 6 0 01-12 0z" />
+        <path d="M10 6a4 4 0 00-4 4 1 1 0 102 0 2 2 0 012-2 1 1 0 100-2z" />
       </svg>
     );
   }

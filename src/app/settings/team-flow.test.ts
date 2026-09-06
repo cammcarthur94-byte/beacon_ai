@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   inviteTeamMember,
   getInvitationByToken,
@@ -28,9 +28,21 @@ vi.mock('next/cache', () => ({
 describe('Team Member Invitation & RBAC Flow', () => {
   beforeEach(() => {
     cookieStore.clear();
+    cookieStore.set('beacon_active_project', {
+      value: JSON.stringify({ id: 'brand-alpha', tier: 'pro' }),
+    });
   });
 
-  it('generates an invitation with a secure token and shareable link', async () => {
+  it('rejects invitations on starter tier when seat limit of 1 is reached', async () => {
+    cookieStore.set('beacon_active_project', {
+      value: JSON.stringify({ id: 'brand-alpha', tier: 'starter' }),
+    });
+    const res = await inviteTeamMember('brand-alpha', 'newuser@tenant.com', 'editor');
+    expect(res.success).toBe(false);
+    expect(res.error).toContain('limit reached');
+  });
+
+  it('generates an invitation with a secure token and shareable link on pro tier', async () => {
     const res = await inviteTeamMember('proj-123', 'newuser@tenant.com', 'editor');
     expect(res.success).toBe(true);
     expect(res.invite).toBeDefined();
@@ -80,8 +92,8 @@ describe('Team Member Invitation & RBAC Flow', () => {
 
   it('allows owner or admin to customize role permissions and enforce them', async () => {
     const customConfig: RolePermissionsConfig = {
-      owner: ['manage_billing', 'manage_team', 'edit_brand_kit', 'manage_prompts', 'trigger_audits', 'content_studio_pitches', 'export_reports', 'view_telemetry'],
-      admin: ['manage_billing', 'manage_team', 'edit_brand_kit', 'manage_prompts', 'trigger_audits', 'content_studio_pitches', 'export_reports', 'view_telemetry'],
+      owner: ['manage_billing', 'manage_team', 'edit_brand_kit', 'manage_prompts', 'trigger_audits', 'export_reports', 'view_telemetry'],
+      admin: ['manage_billing', 'manage_team', 'edit_brand_kit', 'manage_prompts', 'trigger_audits', 'export_reports', 'view_telemetry'],
       editor: ['trigger_audits', 'edit_brand_kit', 'view_telemetry'], // granted brand kit!
       viewer: ['view_telemetry'],
     };

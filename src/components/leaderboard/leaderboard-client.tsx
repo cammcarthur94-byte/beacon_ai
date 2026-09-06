@@ -41,6 +41,8 @@ import type { CompetitorSovEntry, LeaderboardResponse } from '@/app/api/leaderbo
 const ENGINES = [
   { id: 'all', label: 'All Engines' },
   { id: 'chatgpt', label: 'ChatGPT' },
+  { id: 'copilot', label: 'Microsoft Copilot' },
+  { id: 'copilot_search', label: 'Copilot Search' },
   { id: 'gemini', label: 'Gemini' },
   { id: 'claude', label: 'Claude' },
   { id: 'perplexity', label: 'Perplexity' },
@@ -426,6 +428,24 @@ export function LeaderboardClient() {
                           <span className="text-cyan-800 font-bold">PER:</span>
                           <span>{entry.engineBreakdown.perplexity.share}%</span>
                         </span>
+                        {entry.engineBreakdown.copilot && (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-mono bg-sky-100/70 border border-sky-300 text-sky-950 font-semibold shadow-2xs"
+                            title="Microsoft Copilot share"
+                          >
+                            <span className="text-sky-800 font-bold">COP:</span>
+                            <span>{entry.engineBreakdown.copilot.share}%</span>
+                          </span>
+                        )}
+                        {entry.engineBreakdown.copilot_search && (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-mono bg-indigo-100/70 border border-indigo-300 text-indigo-950 font-semibold shadow-2xs"
+                            title="Copilot Search share"
+                          >
+                            <span className="text-indigo-800 font-bold">CPS:</span>
+                            <span>{entry.engineBreakdown.copilot_search.share}%</span>
+                          </span>
+                        )}
                       </div>
                     </TableCell>
 

@@ -24,6 +24,7 @@ import {
 } from '@/lib/chart-theme';
 
 import { DomainFavicon } from '@/components/citations/domain-favicon';
+import { ChartExpandButton, ExpandableChartModal } from '@/components/charts/expandable-chart-modal';
 
 export interface CitationDomainItem {
   domain: string;
@@ -111,6 +112,8 @@ export function CitationSourcesChart({
   onSelectDomain,
   brandName,
 }: CitationSourcesChartProps) {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+
   const handleBarClick = (entry: CitationDomainItem) => {
     if (selectedDomain === entry.domain) {
       onSelectDomain(null);
@@ -122,100 +125,127 @@ export function CitationSourcesChart({
   // Unified single color for all bars per user request
   const UNIFIED_BAR_COLOR = '#10b981';
 
-  return (
-    <Card className="border-zinc-200 bg-white shadow-xs flex flex-col justify-between">
-      <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2">
-        <div className="space-y-0.5">
-          <CardTitle className="text-base font-semibold text-zinc-900 flex items-center gap-1.5 font-sans">
-            <Link2 className="h-4 w-4 text-emerald-600" />
-            Top Websites Citing Your Brand
-          </CardTitle>
-          <CardDescription className="text-xs text-zinc-500 font-sans">
-            Top websites AI tools link to when recommending <span className="text-zinc-900 font-medium">{brandName}</span>
-          </CardDescription>
-        </div>
-        {selectedDomain && (
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-sans bg-zinc-100 text-zinc-800 border border-zinc-200 px-2.5 py-0.5 rounded-full">
-              <DomainFavicon domain={selectedDomain} size="xs" />
-              <span>Filtered: {selectedDomain}</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => onSelectDomain(null)}
-              className="text-xs font-sans text-emerald-600 hover:text-emerald-700 underline cursor-pointer"
-            >
-              Clear
-            </button>
-          </div>
-        )}
-      </CardHeader>
+  const renderHorizontalBars = (heightClass = 'h-[255px]') => (
+    <div className={cn(heightClass, 'w-full')}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          layout="vertical"
+          margin={{ top: 5, right: 45, left: 10, bottom: 5 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="var(--chart-grid)"
+            vertical={true}
+            horizontal={false}
+          />
+          <XAxis
+            type="number"
+            domain={[0, 60]}
+            ticks={[0, 15, 30, 45, 60]}
+            {...chartXAxisProps}
+            tickFormatter={(v) => `${v}`}
+          />
+          <YAxis
+            type="category"
+            dataKey="domain"
+            {...chartYAxisProps}
+            width={145}
+            tick={<CustomDomainYAxisTick />}
+          />
+          <Tooltip content={<CustomCitationTooltip />} />
+          <Bar
+            dataKey="citations"
+            radius={[0, 4, 4, 0]}
+            cursor="pointer"
+            onClick={(_, index) => handleBarClick(data[index])}
+          >
+            <LabelList
+              dataKey="citations"
+              position="right"
+              fill="#18181b"
+              fontSize={12}
+              fontWeight={600}
+              fontFamily="'Google Sans', 'Open Sans', sans-serif"
+              offset={8}
+            />
+            {data.map((entry) => {
+              const isSelected = selectedDomain === entry.domain;
+              const isAnySelected = Boolean(selectedDomain);
+              const opacity = isAnySelected ? (isSelected ? 1 : 0.35) : 1;
 
-      <CardContent className="pt-2 flex flex-col justify-between flex-1 pb-4">
-        <div className="h-[255px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={data}
-              layout="vertical"
-              margin={{ top: 5, right: 45, left: 10, bottom: 5 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--chart-grid)"
-                vertical={true}
-                horizontal={false}
-              />
-              <XAxis
-                type="number"
-                domain={[0, 60]}
-                ticks={[0, 15, 30, 45, 60]}
-                {...chartXAxisProps}
-                tickFormatter={(v) => `${v}`}
-              />
-              <YAxis
-                type="category"
-                dataKey="domain"
-                {...chartYAxisProps}
-                width={145}
-                tick={<CustomDomainYAxisTick />}
-              />
-              <Tooltip content={<CustomCitationTooltip />} />
-              <Bar
-                dataKey="citations"
-                radius={[0, 4, 4, 0]}
-                cursor="pointer"
-                onClick={(_, index) => handleBarClick(data[index])}
-              >
-                <LabelList
-                  dataKey="citations"
-                  position="right"
-                  fill="#18181b"
-                  fontSize={12}
-                  fontWeight={600}
-                  fontFamily="'Google Sans', 'Open Sans', sans-serif"
-                  offset={8}
+              return (
+                <Cell
+                  key={entry.domain}
+                  fill={UNIFIED_BAR_COLOR}
+                  opacity={opacity}
+                  stroke={isSelected ? '#059669' : 'none'}
+                  strokeWidth={isSelected ? 2 : 0}
+                  className="transition-all duration-150"
                 />
-                {data.map((entry) => {
-                  const isSelected = selectedDomain === entry.domain;
-                  const isAnySelected = Boolean(selectedDomain);
-                  const opacity = isAnySelected ? (isSelected ? 1 : 0.35) : 1;
+              );
+            })}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
 
-                  return (
-                    <Cell
-                      key={entry.domain}
-                      fill={UNIFIED_BAR_COLOR}
-                      opacity={opacity}
-                      stroke={isSelected ? '#059669' : 'none'}
-                      strokeWidth={isSelected ? 2 : 0}
-                      className="transition-all duration-150"
-                    />
-                  );
-                })}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+  return (
+    <>
+      <Card className="border-zinc-200 bg-white shadow-xs flex flex-col justify-between">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2">
+          <div className="space-y-0.5">
+            <CardTitle className="text-base font-semibold text-zinc-900 flex items-center gap-1.5 font-sans">
+              <Link2 className="h-4 w-4 text-emerald-600" />
+              Top Websites Citing Your Brand
+            </CardTitle>
+            <CardDescription className="text-xs text-zinc-500 font-sans">
+              Top websites AI tools link to when recommending <span className="text-zinc-900 font-medium">{brandName}</span>
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            {selectedDomain && (
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-sans bg-zinc-100 text-zinc-800 border border-zinc-200 px-2.5 py-0.5 rounded-full">
+                  <DomainFavicon domain={selectedDomain} size="xs" />
+                  <span>Filtered: {selectedDomain}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onSelectDomain(null)}
+                  className="text-xs font-sans text-emerald-600 hover:text-emerald-700 underline cursor-pointer"
+                >
+                  Clear
+                </button>
+              </div>
+            )}
+            <ChartExpandButton onClick={() => setIsModalOpen(true)} />
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-2 flex flex-col justify-between flex-1 pb-4">
+          {renderHorizontalBars('h-[255px]')}
+        </CardContent>
+      </Card>
+
+      <ExpandableChartModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Top Websites Citing Your Brand"
+        description={`Top websites AI tools link to when recommending ${brandName}.`}
+        exportFilename="top-citing-websites"
+        csvData={data.map((d) => ({
+          Domain: d.domain,
+          Citations: d.citations,
+          Percentage: `${d.percentage}%`,
+          Owned: d.isBrandDomain ? 'Yes' : 'No',
+        }))}
+      >
+        <div className="w-full h-full flex flex-col justify-center">
+          {renderHorizontalBars('h-[380px] sm:h-[420px]')}
         </div>
-      </CardContent>
-    </Card>
+      </ExpandableChartModal>
+    </>
   );
 }

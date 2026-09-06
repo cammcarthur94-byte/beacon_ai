@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useState, useMemo, useEffect } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Table,
   TableHeader,
@@ -34,7 +34,6 @@ import {
   CheckCircle2,
   Copy,
   MessageSquare,
-  ArrowRight,
   X,
   RefreshCw,
   SlidersHorizontal,
@@ -47,6 +46,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { DomainFavicon } from '@/components/citations/domain-favicon';
+import { QuickContentStudioDrawer } from './quick-content-studio-drawer';
 import { cn } from '@/lib/utils';
 import type { AuthorityGapItem } from '@/app/api/authority-gap/route';
 
@@ -64,6 +64,7 @@ interface AuthorityGapResponse {
 }
 
 export function AuthorityGapClient() {
+  const router = useRouter();
   const [data, setData] = useState<AuthorityGapResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,25 +74,6 @@ export function AuthorityGapClient() {
 
   // Drawer state
   const [activeDrawerGap, setActiveDrawerGap] = useState<AuthorityGapItem | null>(null);
-  const [pitchLoading, setPitchLoading] = useState(false);
-  const [selectedVariationIndex, setSelectedVariationIndex] = useState(0);
-  const [pitchData, setPitchData] = useState<{
-    pitchSubject: string;
-    pitchBody: string;
-    editorAngle: string;
-    suggestedHook: string;
-    variations?: Array<{
-      id: string;
-      angleTitle: string;
-      targetAngle: string;
-      subject: string;
-      body: string;
-      editorHook: string;
-      keyDifferentiator: string;
-    }>;
-  } | null>(null);
-  const [copiedSubject, setCopiedSubject] = useState(false);
-  const [copiedBody, setCopiedBody] = useState(false);
 
   // Fetch initial gap data
   const fetchGaps = async () => {
@@ -146,55 +128,7 @@ export function AuthorityGapClient() {
     });
   }, [data?.gaps, searchQuery, selectedType, minDa, selectedCompetitor]);
 
-  // Open Sentinel Drawer and fetch pitch
-  const handleOpenPitchDrawer = async (gap: AuthorityGapItem) => {
-    setActiveDrawerGap(gap);
-    setPitchLoading(true);
-    setPitchData(null);
-    setCopiedSubject(false);
-    setCopiedBody(false);
 
-    try {
-      const primaryComp = gap.competitorsCited[0]?.name || 'Competitors';
-      const res = await fetch('/api/authority-gap', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          domain: gap.domain,
-          relevanceTopic: gap.relevanceTopic,
-          competitorName: primaryComp,
-          brandName: data?.brandName || 'Our Brand',
-        }),
-      });
-
-      if (res.ok) {
-        const pitch = await res.json();
-        setPitchData({
-          pitchSubject: pitch.pitchSubject,
-          pitchBody: pitch.pitchBody,
-          editorAngle: pitch.editorAngle,
-          suggestedHook: pitch.suggestedHook,
-          variations: pitch.variations || [],
-        });
-        setSelectedVariationIndex(0);
-      }
-    } catch (err) {
-      console.error('Failed to generate pitch:', err);
-    } finally {
-      setPitchLoading(false);
-    }
-  };
-
-  const handleCopy = (text: string, type: 'subject' | 'body') => {
-    navigator.clipboard.writeText(text);
-    if (type === 'subject') {
-      setCopiedSubject(true);
-      setTimeout(() => setCopiedSubject(false), 2000);
-    } else {
-      setCopiedBody(true);
-      setTimeout(() => setCopiedBody(false), 2000);
-    }
-  };
 
   const activeFiltersCount =
     (selectedType !== 'all' ? 1 : 0) +
@@ -238,16 +172,6 @@ export function AuthorityGapClient() {
             <RefreshCw className={cn('h-3.5 w-3.5 mr-2 text-slate-500', loading && 'animate-spin')} />
             Refresh Targets
           </Button>
-
-          <Link href="/consultant">
-            <Button
-              size="sm"
-              className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm"
-            >
-              <Sparkles className="h-3.5 w-3.5 mr-2" />
-              Open Content Studio
-            </Button>
-          </Link>
         </div>
       </div>
 
@@ -714,7 +638,7 @@ export function AuthorityGapClient() {
                       <TableCell className="text-right pr-6 py-4">
                         <Button
                           size="sm"
-                          onClick={() => handleOpenPitchDrawer(item)}
+                          onClick={() => setActiveDrawerGap(item)}
                           className="h-8 px-3 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-semibold shadow-none transition-all group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 cursor-pointer"
                         >
                           <Sparkles className="h-3 w-3 mr-1.5" />
@@ -730,237 +654,13 @@ export function AuthorityGapClient() {
         </div>
       </div>
 
-      {/* Slide-out Beacon Sentinel Drawer */}
-      {activeDrawerGap && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
-            onClick={() => setActiveDrawerGap(null)}
-          />
-
-          {/* Drawer Panel */}
-          <div className="relative w-full max-w-xl bg-white h-full shadow-2xl z-10 flex flex-col overflow-hidden border-l border-slate-200 animate-in slide-in-from-right duration-300">
-            {/* Drawer Header */}
-            <div className="p-6 border-b border-slate-200 bg-slate-50/70 flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="h-6 w-6 rounded-md bg-emerald-600 flex items-center justify-center text-white">
-                    <Sparkles className="h-3.5 w-3.5" />
-                  </div>
-                  <h2 className="text-base font-bold text-slate-900">
-                    Editorial Pitch Outreach
-                  </h2>
-                </div>
-                <p className="text-xs text-slate-500">
-                  AI-engineered editorial pitch variations to displace competitors on{' '}
-                  <span className="font-semibold text-slate-800">{activeDrawerGap.domain}</span>
-                </p>
-              </div>
-
-              <button
-                onClick={() => setActiveDrawerGap(null)}
-                className="rounded-lg p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Drawer Body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-5">
-              {/* Target Metadata Card */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-medium">Target Publication</span>
-                  <span className="font-bold text-slate-900 flex items-center gap-1.5">
-                    <DomainFavicon domain={activeDrawerGap.domain} className="h-4 w-4 rounded" />
-                    {activeDrawerGap.domain}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-medium">Domain Authority</span>
-                  <span className="font-semibold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
-                    {activeDrawerGap.domainAuthority} / 100 DA
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-medium">Displacing Competitor</span>
-                  <span className="font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                    {activeDrawerGap.competitorsCited[0]?.name || 'Competitors'}
-                  </span>
-                </div>
-                <div className="pt-2 border-t border-slate-200/80">
-                  <span className="text-xs text-slate-500 block mb-1">Target Article / Topic:</span>
-                  <p className="text-xs font-semibold text-slate-800">
-                    {activeDrawerGap.relevanceTopic}
-                  </p>
-                </div>
-              </div>
-
-              {/* Pitch Generation Area */}
-              {pitchLoading ? (
-                <div className="h-64 flex flex-col items-center justify-center text-center gap-3">
-                  <RefreshCw className="h-6 w-6 animate-spin text-emerald-600" />
-                  <p className="text-xs font-semibold text-slate-800">
-                    Synthesizing 3 brand-tailored pitch angles...
-                  </p>
-                  <p className="text-[11px] text-slate-400 max-w-xs">
-                    Generating benchmark hooks, review unit collaboration, and direct executive angles
-                  </p>
-                </div>
-              ) : pitchData ? (
-                <div className="space-y-4">
-                  {/* 3 Variations Tab Selector if available */}
-                  {pitchData.variations && pitchData.variations.length > 0 && (
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">
-                        Select Pitch Angle (3 Tailored Examples)
-                      </label>
-                      <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-lg border border-slate-200">
-                        {pitchData.variations.map((v, idx) => (
-                          <button
-                            key={v.id}
-                            onClick={() => setSelectedVariationIndex(idx)}
-                            className={`px-2 py-1.5 rounded-md text-left text-xs transition-all ${
-                              selectedVariationIndex === idx
-                                ? 'bg-white text-slate-950 font-bold shadow-2xs'
-                                : 'text-slate-600 hover:text-slate-900 font-medium'
-                            }`}
-                          >
-                            <span className="text-[10px] font-mono block text-emerald-800 uppercase font-bold truncate">
-                              Angle {idx + 1}
-                            </span>
-                            <span className="text-[11px] block leading-tight truncate">
-                              {v.angleTitle.split('&')[0].trim()}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Strategic Hook */}
-                  <div className="p-3.5 rounded-lg bg-emerald-50/70 border border-emerald-200">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-900 mb-1">
-                      <Sparkles className="h-3.5 w-3.5 text-emerald-700" />
-                      {pitchData.variations?.[selectedVariationIndex]?.angleTitle || 'Strategic Hook'}
-                    </div>
-                    <p className="text-xs text-emerald-950 leading-relaxed">
-                      {pitchData.variations?.[selectedVariationIndex]?.editorHook || pitchData.suggestedHook}
-                    </p>
-                  </div>
-
-                  {/* Subject Line */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-slate-700">Email Subject Line</label>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          handleCopy(
-                            pitchData.variations?.[selectedVariationIndex]?.subject || pitchData.pitchSubject,
-                            'subject'
-                          )
-                        }
-                        className="h-7 text-[11px] text-slate-500 hover:text-emerald-700 px-2"
-                      >
-                        {copiedSubject ? (
-                          <CheckCircle2 className="h-3 w-3 text-emerald-600 mr-1" />
-                        ) : (
-                          <Copy className="h-3 w-3 mr-1" />
-                        )}
-                        {copiedSubject ? 'Copied!' : 'Copy Subject'}
-                      </Button>
-                    </div>
-                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 font-semibold">
-                      {pitchData.variations?.[selectedVariationIndex]?.subject || pitchData.pitchSubject}
-                    </div>
-                  </div>
-
-                  {/* Pitch Body */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-slate-700">Editorial Pitch Body</label>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          handleCopy(
-                            pitchData.variations?.[selectedVariationIndex]?.body || pitchData.pitchBody,
-                            'body'
-                          )
-                        }
-                        className="h-7 text-[11px] text-slate-500 hover:text-emerald-700 px-2"
-                      >
-                        {copiedBody ? (
-                          <CheckCircle2 className="h-3 w-3 text-emerald-600 mr-1" />
-                        ) : (
-                          <Copy className="h-3 w-3 mr-1" />
-                        )}
-                        {copiedBody ? 'Copied!' : 'Copy Pitch'}
-                      </Button>
-                    </div>
-                    <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 whitespace-pre-wrap font-sans leading-relaxed max-h-56 overflow-y-auto">
-                      {pitchData.variations?.[selectedVariationIndex]?.body || pitchData.pitchBody}
-                    </div>
-                  </div>
-
-                  <div className="pt-2 flex items-center justify-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const s = pitchData.variations?.[selectedVariationIndex]?.subject || pitchData.pitchSubject;
-                        const b = pitchData.variations?.[selectedVariationIndex]?.body || pitchData.pitchBody;
-                        handleCopy(`Subject: ${s}\n\n${b}`, 'body');
-                        toast.success('Full email copied to clipboard!');
-                      }}
-                      className="text-xs border-slate-200 text-slate-700 bg-white hover:bg-slate-50 font-medium"
-                    >
-                      <Copy className="h-3.5 w-3.5 mr-1.5" />
-                      Copy Complete Pitch
-                    </Button>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            {/* Drawer Footer */}
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setActiveDrawerGap(null)}
-                  className="text-xs border-slate-200 text-slate-600"
-                >
-                  Close
-                </Button>
-              </div>
-
-              <Link
-                href={`/consultant?tab=email&domain=${encodeURIComponent(
-                  activeDrawerGap.domain
-                )}&topic=${encodeURIComponent(
-                  activeDrawerGap.relevanceTopic
-                )}&competitor=${encodeURIComponent(
-                  activeDrawerGap.competitorsCited[0]?.name || ''
-                )}`}
-              >
-                <Button
-                  size="sm"
-                  className="text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shadow-2xs"
-                >
-                  <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                  Open in Content Studio
-                  <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Quick Content Studio Right Slide-Over Drawer */}
+      <QuickContentStudioDrawer
+        gap={activeDrawerGap}
+        brandName={data?.brandName || 'Our Brand'}
+        isOpen={!!activeDrawerGap}
+        onClose={() => setActiveDrawerGap(null)}
+      />
     </div>
   );
 }

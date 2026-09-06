@@ -25,16 +25,21 @@ export async function signInWithEmail(
 
   // Fallback for local development if Supabase cloud isn't connected yet
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || process.env.ALLOW_FALLBACK_AUTH === 'true') {
       const cookieStore = await cookies();
-      cookieStore.set('beacon_demo_user', JSON.stringify({ email, id: 'demo-user-id' }), {
+      const userPayload = JSON.stringify({ email, id: 'demo-user-id' });
+      cookieStore.set('beacon_demo_user', userPayload, {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      cookieStore.set('beacon_auth_user', userPayload, {
         path: '/',
         maxAge: 60 * 60 * 24 * 7,
       });
 
-      // Check if demo project cookie exists
-      const demoProject = cookieStore.get('beacon_active_project');
-      if (!demoProject) {
+      // Check if active project cookie exists
+      const activeProject = cookieStore.get('beacon_active_project');
+      if (!activeProject) {
         redirect('/onboarding');
       } else {
         redirect('/dashboard');
@@ -91,12 +96,20 @@ export async function signUpWithEmail(
 
   // Fallback for local development
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || process.env.ALLOW_FALLBACK_AUTH === 'true') {
       const cookieStore = await cookies();
-      cookieStore.set('beacon_demo_user', JSON.stringify({ email, fullName, id: 'demo-user-id' }), {
+      const userPayload = JSON.stringify({ email, fullName: fullName || email.split('@')[0], id: 'user-' + Date.now() });
+      cookieStore.set('beacon_demo_user', userPayload, {
         path: '/',
         maxAge: 60 * 60 * 24 * 7,
       });
+      cookieStore.set('beacon_auth_user', userPayload, {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      // Purge any stale active project and mock prompts so user starts with a clean slate
+      cookieStore.delete('beacon_active_project');
+      cookieStore.delete('beacon_demo_prompts');
       redirect('/onboarding');
     }
     return { error: 'Authentication service is not configured.' };
@@ -162,39 +175,7 @@ export async function signInWithGoogle() {
 }
 
 export async function signInAsDemo() {
-  const cookieStore = await cookies();
-  const demoProject = {
-    id: 'demo-project-lululemon',
-    name: 'Lululemon',
-    domain: 'lululemon.com',
-    tier: 'enterprise',
-    audit_limit: 100,
-    brand_kit: {
-      industry: 'Premium Athleisure & Athletic Apparel',
-      target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, gym-goers, and fitness lifestyle consumers',
-      core_offerings: 'Align Pant (Nulu fabric), Define Jacket, Wunder Train tights, ABC Joggers, Everywhere Belt Bag & technical athleisure',
-      competitors: [
-        { name: 'Alo Yoga', domain: 'aloyoga.com' },
-        { name: 'Vuori', domain: 'vuoriclothing.com' },
-        { name: 'Athleta', domain: 'athleta.gap.com' },
-      ],
-      tone_of_voice: 'Empowering, Mindful, Elevated, Performance-Driven',
-    },
-    created_at: new Date().toISOString(),
-  };
-
-  cookieStore.set('beacon_active_project', JSON.stringify(demoProject), {
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  });
-
-  cookieStore.set(
-    'beacon_demo_user',
-    JSON.stringify({ email: 'demo@lululemon.com', fullName: 'Lululemon Brand Director', id: 'demo-user-id' }),
-    { path: '/', maxAge: 60 * 60 * 24 * 7 }
-  );
-
-  redirect('/dashboard');
+  redirect('/onboarding');
 }
 
 export async function signOut() {
@@ -202,7 +183,9 @@ export async function signOut() {
   const cookieStore = await cookies();
 
   cookieStore.delete('beacon_demo_user');
+  cookieStore.delete('beacon_auth_user');
   cookieStore.delete('beacon_active_project');
+  cookieStore.delete('beacon_demo_prompts');
 
   try {
     await supabase.auth.signOut();

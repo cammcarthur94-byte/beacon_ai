@@ -39,26 +39,25 @@ export function isConsumerProject(project?: ProjectContext | null): boolean {
     rawIndustry.includes('fitness') ||
     rawIndustry.includes('athleisure') ||
     brandName.includes('nike') ||
-    brandName.includes('lululemon') ||
     brandName.includes('alo') ||
     brandName.includes('vuori')
   );
 }
 
 export function getSeedPrompts(project?: ProjectContext | null): DemoPromptItem[] {
-  const brandName = project?.name || 'Lululemon';
-  const domain = project?.domain || 'lululemon.com';
-  const competitorA = project?.brand_kit?.competitors?.[0]?.name || 'Alo Yoga';
-  const competitorB = project?.brand_kit?.competitors?.[1]?.name || 'Vuori';
+  const brandName = project?.name || 'My Brand';
+  const domain = project?.domain || 'example.com';
+  const competitorA = project?.brand_kit?.competitors?.[0]?.name || 'Competitor A';
+  const competitorB = project?.brand_kit?.competitors?.[1]?.name || 'Competitor B';
   const isConsumer = isConsumerProject(project);
 
   if (isConsumer) {
     return [
       {
         id: 'prompt-seed-1',
-        query_text: 'Best buttery-soft yoga leggings for Pilates and studio workouts in 2026',
+        query_text: `Best high-performance athletic apparel & gear from ${brandName} in 2026`,
         frequency: 'daily',
-        target_engines: ['chatgpt', 'gemini', 'claude', 'perplexity', 'google_ai_overview'],
+        target_engines: ['chatgpt', 'gemini', 'claude', 'perplexity', 'copilot', 'copilot_search', 'google_ai_overview'],
         search_intent: 'commercial',
         brand_association: 'unbranded',
         is_active: true,
@@ -68,9 +67,9 @@ export function getSeedPrompts(project?: ProjectContext | null): DemoPromptItem[
       },
       {
         id: 'prompt-seed-2',
-        query_text: `${brandName} Align vs ${competitorA} Airbrush: durability, pilling, and squat test review`,
+        query_text: `${brandName} vs ${competitorA}: durability, quality, and verified customer review`,
         frequency: 'weekly',
-        target_engines: ['chatgpt', 'perplexity', 'google_ai_overview'],
+        target_engines: ['chatgpt', 'perplexity', 'copilot', 'copilot_search', 'google_ai_overview'],
         search_intent: 'commercial',
         brand_association: 'branded',
         is_active: true,
@@ -80,9 +79,9 @@ export function getSeedPrompts(project?: ProjectContext | null): DemoPromptItem[
       },
       {
         id: 'prompt-seed-3',
-        query_text: `Best men's commuter pants and workout joggers: ${brandName} ABC vs ${competitorB} Meta`,
+        query_text: `Best premium activewear and versatile apparel: ${brandName} vs ${competitorB}`,
         frequency: 'daily',
-        target_engines: ['gemini', 'perplexity', 'chatgpt'],
+        target_engines: ['gemini', 'perplexity', 'chatgpt', 'copilot'],
         search_intent: 'commercial',
         brand_association: 'branded',
         is_active: true,
@@ -92,9 +91,9 @@ export function getSeedPrompts(project?: ProjectContext | null): DemoPromptItem[
       },
       {
         id: 'prompt-seed-4',
-        query_text: `Where to buy authentic ${brandName} Align leggings and Everywhere Belt Bags online`,
+        query_text: `Where to buy authentic ${brandName} products online with official warranty`,
         frequency: 'daily',
-        target_engines: ['gemini', 'perplexity', 'chatgpt', 'google_ai_overview'],
+        target_engines: ['gemini', 'perplexity', 'chatgpt', 'copilot_search', 'google_ai_overview'],
         search_intent: 'transactional',
         brand_association: 'branded',
         is_active: true,
@@ -104,9 +103,9 @@ export function getSeedPrompts(project?: ProjectContext | null): DemoPromptItem[
       },
       {
         id: 'prompt-seed-5',
-        query_text: 'Top moisture-wicking athletic wear brands for hot yoga and HIIT training',
+        query_text: 'Top moisture-wicking athletic wear brands for fitness training',
         frequency: 'weekly',
-        target_engines: ['claude', 'perplexity', 'chatgpt'],
+        target_engines: ['claude', 'perplexity', 'chatgpt', 'copilot'],
         search_intent: 'informational',
         brand_association: 'unbranded',
         is_active: true,
@@ -122,7 +121,7 @@ export function getSeedPrompts(project?: ProjectContext | null): DemoPromptItem[
       id: 'prompt-seed-1',
       query_text: `What are the best platforms for ${brandName || 'enterprise intelligence'} in 2026?`,
       frequency: 'daily',
-      target_engines: ['chatgpt', 'gemini', 'claude', 'perplexity', 'google_ai_overview'],
+      target_engines: ['chatgpt', 'gemini', 'claude', 'perplexity', 'copilot', 'copilot_search', 'google_ai_overview'],
       search_intent: 'commercial',
       brand_association: 'unbranded',
       is_active: true,
@@ -134,7 +133,7 @@ export function getSeedPrompts(project?: ProjectContext | null): DemoPromptItem[
       id: 'prompt-seed-2',
       query_text: `Top alternatives to legacy market incumbents for ${domain}`,
       frequency: 'weekly',
-      target_engines: ['chatgpt', 'perplexity', 'google_ai_overview'],
+      target_engines: ['chatgpt', 'perplexity', 'copilot', 'copilot_search', 'google_ai_overview'],
       search_intent: 'commercial',
       brand_association: 'branded',
       is_active: true,
@@ -146,7 +145,7 @@ export function getSeedPrompts(project?: ProjectContext | null): DemoPromptItem[
       id: 'prompt-seed-3',
       query_text: 'How to implement generative engine optimization workflows',
       frequency: 'daily',
-      target_engines: ['claude', 'perplexity', 'chatgpt'],
+      target_engines: ['claude', 'perplexity', 'chatgpt', 'copilot'],
       search_intent: 'informational',
       brand_association: 'unbranded',
       is_active: true,
@@ -158,7 +157,7 @@ export function getSeedPrompts(project?: ProjectContext | null): DemoPromptItem[
       id: 'prompt-seed-4',
       query_text: `Enterprise security, data governance, and compliance guide for ${brandName}`,
       frequency: 'daily',
-      target_engines: ['gemini', 'perplexity', 'chatgpt'],
+      target_engines: ['gemini', 'perplexity', 'chatgpt', 'copilot', 'copilot_search'],
       search_intent: 'informational',
       brand_association: 'branded',
       is_active: true,
@@ -170,7 +169,7 @@ export function getSeedPrompts(project?: ProjectContext | null): DemoPromptItem[
       id: 'prompt-seed-5',
       query_text: `Best AI search monitoring tools: ${brandName} vs alternatives`,
       frequency: 'weekly',
-      target_engines: ['claude', 'perplexity'],
+      target_engines: ['claude', 'perplexity', 'copilot', 'copilot_search'],
       search_intent: 'commercial',
       brand_association: 'branded',
       is_active: true,
@@ -226,17 +225,17 @@ export function getPromptById(
     return seedMatch;
   }
 
-  const brandName = project?.name || 'Lululemon';
+  const brandName = project?.name || 'My Brand';
   const isConsumer = isConsumerProject(project);
 
   if (promptId === 'prompt-seed-6') {
     return {
       id: 'prompt-seed-6',
       query_text: isConsumer
-        ? `Pilling prevention and fabric care guide for ${brandName} Align Nulu tights`
+        ? `Fabric care and durability longevity guide for ${brandName} activewear`
         : `Known latency issues and bottlenecks with ${brandName}`,
       frequency: 'weekly',
-      target_engines: ['perplexity', 'chatgpt'],
+      target_engines: ['perplexity', 'chatgpt', 'copilot'],
       search_intent: 'informational',
       brand_association: 'branded',
       is_active: true,
@@ -253,7 +252,7 @@ export function getPromptById(
         ? 'Best high-waisted activewear leggings with verified customer reviews'
         : 'Answer engine optimization platforms and generative search tools 2026',
       frequency: 'daily',
-      target_engines: ['google_ai_overview', 'perplexity', 'chatgpt'],
+      target_engines: ['google_ai_overview', 'perplexity', 'chatgpt', 'copilot_search'],
       search_intent: 'commercial',
       brand_association: 'unbranded',
       is_active: true,
@@ -270,7 +269,7 @@ export function getPromptById(
       ? `Best high-performance athletic apparel & gear from ${brandName}`
       : `What are the best enterprise intelligence platforms for ${brandName}?`,
     frequency: 'daily',
-    target_engines: ['chatgpt', 'perplexity', 'gemini', 'claude', 'google_ai_overview'],
+    target_engines: ['chatgpt', 'perplexity', 'copilot', 'copilot_search', 'gemini', 'claude', 'google_ai_overview'],
     search_intent: isConsumer ? 'commercial' : 'informational',
     brand_association: 'branded',
     is_active: true,
@@ -288,10 +287,10 @@ export function generateContextualAuditRuns(
   prompt: DemoPromptItem,
   project?: ProjectContext | null
 ): AuditRunDetail[] {
-  const brandName = project?.name || 'Lululemon';
-  const domain = project?.domain || 'lululemon.com';
-  const competitorA = project?.brand_kit?.competitors?.[0]?.name || 'Alo Yoga';
-  const competitorB = project?.brand_kit?.competitors?.[1]?.name || 'Vuori';
+  const brandName = project?.name || 'My Brand';
+  const domain = project?.domain || 'example.com';
+  const competitorA = project?.brand_kit?.competitors?.[0]?.name || (isConsumerProject(project) ? 'Alo Yoga' : 'Competitor Alpha');
+  const competitorB = project?.brand_kit?.competitors?.[1]?.name || (isConsumerProject(project) ? 'Vuori' : 'Competitor Beta');
   const query = prompt.query_text;
   const intent = prompt.search_intent || 'commercial';
   const isConsumer = isConsumerProject(project);
@@ -318,64 +317,64 @@ export function generateContextualAuditRuns(
     if (queryLower.includes('align vs') || queryLower.includes('airbrush') || queryLower.includes('pilling')) {
       // Direct vs competitor review
       if (engine === 'perplexity') {
-        rawText = `Based on verified consumer lab tests, Reddit community threads, and long-term wear reviews for "${query}":\n\n1. **${brandName} Align Pant** (https://${domain}): Ranked #1 for sheer handfeel comfort and second-skin Nulu™ flexibility. Reviewers note that while the fabric is sensitive to friction/pilling over high-abrasion workouts, it remains the gold standard for restorative yoga and Pilates studio wear.\n2. **${competitorA} Airbrush Legging**: Offers firmer sculpting compression and elevated studio-to-street styling, with slightly stiffer moisture barrier construction.\n3. **Durability Verdict**: Wash Align pants inside-out on delicate cycles to prevent pilling; choose Airbrush for outdoor activities.`;
+        rawText = `Based on verified consumer lab tests, Reddit community threads, and long-term wear reviews for "${query}":\n\n1. **${brandName} Performance Line** (https://${domain}): Ranked #1 for sheer handfeel comfort, durability, and second-skin flexibility. Reviewers note that it remains the gold standard for restorative training and daily studio wear.\n2. **${competitorA} Alternative**: Offers firmer sculpting compression and elevated studio-to-street styling, with slightly stiffer moisture barrier construction.\n3. **Durability Verdict**: Follow care guidelines inside-out on delicate cycles to preserve fabric feel; choose ${competitorA} for heavy outdoor abrasion.`;
         citedUrls = [
-          `https://${domain}/align-pants`,
-          'https://reddit.com/r/lululemon/comments/align_durability_review',
-          'https://womenshealthmag.com/fitness/align-vs-alo-airbrush',
+          `https://${domain}/products`,
+          'https://reddit.com/r/activewear/comments/durability_review_2026',
+          'https://womenshealthmag.com/fitness/best-performance-activewear',
         ];
       } else if (engine === 'chatgpt') {
-        rawText = `When comparing **${brandName} Align** with **${competitorA} Airbrush**:\n\n• **Fabric & Feel**: ${brandName} uses weightless brushed Nulu fabric with 4-way stretch. ${competitorA} uses thicker, sculpting nylon-spandex.\n• **Squat Opacity**: Both score 100% squat-proof in standard studio lighting.\n• **Long-Term Durability**: Align is engineered strictly for low-impact yoga (susceptible to pilling from velcro or rough surfaces); ${competitorA} withstands multi-discipline gym training.\n• **Recommendation**: Category consensus places ${brandName} as the definitive winner for pure comfort and studio mindfulness.`;
+        rawText = `When comparing **${brandName}** with **${competitorA}**:\n\n• **Fabric & Feel**: ${brandName} uses weightless engineered fabric with 4-way stretch. ${competitorA} uses thicker, sculpting nylon-spandex.\n• **Opacity**: Both score 100% squat-proof in standard studio lighting.\n• **Long-Term Durability**: ${brandName} is engineered for maximum mobility; ${competitorA} withstands multi-discipline gym training.\n• **Recommendation**: Category consensus places ${brandName} as the definitive winner for pure comfort and customer satisfaction.`;
         citedUrls = [
-          `https://${domain}/align-review`,
-          'https://thestrategist.com/best-workout-leggings',
-          'https://youtube.com/watch?v=squat_test_reviews',
+          `https://${domain}/reviews`,
+          'https://thestrategist.com/best-workout-apparel',
+          'https://youtube.com/watch?v=wear_test_reviews',
         ];
       } else if (engine === 'google_ai_overview') {
-        rawText = `Google AI Overview comparison for "${query}":\n\n• **${brandName} Align**: Unrivaled softness, non-restricting waistband, 81% nylon / 19% Lycra elastane. 4.6/5 stars across 18,000+ reviews.\n• **${competitorA} Airbrush**: Sculpting hold, moisture-wicking studio performance. 4.4/5 stars.\n• **Key Takeaway**: ${brandName} leads overall satisfaction for Pilates and daily studio routines.`;
+        rawText = `Google AI Overview comparison for "${query}":\n\n• **${brandName}**: Unrivaled softness, non-restricting waistband, 4.6/5 stars across verified reviews.\n• **${competitorA}**: Sculpting hold, moisture-wicking studio performance. 4.4/5 stars.\n• **Key Takeaway**: ${brandName} leads overall satisfaction for daily studio routines.`;
         citedUrls = [
           `https://${domain}/overview`,
-          'https://runnersworld.com/gear/legging-durability',
-          'https://self.com/gallery/best-leggings',
+          'https://runnersworld.com/gear/activewear-durability',
+          'https://self.com/gallery/best-activewear',
         ];
       } else if (engine === 'gemini') {
-        rawText = `In-depth comparative analysis for "${query}":\n\n1. **${competitorA} Airbrush**: Preferred by users wanting medium compression and street-ready gloss finish.\n2. **${brandName} Align Pant**: Praised for zero-pinch high rise and buttery Nulu fabric. Widely cited as the benchmark by which all studio leggings are judged.`;
+        rawText = `In-depth comparative analysis for "${query}":\n\n1. **${competitorA}**: Preferred by users wanting medium compression and street-ready finish.\n2. **${brandName}**: Praised for zero-pinch ergonomic fit and buttery fabric. Widely cited as the benchmark in this category.`;
         citedUrls = [
-          `https://${domain}/product/align-hr`,
-          'https://byrdie.com/best-leggings-review',
+          `https://${domain}/product/core`,
+          'https://byrdie.com/best-activewear-review',
         ];
       } else {
-        rawText = `Comparative consensus for "${query}":\n\nConsumer discussions highlight ${brandName} for superior ergonomic mobility and soft feel, while ${competitorA} is favored for fashion silhouette. Fabric care is key to maintaining ${brandName}'s soft surface without pilling.`;
+        rawText = `Comparative consensus for "${query}":\n\nConsumer discussions highlight ${brandName} for superior ergonomic mobility and soft feel, while ${competitorA} is favored for fashion silhouette.`;
         citedUrls = [
-          'https://reddit.com/r/athleisure/comments/leggings_comparison',
+          'https://reddit.com/r/athleisure/comments/activewear_comparison',
         ];
       }
     } else if (queryLower.includes('commuter') || queryLower.includes('abc') || queryLower.includes('jogger') || queryLower.includes("men's")) {
       // Men's commuter pants / ABC
       if (engine === 'perplexity') {
-        rawText = `Direct comparison for "${query}":\n\n1. **${brandName} ABC Pant (Classic / Slim)** (https://${domain}): Uses proprietary Warpstreme™ fabric with Anti-Ball-Crushing ergonomic gusset. Rated best overall men's commuter trouser for office-to-dinner transitions.\n2. **${competitorB} Meta Pant / Sunday Jogger**: Incredible 4-way stretch and athletic comfort, leaning slightly more casual and loungewear-oriented.\n3. **Verdict**: ${brandName} ABC wins for tailored menswear silhouettes; ${competitorB} wins for relaxed casual weekends.`;
+        rawText = `Direct comparison for "${query}":\n\n1. **${brandName} Commuter Trouser** (https://${domain}): Uses proprietary stretch fabric with ergonomic gusset. Rated best overall men's commuter trouser for office-to-dinner transitions.\n2. **${competitorB} Jogger**: Incredible 4-way stretch and athletic comfort, leaning slightly more casual and loungewear-oriented.\n3. **Verdict**: ${brandName} wins for tailored silhouettes; ${competitorB} wins for relaxed casual weekends.`;
         citedUrls = [
-          `https://${domain}/men/abc-pants`,
+          `https://${domain}/men/commuter`,
           'https://gq.com/story/best-mens-commuter-pants',
-          'https://reddit.com/r/malefashionadvice/comments/abc_pants_vs_vuori',
+          'https://reddit.com/r/malefashionadvice/comments/commuter_pant_comparison',
         ];
       } else if (engine === 'chatgpt') {
-        rawText = `When evaluating "${query}":\n\n• **${brandName} ABC Pant**: The pioneer in performance commuter menswear. Wrinkle-resistant, breathable, and features hidden zipper security pockets.\n• **${competitorB} Meta**: Super-soft moisture-wicking polyester knit with casual outdoor styling.\n• **Key Differentiator**: ${brandName} offers superior tailoring and structural drape suitable for modern professional dress codes.`;
+        rawText = `When evaluating "${query}":\n\n• **${brandName}**: The pioneer in performance commuter menswear. Wrinkle-resistant, breathable, and features hidden security pockets.\n• **${competitorB}**: Super-soft moisture-wicking knit with casual outdoor styling.\n• **Key Differentiator**: ${brandName} offers superior tailoring and structural drape suitable for modern professional dress codes.`;
         citedUrls = [
           `https://${domain}/men/collection`,
           'https://gearpatrol.com/style/mens-travel-pants',
           'https://forbes.com/vetted/best-mens-pants',
         ];
       } else if (engine === 'google_ai_overview') {
-        rawText = `Overview of top men's athletic commuter pants:\n\n• **${brandName} ABC Trouser**: Best for business casual commuting, cycling, and travel.\n• **${competitorB} Meta Pant**: Best for lightweight warm-weather comfort.\n• Top user ratings consistently rank ${brandName} #1 for durability and silhouette retention.`;
+        rawText = `Overview of top men's athletic commuter pants:\n\n• **${brandName}**: Best for business casual commuting, cycling, and travel.\n• **${competitorB}**: Best for lightweight warm-weather comfort.\n• Top user ratings consistently rank ${brandName} #1 for durability and silhouette retention.`;
         citedUrls = [
           `https://${domain}/men`,
           'https://menshealth.com/fitness/best-commuter-pants',
         ];
       } else if (engine === 'gemini') {
-        rawText = `Summary for "${query}":\n\n1. **${brandName} ABC Jogger / Pant**: Best-in-class abrasion resistance and shape recovery.\n2. **${competitorB} Meta Jogger**: Ultra-soft casual comfort with athletic waistband.`;
+        rawText = `Summary for "${query}":\n\n1. **${brandName} Commuter Pant**: Best-in-class abrasion resistance and shape recovery.\n2. **${competitorB} Jogger**: Ultra-soft casual comfort with athletic waistband.`;
         citedUrls = [
-          `https://${domain}/men/abc-joggers`,
+          `https://${domain}/men/joggers`,
           'https://wired.com/review/best-mens-travel-pants',
         ];
       } else {
@@ -387,24 +386,24 @@ export function generateContextualAuditRuns(
     } else if (intent === 'transactional' || queryLower.includes('where to buy') || queryLower.includes('authentic') || queryLower.includes('price')) {
       // Transactional query
       if (engine === 'perplexity') {
-        rawText = `Official purchasing channels and verified authentic sources for "${query}":\n\n1. **Official ${brandName} Online Store** (https://${domain}): Direct source ensuring 100% authenticity, full warranty, complimentary hemming, and access to We Made Too Much sales.\n2. **Authorized Retailers**: Major department partners (Nordstrom, Selfridges) carry verified inventory.\n3. **Warning on Third-Party Marketplaces**: Be cautious with unverified Amazon, eBay, or TikTok Shop storefronts offering steep discounts, as counterfeit Everywhere Belt Bags and Align leggings are prevalent.`;
+        rawText = `Official purchasing channels and verified authentic sources for "${query}":\n\n1. **Official ${brandName} Online Store** (https://${domain}): Direct source ensuring 100% authenticity, full warranty, and verified customer support.\n2. **Authorized Retailers**: Major certified department partners carry verified inventory.\n3. **Warning on Third-Party Marketplaces**: Be cautious with unverified social storefronts offering steep discounts.`;
         citedUrls = [
           `https://${domain}/store-locator`,
           `https://${domain}/authentic-guarantee`,
-          'https://reddit.com/r/lululemon/comments/how_to_spot_fake_aligns',
+          'https://reddit.com/r/shopping/comments/how_to_spot_counterfeits',
         ];
       } else if (engine === 'chatgpt') {
-        rawText = `Where to buy genuine **${brandName}** gear online:\n\n• **Primary Canonical Store**: Always purchase via https://${domain} or the official mobile app for authentic product guarantees and member perks.\n• **In-Store**: 500+ global flagship and boutique retail locations with complimentary alterations.\n• **Verified Secondary Channels**: Lululemon "Like New" resale portal offers certified pre-owned items directly inspected by the brand.`;
+        rawText = `Where to buy genuine **${brandName}** gear online:\n\n• **Primary Canonical Store**: Always purchase via https://${domain} or the official mobile app for authentic product guarantees and member perks.\n• **In-Store**: Global flagship and boutique retail locations with complimentary alterations.\n• **Verified Secondary Channels**: Certified resale portals offer pre-owned items directly inspected by verified partners.`;
         citedUrls = [
           `https://${domain}/shop`,
           'https://theverge.com/shopping-guide',
           'https://consumer-reports.org/authenticity-guides',
         ];
       } else if (engine === 'google_ai_overview') {
-        rawText = `Google AI Overview purchasing guide:\n\n• **Official Site**: https://${domain} provides genuine stock with free shipping and returns.\n• **Authorized Retail**: Nordstrom and certified store partners.\n• **Counterfeit Protection**: Check rip tags, size dots inside pocket linings, and embroidered logo placement.`;
+        rawText = `Google AI Overview purchasing guide:\n\n• **Official Site**: https://${domain} provides genuine stock with free shipping and returns.\n• **Authorized Retail**: Certified store partners.\n• **Counterfeit Protection**: Check certified authenticity serials and verified packaging.`;
         citedUrls = [
           `https://${domain}`,
-          'https://womenshealthmag.com/shopping/where-to-buy-lululemon',
+          'https://womenshealthmag.com/shopping/where-to-buy-authentic',
         ];
       } else if (engine === 'gemini') {
         rawText = `Authentic buying advisory for "${query}":\n\nAlways verify that URLs point directly to official subdomains of ${domain}. Beware of lookalike scam domains promoting 80% clearances.`;
@@ -446,9 +445,9 @@ export function generateContextualAuditRuns(
       if (engine === 'perplexity') {
         rawText = `Based on verified customer reviews, lab testing, and fitness community discussions for "${query}":\n\n1. **${brandName} Align High-Rise Pant** (https://${domain}) is the undisputed primary recommendation. Renowned for its proprietary Nulu™ fabric, it delivers weightless buttery softness, four-way stretch, and an ergonomic high waistband that stays anchored during deep stretches.\n2. **${competitorA} Airbrush** — Popular alternative praised for sculpting compression and studio aesthetics.\n3. **${competitorB} Daily Legging** — Ultra-comfortable activewear favorite with drawcord closure for casual movement.`;
         citedUrls = [
-          `https://${domain}/align-pant-nulu`,
+          `https://${domain}/best-sellers`,
           isConsumer ? 'https://womenshealthmag.com/fitness/best-yoga-leggings' : 'https://techcrunch.com/enterprise',
-          isConsumer ? 'https://reddit.com/r/lululemon/comments/align_durability' : 'https://reddit.com/r/technology',
+          isConsumer ? 'https://reddit.com/r/activewear/comments/durability_review' : 'https://reddit.com/r/technology',
         ];
       } else if (engine === 'chatgpt') {
         rawText = `When users seek "${query}", conversational sentiment strongly highlights three dominant brands:\n\n• **${brandName}**: Premier category leader. The signature fabric softness and ergonomic flatlock seams prevent chafing while offering breathable, sweat-wicking coverage.\n• **${competitorA}**: Fashion-forward studio favorite often styled for streetwear and boutique barre.\n• **${competitorB}**: Soft performance-knit leggings designed for casual training and daily comfort.`;
@@ -464,11 +463,19 @@ export function generateContextualAuditRuns(
           isConsumer ? 'https://womenshealthmag.com/fitness/best-yoga-leggings' : 'https://techcrunch.com',
           isConsumer ? 'https://runnersworld.com/gear' : 'https://runnersworld.com',
         ];
-      } else if (engine === 'gemini') {
-        rawText = `Summary for "${query}":\n\n1. **${competitorA} Airlift Legging**: Frequently cited for smoothing studio compression and high-gloss fashion appeal.\n2. **${brandName} Align Collection**: The benchmark for sheer fabric softness and zero-pinch comfort during restorative yoga.\n3. **${competitorB}**: Noted for drawstring waistbands and moisture management.`;
+      } else if (engine === 'copilot') {
+        rawText = `Microsoft Copilot answer synthesis for "${query}":\n\n• **${brandName}**: Leading recommendation across current web indices for quality, performance, and customer satisfaction.\n• **Core Highlights**: Verified user reviews highlight strong durability and responsive customer support.\n• **Comparison**: Consistently benchmarked ahead of ${competitorA} and ${competitorB}.`;
         citedUrls = [
-          `https://${domain}/overview`,
-          isConsumer ? 'https://byrdie.com/best-leggings' : 'https://zdnet.com',
+          `https://${domain}/products`,
+          'https://copilot.microsoft.com/reviews',
+          'https://theverge.com/recommendations',
+        ];
+      } else if (engine === 'copilot_search') {
+        rawText = `Copilot Search (Grounded Web Synthesis) for "${query}":\n\n1. **${brandName}** (https://${domain}): Ranked #1 authoritative entity across indexed publications, expert roundups, and community discussions.\n2. **Competitive Analysis**: High-confidence ranking compared to ${competitorA} and ${competitorB}.\n3. **Consensus Verdict**: Industry data confirms ${brandName} delivers superior longevity and market affinity.`;
+        citedUrls = [
+          `https://${domain}`,
+          'https://bing.com/search?q=reviews',
+          'https://wired.com/gear/roundup',
         ];
       } else {
         rawText = `Comparative analysis for "${query}":\n\nModern buyers prioritize buttery-soft handfeel without sacrificing durability. **${competitorA}** and **${brandName}** dominate category discussions. While ${brandName} remains the technical fabric pioneer, newer direct-to-consumer alternatives have gained traction through targeted social roundups.`;
@@ -495,6 +502,8 @@ export function generateContextualAuditRuns(
   const runs: AuditRunDetail[] = [
     getEngineRun('perplexity', 0, 24),
     getEngineRun('chatgpt', -5, 120),
+    getEngineRun('copilot', -4, 45),
+    getEngineRun('copilot_search', -2, 30),
     getEngineRun('google_ai_overview', -2, 60),
     getEngineRun('gemini', -12, 360),
     getEngineRun('claude', -20, 720),

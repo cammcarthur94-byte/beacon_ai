@@ -58,8 +58,15 @@ const ENGINES: EngineItem[] = [
     id: 'copilot',
     name: 'Microsoft Copilot',
     shortLabel: 'Copilot',
-    domain: 'bing.com',
+    domain: 'copilot.microsoft.com',
     iconColor: 'text-[#0078D4]',
+  },
+  {
+    id: 'copilot_search',
+    name: 'Copilot Search',
+    shortLabel: 'Copilot Search',
+    domain: 'bing.com',
+    iconColor: 'text-[#0284c7]',
   },
   {
     id: 'chatgpt_search',

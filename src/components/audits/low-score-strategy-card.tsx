@@ -6,9 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   AlertTriangle,
-  Bot,
   Sparkles,
-  ArrowRight,
   TrendingDown,
   CheckCircle2,
   FileCode,
@@ -17,7 +15,6 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { RemediationContext } from './sentinel-remediation-drawer';
 
 export interface StrategyRecommendation {
   id: string;
@@ -36,7 +33,6 @@ interface LowScoreStrategyCardProps {
   averageScore: number;
   competitors: string[];
   underperformingEngines: string[];
-  onOpenSentinel: (context: RemediationContext) => void;
   forceShow?: boolean;
 }
 
@@ -47,7 +43,6 @@ export function LowScoreStrategyCard({
   averageScore,
   competitors,
   underperformingEngines,
-  onOpenSentinel,
   forceShow = false,
 }: LowScoreStrategyCardProps) {
   // Show if average score is < 75% or forced
@@ -153,27 +148,15 @@ export function LowScoreStrategyCard({
                 </p>
               </div>
 
-              {/* Action Button: Ask Beacon Sentinel to Fix */}
+              {/* Content action hint */}
               <div className="shrink-0 flex sm:flex-col items-end justify-center gap-2">
-                <Button
-                  onClick={() =>
-                    onOpenSentinel({
-                      strategyTitle: rec.title,
-                      strategyCategory: rec.category,
-                      queryText,
-                      brandName,
-                      domain,
-                      competitors,
-                      underperformingEngines,
-                      averageScore,
-                    })
-                  }
-                  className="w-full sm:w-auto inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs transition-all cursor-pointer group"
+                <Badge
+                  variant="outline"
+                  className="inline-flex items-center gap-2 border-emerald-200 bg-emerald-50 text-emerald-800 text-xs font-semibold px-4 py-2"
                 >
-                  <Bot className="h-4 w-4" />
-                  <span>Ask Beacon Sentinel to Fix</span>
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                </Button>
+                  <Sparkles className="h-4 w-4 text-emerald-600" />
+                  <span>{rec.actionLabel}</span>
+                </Badge>
               </div>
             </div>
           ))}

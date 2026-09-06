@@ -203,7 +203,6 @@ async function handleCron(request: NextRequest) {
           (previousScore - evaluation.visibilityScore >= 15 || lostCitationBlock)
         ) {
           summary.alertsTriggered++;
-          const topCompetitorName = competitors[0]?.name || 'a competitor';
           const recipientEmail = project.users?.email || 'user@example.com';
 
           // 1. Resend email alert
@@ -215,27 +214,6 @@ async function handleCron(request: NextRequest) {
             previousScore,
             newScore: evaluation.visibilityScore,
             promptId: prompt.id,
-          });
-
-          // 2. Alert-to-Chat Pipeline: Proactive agent coworker message
-          const proactiveAgentMessage = `Heads up. We just lost citations on the "${prompt.query_text}" tracker. ${topCompetitorName} took our spot on ${evaluation.engine}. Want me to rewrite ours stronger and update it?`;
-
-          await supabase.from('chat_messages').insert({
-            project_id: project.id,
-            sender: 'agent',
-            content: proactiveAgentMessage,
-            metadata: {
-              alert_unread: true,
-              prompt_id: prompt.id,
-              prompt_query_text: prompt.query_text,
-              engine: evaluation.engine,
-              alert_kind: lostCitationBlock ? 'lost_citation_block' : 'visibility_drop',
-              previous_score: previousScore,
-              new_score: evaluation.visibilityScore,
-              drop: previousScore - evaluation.visibilityScore,
-              competitor: topCompetitorName,
-              query_text: prompt.query_text,
-            },
           });
         }
       }

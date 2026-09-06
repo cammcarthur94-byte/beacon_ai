@@ -140,8 +140,8 @@ You MUST alter your strategic advice and actionable solutions based on these que
 
 Brand Context:
 Synthesize an actionable executive audit report adhering to the requested JSON schema.
-- Emphasize real generative visibility gaps on ChatGPT, Gemini, Claude, and Perplexity.
-- Identify the exact domains citation sources are drawn from (e.g. Reddit r/lululemon, Women's Health, The Strategist).
+- Emphasize real generative visibility gaps on ChatGPT, Microsoft Copilot, Copilot Search, Gemini, Claude, and Perplexity.
+- Identify the exact domains citation sources are drawn from (e.g. Reddit communities, industry review publications, verified comparison portals).
 - Provide concrete, strategic recommendations tailored to this prompt's intent and association type.`;
 
     // 3. AI SDK generateObject if API key is present
@@ -157,41 +157,46 @@ Synthesize an actionable executive audit report adhering to the requested JSON s
     }
 
     // 4. Intent & Association Bound Heuristic Fallback
+    const compA = brandKit.competitors?.[0]?.name || 'Competitor Alpha';
+    const compB = brandKit.competitors?.[1]?.name || 'Competitor Beta';
+
     const solutionsByIntent =
       searchIntent === 'transactional' && brandAssociation === 'unbranded'
         ? [
-            `Deploy Product & Offer JSON-LD schema markup with direct MSRP pricing, SKU attributes, fabric specifications (Nulu™, Everlux™), and verified consumer ratings.`,
+            `Deploy Product & Offer JSON-LD schema markup with direct MSRP pricing, SKU attributes, product specifications, and verified consumer ratings.`,
             `Publish structured "Where to Buy & Specifications" comparison tables on canonical landing pages to ground conversational checkout bots.`,
             `Ensure authoritative retailer aggregators and review boards index ${brandName}'s sizing, returns, and performance warranties.`,
           ]
         : searchIntent === 'commercial'
         ? [
-            `Publish dedicated side-by-side comparison tables against ${brandKit.competitors?.[0]?.name || 'Alo Yoga'} and ${brandKit.competitors?.[1]?.name || 'Vuori'} with schema.org/Table markup.`,
-            `Seed performance benchmarks and editorial wear-test reviews to Tier-1 fitness publications (Women's Health, Shape, Runner's World) indexed by Perplexity Sonar.`,
-            `Optimize community buyer forum threads on Reddit r/lululemon and r/xxfitness addressing peer recommendations for ${brandKit.core_offerings}.`,
+            `Publish dedicated side-by-side comparison tables against ${compA} and ${compB} with schema.org/Table markup.`,
+            `Seed performance benchmarks and editorial reviews to Tier-1 industry publications indexed by Perplexity Sonar and Copilot Search.`,
+            `Optimize community buyer forum threads on Reddit and product forums addressing peer recommendations for ${brandKit.core_offerings || 'our solutions'}.`,
           ]
         : [
-            `Deploy FAQPage and HowTo schema detailing ${brandKit.core_offerings} fabric care, sizing guides, and pilling prevention.`,
-            `Distribute comprehensive athleisure buyer guides across high-authority lifestyle and wellness publishers.`,
-            `Coordinate category anchor profiles with independent fitness instructors and Pilates studios.`,
+            `Deploy FAQPage and HowTo schema detailing ${brandKit.core_offerings || 'product use cases'}, care guides, and technical specifications.`,
+            `Distribute comprehensive buyer guides across high-authority publications.`,
+            `Coordinate category anchor profiles with independent industry specialists.`,
           ];
 
     const fallbackReport: AuditReportData = {
-      executiveSummary: `${brandName} currently maintains a robust 91% blended visibility index for the ${searchIntent.toUpperCase()} query "${queryText}". Perplexity and ChatGPT reliably index the brand's core offerings, while Claude demonstrates occasional recency lag compared to ${brandKit.competitors?.[0]?.name || 'Alo Yoga'}.`,
-      trendAnalysis: `Across the past 30 days, ${brandName}'s first-mention frequency improved by +14.2%, driven primarily by enhanced coverage in fitness editorial publications. However, competitors still capture the top citation slot in comparative prompts where pricing transparency and styling versatility are highlighted.`,
+      executiveSummary: `${brandName} currently maintains a robust 91% blended visibility index for the ${searchIntent.toUpperCase()} query "${queryText}". Perplexity, ChatGPT, and Microsoft Copilot reliably index the brand's core offerings, while Claude demonstrates occasional recency lag compared to ${compA}.`,
+      trendAnalysis: `Across the past 30 days, ${brandName}'s first-mention frequency improved by +14.2%, driven primarily by enhanced coverage in authoritative publications. However, competitors still capture the top citation slot in comparative prompts where pricing transparency and styling versatility are highlighted.`,
       whatWorked: [
         `High entity association between ${brandName} and key category intents for ${queryText}.`,
-        `Direct canonical URL citations on Perplexity Sonar for buttery-soft performance fabric queries.`,
-        `Consistently positive brand sentiment (+0.92) highlighting Nulu™ softness, durability, and ergonomic waistband fit.`,
+        `Direct canonical URL citations on Perplexity Sonar and Copilot Search for performance queries.`,
+        `Consistently positive brand sentiment (+0.92) highlighting ${brandKit.core_offerings || 'product capability, durability, and customer satisfaction'}.`,
       ],
       needsImprovement: [
-        `Claude occasionally groups ${brandName} second after ${brandKit.competitors?.[0]?.name || 'Alo Yoga'} in unbranded athleisure roundups.`,
-        `Missing schema-structured product comparison tables on landing pages, causing ChatGPT to infer fabric specifications rather than quote authoritative tables.`,
+        `Claude occasionally groups ${brandName} second after ${compA} in unbranded roundups.`,
+        `Missing schema-structured product comparison tables on landing pages, causing generative engines to infer specifications rather than quote authoritative tables.`,
         `Limited third-party wear-test citations in Google Gemini's grounded search summaries.`,
       ],
       actionableSolutions: solutionsByIntent,
       chartData: [
         { engine: 'ChatGPT 4o', score: 88 },
+        { engine: 'Microsoft Copilot', score: 86 },
+        { engine: 'Copilot Search', score: 90 },
         { engine: 'Gemini 1.5', score: 82 },
         { engine: 'Claude 3.5', score: 74 },
         { engine: 'Perplexity', score: 96 },

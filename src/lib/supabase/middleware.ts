@@ -48,8 +48,7 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/onboarding') ||
     pathname.startsWith('/audits') ||
-    pathname.startsWith('/settings') ||
-    pathname.startsWith('/consultant');
+    pathname.startsWith('/settings');
 
   // Unauthenticated user trying to access protected page
   if (!user && isProtectedPage) {

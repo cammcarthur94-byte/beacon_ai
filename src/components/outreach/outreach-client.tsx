@@ -56,7 +56,7 @@ const STAGES: { id: OutreachStage; title: string; desc: string; color: string; b
   {
     id: 'generated',
     title: 'Generated',
-    desc: 'AI Sentinel drafts ready for review',
+    desc: 'AI-generated drafts ready for review',
     color: 'border-slate-300',
     badgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
   },
@@ -235,7 +235,7 @@ export function OutreachClient() {
               <Sparkles className="h-3 w-3 mr-1 text-emerald-600 inline" />
               Automated Digital PR & Authority Pipeline
             </Badge>
-            <span className="text-xs text-slate-400">Syncs directly with AI Sentinel Authority Gaps</span>
+            <span className="text-xs text-slate-400">Syncs directly with Authority Gap targets</span>
           </div>
           <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 font-sans">
             Outreach & Editorial PR CRM

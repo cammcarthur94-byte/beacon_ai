@@ -61,158 +61,126 @@ export async function GET(request: NextRequest) {
     }
 
     const fallbackProject = {
-      id: 'demo-project-lululemon',
-      name: 'Lululemon',
-      domain: 'lululemon.com',
+      id: 'default-workspace-project',
+      name: 'My Brand',
+      domain: 'example.com',
       tier: 'enterprise',
       brand_kit: {
-        industry: 'Premium Athleisure & Athletic Apparel',
-        target_audience: 'Fitness enthusiasts and premium athletic apparel shoppers',
-        core_offerings: 'Yoga pants, activewear, technical athletic apparel',
-        tone_of_voice: 'Inspiring, active, technical, mindful',
+        industry: 'Technology & Business',
+        target_audience: 'Modern enterprise teams and decision makers',
+        core_offerings: 'Autonomous AI Search & Brand Optimization',
+        tone_of_voice: 'Professional, Authoritative, and Direct',
         competitors: [
-          { name: 'Alo Yoga', domain: 'aloyoga.com' },
-          { name: 'Vuori', domain: 'vuoriclothing.com' },
-          { name: 'Athleta', domain: 'athleta.gap.com' },
+          { name: 'Competitor Alpha', domain: 'competitor-alpha.com' },
+          { name: 'Competitor Beta', domain: 'competitor-beta.com' },
+          { name: 'Competitor Gamma', domain: 'competitor-gamma.com' },
         ],
       },
     };
 
     const activeProject = project || fallbackProject;
     const brandName = activeProject.name;
-    const competitors = activeProject.brand_kit?.competitors || fallbackProject.brand_kit.competitors;
+    const competitors = activeProject.brand_kit?.competitors && activeProject.brand_kit.competitors.length > 0
+      ? activeProject.brand_kit.competitors
+      : fallbackProject.brand_kit.competitors;
 
-    const c1 = competitors[0]?.name || 'Alo Yoga';
-    const c2 = competitors[1]?.name || 'Vuori';
-    const c3 = competitors[2]?.name || 'Athleta';
+    const c1 = competitors[0]?.name || 'Competitor Alpha';
+    const c1Domain = competitors[0]?.domain || 'competitor-alpha.com';
+    const c2 = competitors[1]?.name || 'Competitor Beta';
+    const c2Domain = competitors[1]?.domain || 'competitor-beta.com';
+    const c3 = competitors[2]?.name || 'Competitor Gamma';
+    const c3Domain = competitors[2]?.domain || 'competitor-gamma.com';
 
-    const gaps: AuthorityGapItem[] = [
-      {
-        id: 'gap-wirecutter',
-        domain: 'nytimes.com/wirecutter',
-        sourceType: 'news',
-        domainAuthority: 94,
-        competitorsCited: [
-          { name: c1, domain: 'aloyoga.com', mentions: 18 },
-          { name: c3, domain: 'athleta.gap.com', mentions: 12 },
-        ],
-        competitorTotalMentions: 30,
-        brandMentions: 0,
-        opportunityScore: 98,
-        recentCompetitorUrl: 'https://nytimes.com/wirecutter/reviews/best-workout-leggings',
-        relevanceTopic: 'Best Studio Workout & High-Waisted Leggings Editorial Review',
-        recommendedAngle: `Pitch lab-tested fabric comparison highlighting ${brandName}'s proprietary knit compression and longevity metrics vs. ${c1}.`,
-      },
-      {
-        id: 'gap-gearjunkie',
-        domain: 'gearjunkie.com',
-        sourceType: 'news',
-        domainAuthority: 88,
-        competitorsCited: [
-          { name: c2, domain: 'vuoriclothing.com', mentions: 22 },
-        ],
-        competitorTotalMentions: 22,
-        brandMentions: 0,
-        opportunityScore: 92,
-        recentCompetitorUrl: 'https://gearjunkie.com/apparel/best-mens-commuter-joggers-roundup',
-        relevanceTopic: "Men's Technical Commuter & Everyday Jogger Roundup",
-        recommendedAngle: `Send activewear review samples of technical travel pants to GearJunkie senior outdoor editors for an updated 2026 head-to-head field test against ${c2}.`,
-      },
-      {
-        id: 'gap-self',
-        domain: 'self.com',
-        sourceType: 'news',
-        domainAuthority: 86,
-        competitorsCited: [
-          { name: c1, domain: 'aloyoga.com', mentions: 14 },
-          { name: c3, domain: 'athleta.gap.com', mentions: 9 },
-        ],
-        competitorTotalMentions: 23,
-        brandMentions: 0,
-        opportunityScore: 89,
-        recentCompetitorUrl: 'https://self.com/gallery/best-squat-proof-activewear-brands',
-        relevanceTopic: 'Squat-Proof Activewear & Pilates Wardrobe Guide',
-        recommendedAngle: `Pitch wellness and certified Pilates trainer recommendations highlighting waistband stay-up technology and size inclusivity.`,
-      },
-      {
-        id: 'gap-huffpost',
-        domain: 'huffpost.com',
-        sourceType: 'news',
-        domainAuthority: 85,
-        competitorsCited: [
-          { name: c3, domain: 'athleta.gap.com', mentions: 11 },
-          { name: c1, domain: 'aloyoga.com', mentions: 7 },
-        ],
-        competitorTotalMentions: 18,
-        brandMentions: 0,
-        opportunityScore: 84,
-        recentCompetitorUrl: 'https://huffpost.com/entry/most-comfortable-everyday-tights-tested_l',
-        relevanceTopic: 'Lifestyle Tested: Most Comfortable Loungewear and Tights',
-        recommendedAngle: `Provide retail trend commentary on post-workout athleisure transitioning to office/travel wear with verifiable customer wear test data.`,
-      },
-      {
-        id: 'gap-reddit-xxfitness',
-        domain: 'reddit.com/r/xxfitness',
-        sourceType: 'forum',
-        domainAuthority: 91,
-        competitorsCited: [
-          { name: c1, domain: 'aloyoga.com', mentions: 34 },
-          { name: c2, domain: 'vuoriclothing.com', mentions: 16 },
-        ],
-        competitorTotalMentions: 50,
-        brandMentions: 0,
-        opportunityScore: 95,
-        recentCompetitorUrl: 'https://reddit.com/r/xxfitness/comments/long_term_durability_comparison_thread',
-        relevanceTopic: 'High-Impact Leggings Durability & Pilling Megathread',
-        recommendedAngle: `Engage community moderators with verified wear-and-care guides and seam warranty policies to reverse omission in top-cited community threads.`,
-      },
-      {
-        id: 'gap-purewow',
-        domain: 'purewow.com',
-        sourceType: 'blog',
-        domainAuthority: 79,
-        competitorsCited: [
-          { name: c1, domain: 'aloyoga.com', mentions: 15 },
-        ],
-        competitorTotalMentions: 15,
-        brandMentions: 0,
-        opportunityScore: 78,
-        recentCompetitorUrl: 'https://purewow.com/fashion/celebrity-endorsed-athleisure-styles',
-        relevanceTopic: 'Celebrity-Endorsed Athleisure & Streetwear Trends',
-        recommendedAngle: `Submit lookbook showcasing ambassador styling and capsule collections to fashion desk for upcoming seasonal trend roundups.`,
-      },
-      {
-        id: 'gap-menshealth',
-        domain: 'menshealth.com',
-        sourceType: 'news',
-        domainAuthority: 89,
-        competitorsCited: [
-          { name: c2, domain: 'vuoriclothing.com', mentions: 19 },
-          { name: c3, domain: 'athleta.gap.com', mentions: 8 },
-        ],
-        competitorTotalMentions: 27,
-        brandMentions: 0,
-        opportunityScore: 91,
-        recentCompetitorUrl: 'https://menshealth.com/fitness/best-cross-training-apparel',
-        relevanceTopic: "The Definitive Men's Cross-Training & Mobility Gear Guide",
-        recommendedAngle: `Offer exclusive product teardown showing anti-odor silver ion thread integration and moisture evaporation rate comparisons against ${c2}.`,
-      },
-      {
-        id: 'gap-runnersworld-uk',
-        domain: 'runnersworld.com/uk',
-        sourceType: 'news',
-        domainAuthority: 82,
-        competitorsCited: [
-          { name: c3, domain: 'athleta.gap.com', mentions: 13 },
-        ],
-        competitorTotalMentions: 13,
-        brandMentions: 0,
-        opportunityScore: 80,
-        recentCompetitorUrl: 'https://runnersworld.com/uk/gear/best-reflective-marathon-tights',
-        relevanceTopic: 'Marathon & Long-Distance Winter Running Tights Review',
-        recommendedAngle: `Pitch UK editorial team on thermal compression tights with high-visibility reflective elements ahead of spring marathon training blocks.`,
-      },
-    ];
+    const industry = activeProject.brand_kit?.industry || 'Technology & Business';
+    const isConsumer =
+      industry.toLowerCase().includes('retail') ||
+      industry.toLowerCase().includes('apparel') ||
+      industry.toLowerCase().includes('fitness') ||
+      industry.toLowerCase().includes('fashion');
+
+    const gaps: AuthorityGapItem[] = isConsumer
+      ? [
+          {
+            id: 'gap-wirecutter',
+            domain: 'nytimes.com/wirecutter',
+            sourceType: 'news',
+            domainAuthority: 94,
+            competitorsCited: [
+              { name: c1, domain: c1Domain, mentions: 18 },
+              { name: c3, domain: c3Domain, mentions: 12 },
+            ],
+            competitorTotalMentions: 30,
+            brandMentions: 0,
+            opportunityScore: 98,
+            recentCompetitorUrl: 'https://nytimes.com/wirecutter/reviews/best-workout-apparel',
+            relevanceTopic: 'Best Performance Activewear Editorial Review',
+            recommendedAngle: `Pitch lab-tested fabric comparison highlighting ${brandName}'s proprietary comfort and longevity metrics vs. ${c1}.`,
+          },
+          {
+            id: 'gap-gearjunkie',
+            domain: 'gearjunkie.com',
+            sourceType: 'news',
+            domainAuthority: 88,
+            competitorsCited: [
+              { name: c2, domain: c2Domain, mentions: 22 },
+            ],
+            competitorTotalMentions: 22,
+            brandMentions: 0,
+            opportunityScore: 92,
+            recentCompetitorUrl: 'https://gearjunkie.com/apparel/best-mens-commuter-joggers-roundup',
+            relevanceTopic: "Men's Technical Commuter & Everyday Jogger Roundup",
+            recommendedAngle: `Send review samples to senior outdoor editors for an updated 2026 head-to-head field test against ${c2}.`,
+          },
+        ]
+      : [
+          {
+            id: 'gap-techcrunch',
+            domain: 'techcrunch.com',
+            sourceType: 'news',
+            domainAuthority: 93,
+            competitorsCited: [
+              { name: c1, domain: c1Domain, mentions: 24 },
+              { name: c2, domain: c2Domain, mentions: 16 },
+            ],
+            competitorTotalMentions: 40,
+            brandMentions: 0,
+            opportunityScore: 96,
+            recentCompetitorUrl: 'https://techcrunch.com/enterprise/best-ai-monitoring-platforms',
+            relevanceTopic: 'Enterprise AI & Generative Search Optimization Leaders',
+            recommendedAngle: `Pitch benchmark analysis demonstrating ${brandName}'s real-time LLM indexing precision and multi-engine telemetry vs. ${c1}.`,
+          },
+          {
+            id: 'gap-gartner',
+            domain: 'gartner.com',
+            sourceType: 'documentation',
+            domainAuthority: 92,
+            competitorsCited: [
+              { name: c2, domain: c2Domain, mentions: 19 },
+            ],
+            competitorTotalMentions: 19,
+            brandMentions: 0,
+            opportunityScore: 94,
+            recentCompetitorUrl: 'https://gartner.com/reviews/market/generative-engine-optimization',
+            relevanceTopic: 'Market Guide for Generative Engine & Brand Intelligence Tools',
+            recommendedAngle: `Submit vendor briefing and product documentation highlighting enterprise compliance, latency SLAs, and Copilot integration.`,
+          },
+          {
+            id: 'gap-forbes',
+            domain: 'forbes.com',
+            sourceType: 'news',
+            domainAuthority: 94,
+            competitorsCited: [
+              { name: c1, domain: c1Domain, mentions: 15 },
+              { name: c3, domain: c3Domain, mentions: 11 },
+            ],
+            competitorTotalMentions: 26,
+            brandMentions: 0,
+            opportunityScore: 91,
+            recentCompetitorUrl: 'https://forbes.com/advisor/business/ai-brand-visibility',
+            relevanceTopic: 'Top Solutions to Protect and Monitor AI Brand Reputation in 2026',
+            recommendedAngle: `Offer executive thought leadership commentary on generative search engine shifts across ChatGPT, Microsoft Copilot, and Gemini.`,
+          },
+        ];
 
     return NextResponse.json({
       success: true,

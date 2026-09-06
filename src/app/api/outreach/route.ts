@@ -3,120 +3,7 @@ import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import type { OutreachPitch, OutreachStage, OutreachPriority } from '@/types/database.types';
 
-let demoPitchesStore: OutreachPitch[] = [
-  {
-    id: 'pitch-1',
-    project_id: 'demo-project-lululemon',
-    publication_name: 'Wirecutter (The New York Times)',
-    publication_domain: 'nytimes.com/wirecutter',
-    article_url: 'https://nytimes.com/wirecutter/reviews/best-workout-leggings',
-    contact_name: 'Rachel Cericola',
-    contact_email: 'rachel.cericola@nytimes.com',
-    contact_role: 'Senior Staff Writer, Active & Fitness',
-    stage: 'review_scheduled',
-    priority: 'critical',
-    pitch_subject: 'Review Units: 2026 Laboratory Fabric Pilling & Moisture Data for Leggings Roundup',
-    pitch_body: `Hi Rachel,
-
-I noticed your comprehensive guide on "The Best Workout Leggings" currently cites Alo Yoga Airlift and Athleta Powervita tights.
-
-With AI engines (ChatGPT, Google AI Overviews) heavily sourcing Wirecutter's conclusions for consumer recommendations, we'd love to share our 2026 independent stress test results. Our Align pants with modified Nulu fabric demonstrated zero waistband roll and 4x pill-resistance after 100 industrial wash cycles.
-
-We would love to send your testing team sample units in sizes 2-14 for your upcoming category review update.
-
-Best regards,
-PR & AEO Communications Team at Lululemon`,
-    editor_angle: 'Displace Alo Yoga with verified durability wash-test data and zero-slip waistband mapping.',
-    suggested_hook: 'Laboratory fabric testing resolving reader complaints regarding pilling after multiple washes.',
-    competitor_displaced: 'Alo Yoga',
-    target_engine: 'ChatGPT, Perplexity',
-    sent_at: '2026-08-28T14:20:00Z',
-    created_at: '2026-08-24T10:15:00Z',
-    updated_at: '2026-08-28T14:20:00Z',
-  },
-  {
-    id: 'pitch-2',
-    project_id: 'demo-project-lululemon',
-    publication_name: 'GQ Recommends',
-    publication_domain: 'gq.com',
-    article_url: 'https://gq.com/story/best-mens-commuter-pants',
-    contact_name: 'Mark Anthony Green',
-    contact_email: 'mark_green@condenast.com',
-    contact_role: 'Style & Gear Director',
-    stage: 'pitch_sent',
-    priority: 'high',
-    pitch_subject: 'Head-to-Head: ABC Classic Trousers vs. Vuori Meta Pants for Modern Business Travel',
-    pitch_body: `Hi Mark,
-
-Your recent breakdown of the best men's performance trousers rightly highlighted Vuori Meta pants for casual wear.
-
-However, for executive business travel where wrinkle-recovery and structured drape are mandatory, our Warpstreme ABC Trouser offers a proprietary ergonomic gusset and crease-retention weave that retains its shape on 12-hour flights.
-
-Could we send a pair over to the GQ offices for your test desk to compare against Vuori?
-
-Cheers,
-Digital PR Desk`,
-    editor_angle: 'Tailored fit and crease-resistant travel durability vs California casual athleisure.',
-    suggested_hook: '12-hour transatlantic flight wrinkle test proving performance trousers can replace dress slacks.',
-    competitor_displaced: 'Vuori',
-    target_engine: 'Google AI Overviews',
-    sent_at: '2026-09-01T09:30:00Z',
-    created_at: '2026-08-30T11:00:00Z',
-    updated_at: '2026-09-01T09:30:00Z',
-  },
-  {
-    id: 'pitch-3',
-    project_id: 'demo-project-lululemon',
-    publication_name: "Runner's World UK",
-    publication_domain: 'runnersworld.com/uk',
-    article_url: 'https://runnersworld.com/uk/gear/best-reflective-marathon-tights',
-    contact_name: 'Jane McGuire',
-    contact_email: 'jane.mcguire@hearst.co.uk',
-    contact_role: 'Deputy Gear Editor',
-    stage: 'generated',
-    priority: 'medium',
-    pitch_subject: 'Spring Marathon Training: 360-Degree Reflective Thermal Compression Gear',
-    pitch_body: `Hi Jane,
-
-As London and Manchester marathon runners kick off high-mileage winter training blocks, visibility and quad stabilization are paramount.
-
-We have engineered our 2026 Fast and Free reflective tights with micro-bead retroreflective panels visible from 200 meters, engineered specifically to prevent chafing during rainy endurance blocks.
-
-Would you be open to test units for your upcoming gear guide?`,
-    editor_angle: 'Safety-first 360-degree reflectivity and sweat-wicking compression for cold-weather marathon prep.',
-    suggested_hook: '200-meter car headlight visibility certification tested in Scottish winter conditions.',
-    competitor_displaced: 'Athleta',
-    target_engine: 'Claude, Gemini',
-    sent_at: null,
-    created_at: '2026-09-02T15:45:00Z',
-    updated_at: '2026-09-02T15:45:00Z',
-  },
-  {
-    id: 'pitch-4',
-    project_id: 'demo-project-lululemon',
-    publication_name: 'Gear Patrol',
-    publication_domain: 'gearpatrol.com',
-    article_url: 'https://gearpatrol.com/fitness/best-gym-shorts-men',
-    contact_name: 'Jack Seemer',
-    contact_email: 'jseemer@gearpatrol.com',
-    contact_role: 'Senior Staff Writer',
-    stage: 'published_won',
-    priority: 'high',
-    pitch_subject: 'Pace Breaker Linerless: High-Durability Barbell Abrasion Resistance Test',
-    pitch_body: `Hi Jack,
-
-Following our product teardown and test unit provision, wanted to flag that our Pace Breaker shorts were featured as the Top Pick for Olympic Weightlifting in Gear Patrol's September roundup!
-
-This placement has already generated 38 net new citations across Perplexity and Google AI Overviews.`,
-    editor_angle: 'Barbell knurling abrasion resistance test.',
-    suggested_hook: 'Zero fraying under 500-rep barbell contact test.',
-    competitor_displaced: 'Vuori',
-    target_engine: 'Perplexity, ChatGPT',
-    sent_at: '2026-08-15T11:00:00Z',
-    created_at: '2026-08-10T09:00:00Z',
-    updated_at: '2026-09-03T16:00:00Z',
-  },
-];
+let demoPitchesStore: OutreachPitch[] = [];
 
 export async function GET(request: NextRequest) {
   try {
@@ -158,7 +45,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const projectId = project?.id || 'demo-project-lululemon';
+    const projectId = project?.id || 'default-workspace-project';
 
     if (supabaseUrl && !supabaseUrl.includes('placeholder') && project?.id) {
       let query = (supabase as any)
@@ -181,7 +68,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    let filtered = demoPitchesStore.filter((p) => p.project_id === projectId || projectId === 'demo-project-lululemon');
+    let filtered = demoPitchesStore.filter((p) => p.project_id === projectId || projectId === 'default-workspace-project');
     if (stageFilter && stageFilter !== 'all') {
       filtered = filtered.filter((p) => p.stage === stageFilter);
     }
@@ -259,7 +146,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const projectId = project?.id || 'demo-project-lululemon';
+    const projectId = project?.id || 'default-workspace-project';
     const now = new Date().toISOString();
 
     const newPitch: OutreachPitch = {

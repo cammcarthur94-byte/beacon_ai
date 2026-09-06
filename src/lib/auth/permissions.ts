@@ -34,11 +34,6 @@ export const PERMISSION_DEFINITIONS: Record<
     description: 'Trigger live on-demand scans across ChatGPT, Perplexity, Gemini, Claude, and Google AI.',
     category: 'audits',
   },
-  content_studio_pitches: {
-    label: 'Content Studio & PR Pitches',
-    description: 'Generate, edit, and export authority gap displacement pitches.',
-    category: 'strategy',
-  },
   export_reports: {
     label: 'Executive Reports & CSV Exports',
     description: 'Download executive summary reports, audit history, and citation analytics.',
@@ -89,7 +84,6 @@ export function getEffectivePermissions(
       'edit_brand_kit',
       'manage_prompts',
       'trigger_audits',
-      'content_studio_pitches',
       'export_reports',
       'view_telemetry',
     ];

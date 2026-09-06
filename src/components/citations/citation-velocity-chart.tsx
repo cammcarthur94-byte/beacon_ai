@@ -22,6 +22,8 @@ import {
   CHART_THEME_COLORS,
 } from '@/lib/chart-theme';
 
+import { ChartExpandButton, ExpandableChartModal } from '@/components/charts/expandable-chart-modal';
+
 export interface CitationVelocityDataPoint {
   period: string; // e.g. "Week 1", "Week 2", or "Aug 10", etc.
   newCitations: number;
@@ -54,47 +56,75 @@ function CustomVelocityTooltip({ active, payload, label }: any) {
 }
 
 export function CitationVelocityChart({ data }: CitationVelocityChartProps) {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
   const totalInPeriod = data.reduce((acc, curr) => acc + curr.newCitations, 0);
 
-  return (
-    <Card className="border-zinc-200 bg-white shadow-xs">
-      <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <div className="space-y-1">
-          <CardTitle className="text-base font-semibold text-zinc-900 flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-zinc-500" />
-            Citation Discovery Velocity
-          </CardTitle>
-          <CardDescription className="text-xs text-zinc-500">
-            Pace of newly indexed backlink citations identified across audit cron runs
-          </CardDescription>
-        </div>
-        <Badge variant="outline" className="font-sans text-xs border-emerald-200 bg-emerald-50 text-emerald-700 rounded-full">
-          <TrendingUp className="h-3 w-3 mr-1" /> +{totalInPeriod} Citations Logged
-        </Badge>
-      </CardHeader>
+  const renderVelocityBars = (heightClass = 'h-[240px]') => (
+    <div className={cn(heightClass, 'w-full')}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <CartesianGrid {...chartGridProps} />
+          <XAxis dataKey="period" {...chartXAxisProps} />
+          <YAxis
+            {...chartYAxisProps}
+            allowDecimals={false}
+          />
+          <Tooltip content={<CustomVelocityTooltip />} />
+          <Bar
+            dataKey="newCitations"
+            name="New Citations"
+            fill={CHART_THEME_COLORS.primary}
+            radius={[4, 4, 0, 0]}
+            maxBarSize={heightClass.includes('240') ? 36 : 48}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
 
-      <CardContent className="pt-4">
-        <div className="h-[240px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid {...chartGridProps} />
-              <XAxis dataKey="period" {...chartXAxisProps} />
-              <YAxis
-                {...chartYAxisProps}
-                allowDecimals={false}
-              />
-              <Tooltip content={<CustomVelocityTooltip />} />
-              <Bar
-                dataKey="newCitations"
-                name="New Citations"
-                fill={CHART_THEME_COLORS.primary}
-                radius={[4, 4, 0, 0]}
-                maxBarSize={36}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+  const badgeElement = (
+    <Badge variant="outline" className="font-sans text-xs border-emerald-200 bg-emerald-50 text-emerald-700 rounded-full">
+      <TrendingUp className="h-3 w-3 mr-1" /> +{totalInPeriod} Citations Logged
+    </Badge>
+  );
+
+  return (
+    <>
+      <Card className="border-zinc-200 bg-white shadow-xs">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <div className="space-y-1">
+            <CardTitle className="text-base font-semibold text-zinc-900 flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-zinc-500" />
+              Citation Discovery Velocity
+            </CardTitle>
+            <CardDescription className="text-xs text-zinc-500">
+              Pace of newly indexed backlink citations identified across audit scans
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            {badgeElement}
+            <ChartExpandButton onClick={() => setIsModalOpen(true)} />
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-4">
+          {renderVelocityBars('h-[240px]')}
+        </CardContent>
+      </Card>
+
+      <ExpandableChartModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Citation Discovery Velocity"
+        description="Pace of newly indexed backlink citations identified across audit scans."
+        exportFilename="citation-discovery-velocity"
+        csvData={data}
+        badge={badgeElement}
+      >
+        <div className="w-full h-full flex flex-col justify-center">
+          {renderVelocityBars('h-[380px] sm:h-[420px]')}
         </div>
-      </CardContent>
-    </Card>
+      </ExpandableChartModal>
+    </>
   );
 }

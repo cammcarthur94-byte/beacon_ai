@@ -97,7 +97,7 @@ export default async function PromptResultsPage({ params }: PromptResultsPagePro
   }
 
   const rawIndustry = (project.brand_kit?.industry || '').toLowerCase();
-  const brandName = project.name || 'Lululemon';
+  const brandName = project.name || 'My Brand';
   const isConsumer =
     rawIndustry.includes('retail') ||
     rawIndustry.includes('commerce') ||
@@ -107,8 +107,7 @@ export default async function PromptResultsPage({ params }: PromptResultsPagePro
     rawIndustry.includes('sport') ||
     rawIndustry.includes('fitness') ||
     rawIndustry.includes('athleisure') ||
-    brandName.toLowerCase().includes('nike') ||
-    brandName.toLowerCase().includes('lululemon');
+    brandName.toLowerCase().includes('nike');
 
   if (!prompt) {
     prompt = getPromptById(promptId, cookieStore, project);

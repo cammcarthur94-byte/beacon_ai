@@ -30,6 +30,7 @@ import {
   Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import Link from 'next/link';
 import type {
   TeamMember,
   TeamInvitation,
@@ -46,6 +47,7 @@ import {
 } from '@/app/settings/team-actions';
 import { RolePermissionsDialog } from './role-permissions-dialog';
 import { getRoleBadgeColor, hasPermission } from '@/lib/auth/permissions';
+import { getTierTeamSeatLimit, canInviteTeamMember, normalizeTier } from '@/lib/billing/tier-utils';
 
 interface TeamManagementTabProps {
   project: {
@@ -96,6 +98,12 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
 
   const canManageTeam = hasPermission(currentUserRole, 'manage_team', roleConfig);
 
+  const tier = project.tier || 'starter';
+  const normalizedTier = normalizeTier(tier);
+  const seatLimit = getTierTeamSeatLimit(tier);
+  const canInvite = canInviteTeamMember(tier, members.length);
+  const isEnterprise = normalizedTier === 'enterprise';
+
   const handleRoleChange = async (memberId: string, newRole: TeamMemberRole) => {
     if (!canManageTeam) {
       toast.error('You do not have permission to manage team roles.');
@@ -127,6 +135,10 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
 
   const handleSendInvite = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canInvite) {
+      toast.error(`Team seat limit reached (${members.length}/${seatLimit} seats on ${normalizedTier.toUpperCase()} plan). Upgrade your plan on the Billing tab to invite more members.`);
+      return;
+    }
     if (!inviteEmail || !inviteEmail.includes('@')) {
       toast.error('Please enter a valid email address.');
       return;
@@ -204,7 +216,7 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
               </span>
               <span className="text-slate-300">&bull;</span>
               <span className="text-xs text-slate-500 font-medium">
-                {members.length} Active User{members.length !== 1 ? 's' : ''}
+                {members.length} / {seatLimit === 9999 ? 'Unlimited' : seatLimit} Seats Used ({normalizedTier.toUpperCase()})
               </span>
               <span className="text-slate-300">&bull;</span>
               <span className="text-[11px] text-slate-500">
@@ -219,16 +231,48 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
             </CardDescription>
           </div>
 
-          <Button
-            type="button"
-            disabled={!canManageTeam}
-            onClick={() => setInviteModalOpen(true)}
-            className="bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 shadow-xs flex items-center gap-1.5 cursor-pointer self-start sm:self-center"
-          >
-            <UserPlus className="h-3.5 w-3.5" />
-            Invite Member
-          </Button>
+          {canInvite ? (
+            <Button
+              type="button"
+              disabled={!canManageTeam}
+              onClick={() => setInviteModalOpen(true)}
+              className="bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 shadow-xs flex items-center gap-1.5 cursor-pointer self-start sm:self-center"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              Invite Member
+            </Button>
+          ) : (
+            <Link href="/settings?tab=billing">
+              <Button
+                type="button"
+                variant="outline"
+                className="border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 text-xs font-semibold px-3 py-2 shadow-2xs flex items-center gap-1.5 cursor-pointer self-start sm:self-center"
+              >
+                <Lock className="h-3.5 w-3.5 text-amber-600" />
+                <span>Upgrade for More Seats</span>
+              </Button>
+            </Link>
+          )}
         </CardHeader>
+
+        {!canInvite && (
+          <div className="px-5 py-3 bg-amber-50/80 border-b border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-900">
+            <div className="flex items-center gap-2">
+              <Lock className="h-4 w-4 text-amber-700 shrink-0" />
+              <span>
+                {normalizedTier === 'starter'
+                  ? 'Starter plan is limited to 1 user seat (Owner only). Upgrade to Pro (3 seats) or Enterprise (unlimited) to collaborate with teammates.'
+                  : `You have reached the seat limit (${members.length}/${seatLimit}) for your ${normalizedTier.toUpperCase()} plan. Upgrade to Enterprise for unlimited seats.`}
+              </span>
+            </div>
+            <Link
+              href="/settings?tab=billing"
+              className="font-semibold text-amber-950 underline underline-offset-2 shrink-0 hover:text-emerald-800 text-[11px]"
+            >
+              View Pricing &amp; Upgrade &rarr;
+            </Link>
+          </div>
+        )}
 
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -378,16 +422,30 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
             </div>
           </div>
           {canManageTeam && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setRoleDialogOpen(true)}
-              className="text-xs h-8 border-slate-300 text-slate-800 hover:text-emerald-700 bg-white font-semibold cursor-pointer shadow-2xs self-start sm:self-center"
-            >
-              <Sliders className="h-3.5 w-3.5 mr-1.5 text-emerald-600" />
-              Configure Role Permissions
-            </Button>
+            isEnterprise ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setRoleDialogOpen(true)}
+                className="text-xs h-8 border-slate-300 text-slate-800 hover:text-emerald-700 bg-white font-semibold cursor-pointer shadow-2xs self-start sm:self-center"
+              >
+                <Sliders className="h-3.5 w-3.5 mr-1.5 text-emerald-600" />
+                Configure Role Permissions
+              </Button>
+            ) : (
+              <Link href="/settings?tab=billing">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-8 border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 font-semibold cursor-pointer shadow-2xs self-start sm:self-center flex items-center gap-1.5"
+                >
+                  <Lock className="h-3.5 w-3.5 text-amber-600" />
+                  <span>Enterprise: Custom Roles</span>
+                </Button>
+              </Link>
+            )
           )}
         </div>
 
@@ -424,7 +482,7 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
               </Badge>
             </div>
             <p className="text-slate-500 text-[11px] leading-relaxed">
-              Trigger prompt audits, generate PR pitches in Content Studio, view authority gap matrices.
+              Trigger prompt audits, organize tracked searches, and view authority gap matrices.
             </p>
           </div>
 
@@ -476,18 +534,31 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
               Disables standard email/password login for any user with this corporate domain.
             </p>
           </div>
-          <Button
-            type="button"
-            variant={ssoEnforced ? 'outline' : 'default'}
-            onClick={handleToggleSso}
-            className={
-              ssoEnforced
-                ? 'border-slate-300 text-slate-700 text-xs cursor-pointer'
-                : 'bg-zinc-900 hover:bg-zinc-800 text-white text-xs cursor-pointer'
-            }
-          >
-            {ssoEnforced ? 'Disable SSO Enforcement' : 'Enforce SAML / OAuth SSO'}
-          </Button>
+          {isEnterprise ? (
+            <Button
+              type="button"
+              variant={ssoEnforced ? 'outline' : 'default'}
+              onClick={handleToggleSso}
+              className={
+                ssoEnforced
+                  ? 'border-slate-300 text-slate-700 text-xs cursor-pointer'
+                  : 'bg-zinc-900 hover:bg-zinc-800 text-white text-xs cursor-pointer'
+              }
+            >
+              {ssoEnforced ? 'Disable SSO Enforcement' : 'Enforce SAML / OAuth SSO'}
+            </Button>
+          ) : (
+            <Link href="/settings?tab=billing">
+              <Button
+                type="button"
+                variant="outline"
+                className="border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 text-xs font-semibold px-3 py-2 shadow-2xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <Lock className="h-3.5 w-3.5 text-amber-600" />
+                <span>Enterprise Feature &mdash; Upgrade</span>
+              </Button>
+            </Link>
+          )}
         </CardContent>
       </Card>
 
@@ -534,7 +605,7 @@ export function TeamManagementTab({ project }: TeamManagementTabProps) {
                   className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
                 >
                   <option value="admin">Admin - Workspace management &amp; Brand Profile</option>
-                  <option value="editor">Editor - Search audits &amp; Content Studio PR pitches</option>
+                  <option value="editor">Editor - Search audits &amp; prompt management</option>
                   <option value="viewer">Viewer - Read-only results &amp; reporting</option>
                 </select>
                 <span className="text-[11px] text-slate-500 block">

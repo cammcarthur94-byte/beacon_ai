@@ -14,7 +14,6 @@ import {
   Building2,
   Users,
   Target,
-  Sparkles,
   Plus,
   Trash2,
   ArrowRight,
@@ -189,21 +188,6 @@ export function OnboardingWizard() {
 
   const progressPercentage = step === 1 ? 33 : step === 2 ? 66 : 100;
 
-  const handleAutofillSample = () => {
-    setBrandName('Lululemon');
-    setDomain('lululemon.com');
-    setIndustry('Premium Athleisure & Athletic Apparel');
-    setTargetAudience('Mindful movement practitioners, yoga & Pilates enthusiasts, runners, gym-goers, and fitness lifestyle consumers');
-    setCompetitors([
-      { name: 'Alo Yoga', domain: 'aloyoga.com' },
-      { name: 'Vuori', domain: 'vuoriclothing.com' },
-      { name: 'Athleta', domain: 'athleta.gap.com' },
-    ]);
-    setCoreOfferings('Align Pant (Nulu fabric), Define Jacket, Wunder Train tights, ABC Joggers, Everywhere Belt Bag & technical athleisure');
-    setToneOfVoice('Empowering, Mindful, Elevated, Performance-Driven');
-    toast.success('Loaded Lululemon sample brand kit profile.');
-  };
-
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
       {/* Wizard Header and Visual Step Indicators */}
@@ -261,17 +245,6 @@ export function OnboardingWizard() {
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              {step === 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAutofillSample}
-                  className="hidden sm:inline-flex text-[11px] h-8 border-zinc-200 text-zinc-700 bg-zinc-50 hover:bg-zinc-100"
-                >
-                  <Sparkles className="h-3 w-3 mr-1 text-emerald-600" /> Autofill Demo Brand
-                </Button>
-              )}
               <div className="h-9 w-9 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700 shrink-0">
                 {step === 1 && <Globe className="h-4 w-4" />}
                 {step === 2 && <Target className="h-4 w-4" />}

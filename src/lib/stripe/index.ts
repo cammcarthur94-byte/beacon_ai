@@ -47,7 +47,6 @@ export const BILLING_PLANS: BillingPlan[] = [
       '100 scheduled prompt audits / mo',
       'Google AI Overviews tracking (SERP)',
       'Proactive visibility drop email alerts (Resend)',
-      'Autonomous Coworker AI Agent (`draftRewrite`)',
       'Unlimited AI Strategy Audit Reports',
       'Hourly execution options',
       'Priority email & Slack support',

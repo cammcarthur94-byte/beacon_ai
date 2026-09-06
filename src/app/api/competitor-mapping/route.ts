@@ -87,30 +87,32 @@ export async function GET(request: NextRequest) {
     }
 
     const fallbackProject = {
-      id: 'demo-project-lululemon',
-      name: 'Lululemon',
-      domain: 'lululemon.com',
+      id: 'default-workspace-project',
+      name: 'My Brand',
+      domain: 'example.com',
       tier: 'enterprise',
       brand_kit: {
-        industry: 'Premium Athleisure & Athletic Apparel',
-        target_audience: 'Fitness enthusiasts and premium athletic apparel shoppers',
-        core_offerings: 'Yoga pants, activewear, technical athletic apparel',
-        tone_of_voice: 'Inspiring, active, technical, mindful',
+        industry: 'Technology & Business',
+        target_audience: 'Modern enterprise teams and decision makers',
+        core_offerings: 'Autonomous AI Search & Brand Optimization',
+        tone_of_voice: 'Professional, Authoritative, and Direct',
         competitors: [
-          { name: 'Alo Yoga', domain: 'aloyoga.com' },
-          { name: 'Vuori', domain: 'vuoriclothing.com' },
-          { name: 'Athleta', domain: 'athleta.gap.com' },
+          { name: 'Competitor Alpha', domain: 'competitor-alpha.com' },
+          { name: 'Competitor Beta', domain: 'competitor-beta.com' },
+          { name: 'Competitor Gamma', domain: 'competitor-gamma.com' },
         ],
       },
     };
 
     const activeProject = project || fallbackProject;
     const brandName = activeProject.name;
-    const competitors = activeProject.brand_kit?.competitors || fallbackProject.brand_kit.competitors;
+    const competitors = activeProject.brand_kit?.competitors && activeProject.brand_kit.competitors.length > 0
+      ? activeProject.brand_kit.competitors
+      : fallbackProject.brand_kit.competitors;
 
-    const c1 = competitors[0]?.name || 'Alo Yoga';
-    const c2 = competitors[1]?.name || 'Vuori';
-    const c3 = competitors[2]?.name || 'Athleta';
+    const c1 = competitors[0]?.name || 'Competitor Alpha';
+    const c2 = competitors[1]?.name || 'Competitor Beta';
+    const c3 = competitors[2]?.name || 'Competitor Gamma';
 
     const features: CompetitorFeatureItem[] = [
       {
@@ -199,7 +201,7 @@ export async function GET(request: NextRequest) {
         featureName: 'Trade-In & Resale Program (Like New / Circularity)',
         description: 'Certified trade-in program providing digital gift credit while re-conditioning and reselling pre-owned garments.',
         brandStatus: 'parity',
-        brandDetail: 'Lululemon Like New nationwide re-commerce and garment recycle program.',
+        brandDetail: `${brandName} verified circularity, trade-in, and recycling programs.`,
         competitors: [
           { name: c1, domain: 'aloyoga.com', hasFeature: false, detail: 'No formal trade-in program; solar power initiatives only', citationShare: 8 },
           { name: c2, domain: 'vuoriclothing.com', hasFeature: false, detail: '100% plastic-neutral certification; no active resale market', citationShare: 18 },

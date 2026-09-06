@@ -16,6 +16,7 @@ import { getSourceTypeMeta } from '@/lib/citations/categorizer';
 import { cn } from '@/lib/utils';
 import { chartTooltipContainerClass } from '@/lib/chart-theme';
 import { CitationSourceIcon } from './domain-favicon';
+import { ChartExpandButton, ExpandableChartModal } from '@/components/charts/expandable-chart-modal';
 
 export interface SourceDistributionDataPoint {
   sourceType: CitationSourceType;
@@ -101,6 +102,7 @@ export function SourceDistributionChart({
   onToggleSourceType: flatOnToggleSourceType,
   onClearAll: flatOnClearAll,
 }: SourceDistributionChartProps) {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
   const activeSourceTypes = filterOptions?.activeSourceTypes ?? flatActiveSourceTypes ?? [];
   const onToggleSourceType = filterOptions?.onToggleSourceType ?? flatOnToggleSourceType;
   const onClearAll = filterOptions?.onClearAll ?? flatOnClearAll;
@@ -135,159 +137,185 @@ export function SourceDistributionChart({
     ? Math.round(selectedData.reduce((acc, curr) => acc + curr.percentage, 0))
     : 100;
 
-  return (
-    <Card className="border-slate-200 bg-white shadow-xs">
-      <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <div className="space-y-1">
-          <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
-            <PieIcon className="h-4 w-4 text-slate-500" />
-            Source Type Distribution
-          </CardTitle>
-          <CardDescription className="text-xs text-slate-500">
-            Categorization breakdown of websites cited in AI answers
-          </CardDescription>
+  const renderContent = (isExpanded = false) => (
+    <div className="flex flex-col md:flex-row items-center justify-between gap-6 w-full">
+      {/* DONUT CHART */}
+      <div className={cn('w-full md:w-1/2 relative flex items-center justify-center', isExpanded ? 'h-[360px]' : 'h-[240px]')}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Tooltip content={<CustomDonutTooltip activeSourceTypes={activeSourceTypes} />} />
+            <Pie
+              data={data}
+              dataKey="count"
+              nameKey="sourceType"
+              innerRadius={isExpanded ? 90 : 65}
+              outerRadius={isExpanded ? 135 : 92}
+              paddingAngle={3}
+              stroke="#ffffff"
+              strokeWidth={2}
+              cursor="pointer"
+              onClick={(entry, index) => handleSliceClick(entry, index)}
+            >
+              {data.map((entry) => {
+                const meta = getSourceTypeMeta(entry.sourceType);
+                const isSelected = activeSourceTypes.includes(entry.sourceType);
+                return (
+                  <Cell
+                    key={entry.sourceType}
+                    fill={meta.color}
+                    opacity={isFiltered ? (isSelected ? 1 : 0.25) : 1}
+                    stroke={isSelected ? '#0f172a' : '#ffffff'}
+                    strokeWidth={isSelected ? 3.5 : 2}
+                    className="cursor-pointer transition-all duration-200 outline-hidden hover:opacity-100"
+                    style={{ cursor: 'pointer' }}
+                    onClick={(e) => {
+                      e?.stopPropagation?.();
+                      onToggleSourceType?.(entry.sourceType);
+                    }}
+                  />
+                );
+              })}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+
+        {/* Central Donut Total Overlay */}
+        <div className="absolute flex flex-col items-center justify-center pointer-events-none text-center px-2">
+          <span className={cn('font-bold font-mono text-slate-900 tracking-tight', isExpanded ? 'text-3xl' : 'text-2xl')}>
+            {activeCategoryCount}
+          </span>
+          <span
+            className={cn(
+              'font-sans uppercase tracking-wider max-w-[130px] truncate',
+              isExpanded ? 'text-xs' : 'text-[10px]',
+              isFiltered ? 'font-bold text-slate-900' : 'text-slate-500 font-medium'
+            )}
+            style={singleActiveMeta ? { color: singleActiveMeta.color } : undefined}
+          >
+            {isFiltered
+              ? singleActiveMeta
+                ? singleActiveMeta.label
+                : `${activeSourceTypes.length} Selected (${activePercentage}%)`
+              : 'Citations'}
+          </span>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="font-sans text-xs border-slate-200 bg-slate-50 text-slate-700 rounded-full">
-            Source Breakdown
-          </Badge>
-          {isFiltered && (
-            <span className="inline-flex items-center gap-1.5 text-xs bg-slate-900 text-white font-medium px-2.5 py-0.5 rounded-full shadow-2xs whitespace-nowrap">
-              {singleActiveMeta && (
-                <span
-                  className="h-2 w-2 rounded-full shrink-0"
-                  style={{ backgroundColor: singleActiveMeta.color }}
-                />
+      </div>
+
+      {/* LEGEND & BREAKDOWN (clickable rows for multi-select) */}
+      <div className="w-full md:w-1/2 space-y-2">
+        {data.map((item) => {
+          const meta = getSourceTypeMeta(item.sourceType);
+          const isSelected = activeSourceTypes.includes(item.sourceType);
+          return (
+            <button
+              key={item.sourceType}
+              type="button"
+              onClick={() => onToggleSourceType?.(item.sourceType)}
+              title={`${isSelected ? 'Remove' : 'Add'} ${meta.label} ${isSelected ? 'from' : 'to'} filter`}
+              style={isSelected ? { borderWidth: 2, borderColor: meta.color } : undefined}
+              className={cn(
+                'flex w-full items-center justify-between text-xs py-2 px-3 rounded-lg transition-all duration-150 cursor-pointer text-left',
+                isSelected
+                  ? 'bg-slate-50 font-bold shadow-xs'
+                  : 'hover:bg-slate-50 border-2 border-transparent hover:border-slate-200',
+                isFiltered && !isSelected && 'opacity-40'
               )}
-              <span className="max-w-[150px] truncate">
-                {singleActiveMeta
-                  ? singleActiveMeta.label
-                  : `${activeSourceTypes.length} Categories`}
-              </span>
-              <button
-                type="button"
-                onClick={onClearAll}
-                className="text-slate-300 hover:text-white cursor-pointer transition-colors ml-0.5"
-                aria-label="Clear all source type filters"
-                title="Clear all filters"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </span>
-          )}
-        </div>
-      </CardHeader>
-
-      <CardContent className="pt-2">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* DONUT CHART */}
-          <div className="h-[240px] w-full md:w-1/2 relative flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Tooltip content={<CustomDonutTooltip activeSourceTypes={activeSourceTypes} />} />
-                <Pie
-                  data={data}
-                  dataKey="count"
-                  nameKey="sourceType"
-                  innerRadius={65}
-                  outerRadius={92}
-                  paddingAngle={3}
-                  stroke="#ffffff"
-                  strokeWidth={2}
-                  cursor="pointer"
-                  onClick={(entry, index) => handleSliceClick(entry, index)}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className="h-4 w-4 rounded flex items-center justify-center text-white shrink-0 shadow-2xs"
+                  style={{ backgroundColor: meta.color }}
                 >
-                  {data.map((entry) => {
-                    const meta = getSourceTypeMeta(entry.sourceType);
-                    const isSelected = activeSourceTypes.includes(entry.sourceType);
-                    return (
-                      <Cell
-                        key={entry.sourceType}
-                        fill={meta.color}
-                        opacity={isFiltered ? (isSelected ? 1 : 0.25) : 1}
-                        stroke={isSelected ? '#0f172a' : '#ffffff'}
-                        strokeWidth={isSelected ? 3.5 : 2}
-                        className="cursor-pointer transition-all duration-200 outline-hidden hover:opacity-100"
-                        style={{ cursor: 'pointer' }}
-                        onClick={(e) => {
-                          e?.stopPropagation?.();
-                          onToggleSourceType?.(entry.sourceType);
-                        }}
-                      />
-                    );
-                  })}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-
-            {/* Central Donut Total Overlay */}
-            <div className="absolute flex flex-col items-center justify-center pointer-events-none text-center px-2">
-              <span className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
-                {activeCategoryCount}
-              </span>
-              <span
-                className={cn(
-                  'text-[10px] font-sans uppercase tracking-wider max-w-[130px] truncate',
-                  isFiltered ? 'font-bold text-slate-900' : 'text-slate-500 font-medium'
+                  <CitationSourceIcon sourceType={item.sourceType} className="h-2.5 w-2.5" />
+                </div>
+                <span className={cn('font-medium text-slate-800 truncate', isSelected && 'font-bold text-slate-950')}>
+                  {meta.label}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 font-sans">
+                <span className="font-semibold text-slate-900 w-10 text-right text-xs">
+                  {item.percentage}%
+                </span>
+                {isSelected ? (
+                  <X className="h-3.5 w-3.5 text-slate-600 ml-0.5" />
+                ) : (
+                  <span className="w-4" />
                 )}
-                style={singleActiveMeta ? { color: singleActiveMeta.color } : undefined}
-              >
-                {isFiltered
-                  ? singleActiveMeta
-                    ? singleActiveMeta.label
-                    : `${activeSourceTypes.length} Selected (${activePercentage}%)`
-                  : 'Citations'}
-              </span>
-            </div>
-          </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 
-          {/* LEGEND & BREAKDOWN (clickable rows for multi-select) */}
-          <div className="w-full md:w-1/2 space-y-1.5">
-            {data.map((item) => {
-              const meta = getSourceTypeMeta(item.sourceType);
-              const isSelected = activeSourceTypes.includes(item.sourceType);
-              return (
-                <button
-                  key={item.sourceType}
-                  type="button"
-                  onClick={() => onToggleSourceType?.(item.sourceType)}
-                  title={`${isSelected ? 'Remove' : 'Add'} ${meta.label} ${isSelected ? 'from' : 'to'} filter`}
-                  style={isSelected ? { borderWidth: 2, borderColor: meta.color } : undefined}
-                  className={cn(
-                    'flex w-full items-center justify-between text-xs py-1.5 px-2.5 rounded-lg transition-all duration-150 cursor-pointer text-left',
-                    isSelected
-                      ? 'bg-slate-50 font-bold shadow-xs'
-                      : 'hover:bg-slate-50 border-2 border-transparent hover:border-slate-200',
-                    isFiltered && !isSelected && 'opacity-40'
-                  )}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div
-                      className="h-4 w-4 rounded flex items-center justify-center text-white shrink-0 shadow-2xs"
-                      style={{ backgroundColor: meta.color }}
-                    >
-                      <CitationSourceIcon sourceType={item.sourceType} className="h-2.5 w-2.5" />
-                    </div>
-                    <span className={cn('font-medium text-slate-800 truncate', isSelected && 'font-bold text-slate-950')}>
-                      {meta.label}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 font-sans">
-                    <span className="font-semibold text-slate-900 w-10 text-right text-xs">
-                      {item.percentage}%
-                    </span>
-                    {isSelected ? (
-                      <X className="h-3.5 w-3.5 text-slate-600 ml-0.5" />
-                    ) : (
-                      <span className="w-4" />
-                    )}
-                  </div>
-                </button>
-              );
-            })}
+  return (
+    <>
+      <Card className="border-slate-200 bg-white shadow-xs">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <div className="space-y-1">
+            <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
+              <PieIcon className="h-4 w-4 text-slate-500" />
+              Source Type Distribution
+            </CardTitle>
+            <CardDescription className="text-xs text-slate-500">
+              Categorization breakdown of websites cited in AI answers
+            </CardDescription>
           </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="font-sans text-xs border-slate-200 bg-slate-50 text-slate-700 rounded-full">
+              Source Breakdown
+            </Badge>
+            {isFiltered && (
+              <span className="inline-flex items-center gap-1.5 text-xs bg-slate-900 text-white font-medium px-2.5 py-0.5 rounded-full shadow-2xs whitespace-nowrap">
+                {singleActiveMeta && (
+                  <span
+                    className="h-2 w-2 rounded-full shrink-0"
+                    style={{ backgroundColor: singleActiveMeta.color }}
+                  />
+                )}
+                <span className="max-w-[150px] truncate">
+                  {singleActiveMeta
+                    ? singleActiveMeta.label
+                    : `${activeSourceTypes.length} Categories`}
+                </span>
+                <button
+                  type="button"
+                  onClick={onClearAll}
+                  className="text-slate-300 hover:text-white cursor-pointer transition-colors ml-0.5"
+                  aria-label="Clear all source type filters"
+                  title="Clear all filters"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </span>
+            )}
+            <ChartExpandButton onClick={() => setIsModalOpen(true)} />
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-2">
+          {renderContent(false)}
+        </CardContent>
+      </Card>
+
+      <ExpandableChartModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Source Type Distribution"
+        description="Categorization breakdown of websites cited in AI answers."
+        exportFilename="source-type-distribution"
+        csvData={data.map((d) => ({
+          SourceType: d.sourceType,
+          Label: getSourceTypeMeta(d.sourceType).label,
+          Count: d.count,
+          Percentage: `${d.percentage}%`,
+        }))}
+      >
+        <div className="w-full h-full flex flex-col justify-center">
+          {renderContent(true)}
         </div>
-      </CardContent>
-    </Card>
+      </ExpandableChartModal>
+    </>
   );
 }

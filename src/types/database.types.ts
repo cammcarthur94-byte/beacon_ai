@@ -9,7 +9,6 @@ export type Json =
 export type BillingTier = 'starter' | 'pro' | 'growth' | 'enterprise';
 export type AuditFrequency = 'daily' | 'weekly' | 'biweekly';
 export type SentimentType = 'positive' | 'neutral' | 'negative';
-export type ChatSender = 'user' | 'agent';
 export type CitationSourceType = 'news' | 'forum' | 'blog' | 'documentation' | 'social' | 'other';
 export type SearchIntent = 'informational' | 'navigational' | 'commercial' | 'transactional';
 export type BrandAssociation = 'branded' | 'unbranded';
@@ -34,6 +33,29 @@ export interface OutreachPitch {
   competitor_displaced?: string | null;
   target_engine?: string | null;
   sent_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ContentStudioFormat =
+  | 'Social Media Post'
+  | 'Reddit Post'
+  | 'Newsletter'
+  | 'LinkedIn Post'
+  | 'Blog Post'
+  | 'Outreach Email'
+  | 'FAQ';
+
+export interface ContentDraft {
+  id: string;
+  project_id: string;
+  gap_id?: string | null;
+  target_domain: string;
+  target_topic: string;
+  competitors: string[] | { name: string; domain?: string }[];
+  content_type: ContentStudioFormat;
+  angle_title: string;
+  content: string;
   created_at: string;
   updated_at: string;
 }
@@ -87,7 +109,6 @@ export type PermissionAction =
   | 'edit_brand_kit'
   | 'manage_prompts'
   | 'trigger_audits'
-  | 'content_studio_pitches'
   | 'export_reports'
   | 'view_telemetry';
 
@@ -100,7 +121,6 @@ export const DEFAULT_ROLE_PERMISSIONS: RolePermissionsConfig = {
     'edit_brand_kit',
     'manage_prompts',
     'trigger_audits',
-    'content_studio_pitches',
     'export_reports',
     'view_telemetry',
   ],
@@ -109,14 +129,12 @@ export const DEFAULT_ROLE_PERMISSIONS: RolePermissionsConfig = {
     'edit_brand_kit',
     'manage_prompts',
     'trigger_audits',
-    'content_studio_pitches',
     'export_reports',
     'view_telemetry',
   ],
   editor: [
     'manage_prompts',
     'trigger_audits',
-    'content_studio_pitches',
     'export_reports',
     'view_telemetry',
   ],
@@ -363,33 +381,6 @@ export interface Database {
         };
         Relationships: [];
       };
-      chat_messages: {
-        Row: {
-          id: string;
-          project_id: string;
-          sender: ChatSender;
-          content: string;
-          metadata: Json;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          project_id: string;
-          sender: ChatSender;
-          content: string;
-          metadata?: Json;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          project_id?: string;
-          sender?: ChatSender;
-          content?: string;
-          metadata?: Json;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
       citations: {
         Row: {
           id: string;
@@ -519,6 +510,48 @@ export interface Database {
         };
         Relationships: [];
       };
+      content_drafts: {
+        Row: {
+          id: string;
+          project_id: string;
+          gap_id: string | null;
+          target_domain: string;
+          target_topic: string;
+          competitors: Json;
+          content_type: string;
+          angle_title: string;
+          content: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          gap_id?: string | null;
+          target_domain: string;
+          target_topic: string;
+          competitors?: Json;
+          content_type: string;
+          angle_title: string;
+          content: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          gap_id?: string | null;
+          target_domain?: string;
+          target_topic?: string;
+          competitors?: Json;
+          content_type?: string;
+          angle_title?: string;
+          content?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -530,7 +563,6 @@ export interface Database {
       billing_tier_enum: BillingTier;
       audit_frequency_enum: AuditFrequency;
       sentiment_enum: SentimentType;
-      chat_sender_enum: ChatSender;
     };
     CompositeTypes: {
       [_ in never]: never;

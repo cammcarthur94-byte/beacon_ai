@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { AppSidebarLayout } from '@/components/layout/app-sidebar-layout';
 import { CitationsClient } from '@/components/citations/citations-client';
@@ -60,26 +61,10 @@ export default async function CitationsPage() {
   }
 
   if (!project) {
-    project = {
-      id: 'demo-project-lululemon',
-      name: 'Lululemon',
-      domain: 'lululemon.com',
-      tier: 'enterprise',
-      brand_kit: {
-        industry: 'Premium Athleisure & Athletic Apparel',
-        target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, gym-goers, and fitness lifestyle consumers',
-        core_offerings: 'Align Pant (Nulu fabric), Define Jacket, Wunder Train tights, ABC Joggers, Everywhere Belt Bag & technical athleisure',
-        competitors: [
-          { name: 'Alo Yoga', domain: 'aloyoga.com' },
-          { name: 'Vuori', domain: 'vuoriclothing.com' },
-          { name: 'Athleta', domain: 'athleta.gap.com' },
-        ],
-        tone_of_voice: 'Empowering, Mindful, Elevated, Performance-Driven',
-      },
-    };
+    redirect('/onboarding');
   }
 
-  const brandName = project.name || 'Lululemon';
+  const brandName = project.name || 'My Brand';
   const rawIndustry = (project.brand_kit?.industry || '').toLowerCase();
   const isConsumerRetail =
     rawIndustry.includes('retail') ||
@@ -90,8 +75,7 @@ export default async function CitationsPage() {
     rawIndustry.includes('sport') ||
     rawIndustry.includes('fitness') ||
     rawIndustry.includes('athleisure') ||
-    brandName.toLowerCase().includes('nike') ||
-    brandName.toLowerCase().includes('lululemon');
+    brandName.toLowerCase().includes('nike');
 
   // 3. Aggregate or provide rich fallback telemetry data
   let metrics: CitationSummaryMetrics;
@@ -247,9 +231,15 @@ export default async function CitationsPage() {
             },
             {
               id: 'c-wh-2',
-              url: `https://womenshealthmag.com/fitness/lululemon-align-vs-alo-airbrush`,
+              url: `https://womenshealthmag.com/fitness/best-leggings-comparison-guide`,
               createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 2).toISOString(),
               engine: 'ChatGPT',
+            },
+            {
+              id: 'c-wh-3',
+              url: `https://womenshealthmag.com/fitness/top-apparel-brands`,
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 1).toISOString(),
+              engine: 'Copilot',
             },
           ],
         },
@@ -257,13 +247,13 @@ export default async function CitationsPage() {
           domain: 'reddit.com',
           sourceType: 'forum',
           totalMentions: 28,
-          recentUrl: `https://reddit.com/r/lululemon/comments/align_pant_nulu_durability_review_2026`,
+          recentUrl: `https://reddit.com/r/activewear/comments/durability_review_2026`,
           lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 180).toISOString(),
-          engines: ['perplexity', 'chatgpt'],
+          engines: ['perplexity', 'chatgpt', 'copilot', 'copilot_search'],
           allCitations: [
             {
               id: 'c-rd-1',
-              url: `https://reddit.com/r/lululemon/comments/align_pant_nulu_durability_review_2026`,
+              url: `https://reddit.com/r/activewear/comments/durability_review_2026`,
               createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 180).toISOString(),
               engine: 'Perplexity',
             },
@@ -273,6 +263,12 @@ export default async function CitationsPage() {
               createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 3).toISOString(),
               engine: 'ChatGPT',
             },
+            {
+              id: 'c-rd-3',
+              url: `https://reddit.com/r/reviews/comments/brand_recommendation_megathread`,
+              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 2).toISOString(),
+              engine: 'Copilot Search',
+            },
           ],
         },
         {
@@ -281,7 +277,7 @@ export default async function CitationsPage() {
           totalMentions: 24,
           recentUrl: `https://thestrategist.com/article/best-high-waisted-workout-leggings-review`,
           lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 420).toISOString(),
-          engines: ['gemini', 'chatgpt', 'claude'],
+          engines: ['gemini', 'chatgpt', 'claude', 'copilot'],
           allCitations: [
             {
               id: 'c-st-1',
@@ -297,7 +293,7 @@ export default async function CitationsPage() {
           totalMentions: 20,
           recentUrl: `https://gq.com/story/best-mens-athletic-pants-and-joggers-roundup`,
           lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 720).toISOString(),
-          engines: ['perplexity', 'gemini'],
+          engines: ['perplexity', 'gemini', 'copilot_search'],
         },
         {
           domain: 'runnersworld.com',
@@ -305,7 +301,7 @@ export default async function CitationsPage() {
           totalMentions: 17,
           recentUrl: `https://runnersworld.com/gear/best-sweat-wicking-running-tights`,
           lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440).toISOString(),
-          engines: ['chatgpt', 'claude'],
+          engines: ['chatgpt', 'claude', 'copilot'],
         },
         {
           domain: 'youtube.com',
@@ -335,15 +331,15 @@ export default async function CitationsPage() {
           domain: 'retaildive.com',
           sourceType: 'news',
           totalMentions: 8,
-          recentUrl: `https://retaildive.com/news/lululemon-athleisure-market-share-and-expansion`,
+          recentUrl: `https://retaildive.com/news/athleisure-market-share-and-expansion`,
           lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 5).toISOString(),
-          engines: ['chatgpt', 'claude'],
+          engines: ['chatgpt', 'claude', 'copilot'],
         },
         {
           domain: 'quora.com',
           sourceType: 'forum',
           totalMentions: 6,
-          recentUrl: `https://quora.com/Are-Lululemon-Align-leggings-worth-the-money`,
+          recentUrl: `https://quora.com/Are-high-end-workout-leggings-worth-the-money`,
           lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 6).toISOString(),
           engines: ['perplexity'],
         },
@@ -364,16 +360,16 @@ export default async function CitationsPage() {
           ],
         },
         {
-          domain: 'developer.lululemon.com',
+          domain: 'docs.example.com',
           sourceType: 'documentation',
           totalMentions: 3,
-          recentUrl: `https://developer.lululemon.com/documentation/apparel-sizing-specifications`,
+          recentUrl: `https://docs.example.com/specifications`,
           lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 8).toISOString(),
-          engines: ['chatgpt'],
+          engines: ['chatgpt', 'copilot'],
           allCitations: [
             {
               id: 'c-dev-1',
-              url: `https://developer.lululemon.com/documentation/apparel-sizing-specifications`,
+              url: `https://docs.example.com/specifications`,
               createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 8).toISOString(),
               engine: 'ChatGPT',
             },

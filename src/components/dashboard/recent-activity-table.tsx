@@ -236,13 +236,13 @@ export function RecentActivityTable({
           <Table>
             <TableHeader>
               <TableRow className="bg-zinc-50/50">
-                <TableHead className="w-[360px] text-xs font-semibold">Tracked Search</TableHead>
-                <TableHead className="text-xs font-semibold">AI Platform</TableHead>
-                <TableHead className="text-xs font-semibold">Recommended?</TableHead>
-                <TableHead className="text-xs font-semibold">Score</TableHead>
-                <TableHead className="text-xs font-semibold">Tone</TableHead>
-                <TableHead className="text-xs font-semibold">Sources Cited</TableHead>
-                <TableHead className="text-right text-xs font-semibold">Date &amp; Time</TableHead>
+                <TableHead className="w-[380px] text-xs font-semibold text-left pl-4">Tracked Search</TableHead>
+                <TableHead className="text-center text-xs font-semibold">AI Platform</TableHead>
+                <TableHead className="text-center text-xs font-semibold">Recommended?</TableHead>
+                <TableHead className="text-center text-xs font-semibold">Score</TableHead>
+                <TableHead className="text-center text-xs font-semibold">Tone</TableHead>
+                <TableHead className="text-center text-xs font-semibold">Sources Cited</TableHead>
+                <TableHead className="text-center text-xs font-semibold pr-4">Date &amp; Time</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -268,7 +268,7 @@ export function RecentActivityTable({
                 runs.map((run) => (
                   <TableRow key={run.id} className="group hover:bg-zinc-50/70 transition-colors">
                     {/* Search Query Tracked */}
-                    <TableCell className="font-medium text-zinc-900 py-3">
+                    <TableCell className="font-medium text-zinc-900 py-3.5 pl-4 text-left">
                       <Link
                         href={`/audits/${run.promptId}`}
                         className="hover:underline flex items-center gap-1.5 line-clamp-1 text-xs"
@@ -279,28 +279,34 @@ export function RecentActivityTable({
                     </TableCell>
 
                     {/* Engine */}
-                    <TableCell className="py-3">
-                      <EngineBadge engine={run.engine.toLowerCase()} size="xs" showLabel={true} />
+                    <TableCell className="py-3.5 text-center">
+                      <div className="flex justify-center">
+                        <EngineBadge engine={run.engine.toLowerCase()} size="xs" showLabel={true} />
+                      </div>
                     </TableCell>
 
                     {/* Brand Mention Status */}
-                    <TableCell className="py-3 font-mono text-xs">
-                      {run.brandMentioned ? (
-                        <span className="flex items-center gap-1.5 text-emerald-600 font-medium">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Mentioned
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1.5 text-zinc-400">
-                          <AlertCircle className="h-3.5 w-3.5 text-zinc-400" /> Missing
-                        </span>
-                      )}
+                    <TableCell className="py-3.5 font-mono text-xs text-center">
+                      <div className="flex items-center justify-center">
+                        {run.brandMentioned ? (
+                          <span className="inline-flex items-center gap-1.5 text-emerald-600 font-medium">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                            <span>Mentioned</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-zinc-400">
+                            <AlertCircle className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                            <span>Missing</span>
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
 
                     {/* Visibility Score */}
-                    <TableCell className="py-3 font-mono text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-zinc-900">{run.visibilityScore}%</span>
-                        <div className="w-12 h-1.5 rounded-full bg-zinc-100 overflow-hidden">
+                    <TableCell className="py-3.5 font-mono text-xs text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="font-bold text-zinc-900 min-w-[28px] text-right">{run.visibilityScore}%</span>
+                        <div className="w-12 h-1.5 rounded-full bg-zinc-100 overflow-hidden shrink-0">
                           <div
                             className={cn(
                               'h-full rounded-full',
@@ -317,41 +323,45 @@ export function RecentActivityTable({
                     </TableCell>
 
                     {/* Sentiment */}
-                    <TableCell className="py-3 font-mono text-xs">
-                      {getSentimentBadge(run.sentiment)}
+                    <TableCell className="py-3.5 font-mono text-xs text-center">
+                      <div className="flex justify-center">
+                        {getSentimentBadge(run.sentiment)}
+                      </div>
                     </TableCell>
 
                     {/* Citations Count */}
-                    <TableCell className="py-3 font-mono text-xs text-zinc-600">
-                      {run.citedUrls && run.citedUrls.length > 0 ? (
-                        <div
-                          className="flex items-center gap-1.5"
-                          title={`Citations:\n${run.citedUrls.join('\n')}`}
-                        >
-                          <div className="flex items-center -space-x-1 overflow-hidden py-0.5">
-                            {run.citedUrls.slice(0, 3).map((url, i) => (
-                              <DomainFavicon
-                                key={i}
-                                url={url}
-                                size="xs"
-                                className="ring-1 ring-white shadow-2xs"
-                              />
-                            ))}
+                    <TableCell className="py-3.5 font-mono text-xs text-zinc-600 text-center">
+                      <div className="flex items-center justify-center">
+                        {run.citedUrls && run.citedUrls.length > 0 ? (
+                          <div
+                            className="inline-flex items-center gap-1.5"
+                            title={`Citations:\n${run.citedUrls.join('\n')}`}
+                          >
+                            <div className="flex items-center -space-x-1 overflow-hidden py-0.5">
+                              {run.citedUrls.slice(0, 3).map((url, i) => (
+                                <DomainFavicon
+                                  key={i}
+                                  url={url}
+                                  size="xs"
+                                  className="ring-1 ring-white shadow-2xs"
+                                />
+                              ))}
+                            </div>
+                            <span className="inline-flex items-center px-1.5 py-0.2 rounded-full bg-zinc-100 border border-zinc-200 text-[11px] font-semibold text-zinc-800">
+                              {run.citedUrlsCount}
+                            </span>
                           </div>
-                          <span className="inline-flex items-center px-1.5 py-0.2 rounded-full bg-zinc-100 border border-zinc-200 text-[11px] font-semibold text-zinc-800">
-                            {run.citedUrlsCount}
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-zinc-50 border border-zinc-200 text-zinc-400 text-[11px]">
+                            <Link2 className="h-3 w-3 text-zinc-400" />
+                            <span>0</span>
                           </span>
-                        </div>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-zinc-50 border border-zinc-200 text-zinc-400 text-[11px]">
-                          <Link2 className="h-3 w-3 text-zinc-400" />
-                          <span>0</span>
-                        </span>
-                      )}
+                        )}
+                      </div>
                     </TableCell>
 
                     {/* Timestamp */}
-                    <TableCell className="py-3 text-right font-mono text-xs text-zinc-500">
+                    <TableCell className="py-3.5 text-center font-mono text-xs text-zinc-500 pr-4">
                       {run.timeAgo}
                     </TableCell>
                   </TableRow>

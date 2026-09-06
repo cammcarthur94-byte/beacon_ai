@@ -239,5 +239,46 @@ describe('engine-runner', () => {
         expect(results[1].rawText).toContain('AcmeAnalytics');
       });
     });
+
+    describe('Microsoft Copilot & Copilot Search integration', () => {
+      it('should execute audits for copilot and copilot_search with simulated responses when offline', async () => {
+        delete process.env.OPENAI_API_KEY;
+
+        const results = await executeMultiEngineAudit({
+          ...mockB2bParams,
+          targetEngines: ['copilot', 'copilot_search'],
+        });
+
+        expect(results).toHaveLength(2);
+        expect(results.map((r) => r.engine)).toEqual(['copilot', 'copilot_search']);
+        expect(results[0].rawText).toContain('Microsoft Copilot');
+        expect(results[0].brandMentioned).toBe(true);
+        expect(results[1].rawText).toContain('Copilot Search');
+        expect(results[1].brandMentioned).toBe(true);
+      });
+
+      it('should call generateText for copilot using openai gpt-4o when OPENAI_API_KEY is present', async () => {
+        process.env.OPENAI_API_KEY = 'test-openai-key';
+
+        (generateText as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          text: 'Microsoft Copilot synthetic response citing AcmeAnalytics (https://acmeanalytics.com)',
+        });
+
+        const results = await executeMultiEngineAudit({
+          ...mockB2bParams,
+          targetEngines: ['copilot'],
+        });
+
+        expect(results).toHaveLength(1);
+        expect(generateText).toHaveBeenCalledWith(
+          expect.objectContaining({
+            prompt: expect.stringContaining('best b2b analytics software'),
+          })
+        );
+        expect(results[0].engine).toBe('copilot');
+        expect(results[0].brandMentioned).toBe(true);
+        expect(results[0].citedUrls).toContain('https://acmeanalytics.com');
+      });
+    });
   });
 });

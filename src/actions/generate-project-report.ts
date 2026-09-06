@@ -86,37 +86,35 @@ export async function generateProjectReportAction(
 
     if (!project) {
       project = {
-        id: 'demo-project-lululemon',
-        name: 'Lululemon',
-        domain: 'lululemon.com',
+        id: 'default-workspace-project',
+        name: 'My Brand',
+        domain: 'example.com',
         brand_kit: {
-          industry: 'Premium Athleisure & Athletic Apparel',
-          target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, gym-goers, and fitness lifestyle consumers',
-          core_offerings: 'Align Pant (Nulu fabric), Define Jacket, Wunder Train tights, ABC Joggers, Everywhere Belt Bag & technical athleisure',
+          industry: 'Technology & Business',
+          target_audience: 'Modern enterprise teams and decision makers',
+          core_offerings: 'Autonomous AI Search & Brand Optimization',
           competitors: [
-            { name: 'Alo Yoga', domain: 'aloyoga.com' },
-            { name: 'Vuori', domain: 'vuoriclothing.com' },
-            { name: 'Athleta', domain: 'athleta.gap.com' },
+            { name: 'Competitor Alpha', domain: 'competitor-alpha.com' },
+            { name: 'Competitor Beta', domain: 'competitor-beta.com' },
           ],
-          tone_of_voice: 'Empowering, Mindful, Elevated, Performance-Driven',
+          tone_of_voice: 'Professional, Authoritative, and Direct',
         },
       };
     }
 
-    const brandName = project.name || 'Lululemon';
-    const domain = project.domain || 'lululemon.com';
+    const brandName = project.name || 'My Brand';
+    const domain = project.domain || 'example.com';
     const brandKit: BrandKit = project.brand_kit || {
-      industry: 'Premium Athleisure & Athletic Apparel',
-      target_audience: 'Yoga & Pilates enthusiasts, runners, and athleisure consumers',
-      core_offerings: 'Align Leggings, Define Jackets, ABC Pants & technical activewear',
+      industry: 'Technology & Business',
+      target_audience: 'Modern enterprise teams and decision makers',
+      core_offerings: 'Autonomous AI Search & Brand Optimization',
       competitors: [
-        { name: 'Alo Yoga', domain: 'aloyoga.com' },
-        { name: 'Vuori', domain: 'vuoriclothing.com' },
-        { name: 'Athleta', domain: 'athleta.gap.com' },
+        { name: 'Competitor Alpha', domain: 'competitor-alpha.com' },
+        { name: 'Competitor Beta', domain: 'competitor-beta.com' },
       ],
-      tone_of_voice: 'Empowering & Performance-Driven',
+      tone_of_voice: 'Professional, Authoritative, and Direct',
     };
-    const industry = brandKit.industry || 'Premium Athleisure & Athletic Apparel';
+    const industry = brandKit.industry || 'Technology & Business';
 
     // 3. Pre-process and consolidate data to respect LLM context size
     const engineScores: Record<string, { totalScore: number; count: number }> = {};
@@ -140,6 +138,8 @@ export async function generateProjectReportAction(
       // Default baseline counts for demo
       engineScores['perplexity'] = { totalScore: 94, count: 1 };
       engineScores['chatgpt'] = { totalScore: 88, count: 1 };
+      engineScores['copilot'] = { totalScore: 86, count: 1 };
+      engineScores['copilot_search'] = { totalScore: 90, count: 1 };
       engineScores['gemini'] = { totalScore: 84, count: 1 };
       engineScores['claude'] = { totalScore: 74, count: 1 };
       positiveCount = 18;
@@ -160,8 +160,7 @@ export async function generateProjectReportAction(
         industry.toLowerCase().includes('commerce') ||
         industry.toLowerCase().includes('apparel') ||
         industry.toLowerCase().includes('athleisure') ||
-        industry.toLowerCase().includes('fitness') ||
-        brandName.toLowerCase().includes('lululemon');
+        industry.toLowerCase().includes('fitness');
       if (isRetail) {
         domainCountMap['womenshealthmag.com'] = 34;
         domainCountMap['reddit.com'] = 28;
@@ -259,18 +258,17 @@ Brand Details:
         industry.toLowerCase().includes('commerce') ||
         industry.toLowerCase().includes('apparel') ||
         industry.toLowerCase().includes('athleisure') ||
-        industry.toLowerCase().includes('fitness') ||
-        brandName.toLowerCase().includes('lululemon');
+        industry.toLowerCase().includes('fitness');
       const identifiedGaps = isRetail
         ? [
             {
-              targetType: 'Tier-1 Fitness & Activewear Lifestyle Desks (Women\'s Health, Shape, GQ)',
-              description: `Absence of dedicated wear-test feature coverage across high-authority wellness and athletic publications where generative search engines extract trending legging recommendations.`,
-              actionableStrategy: `Seed product line releases and material innovation spotlights (weightless Nulu™ fabric, anti-pilling guarantees) to Tier-1 editorial desks with direct product schema links.`,
+              targetType: 'Tier-1 Lifestyle & Industry Desks',
+              description: `Absence of dedicated wear-test feature coverage across high-authority wellness and lifestyle publications where generative search engines extract trending recommendations.`,
+              actionableStrategy: `Seed product line releases and material innovation spotlights to Tier-1 editorial desks with direct product schema links.`,
             },
             {
-              targetType: 'Activewear Community Hubs (r/lululemon, r/xxfitness, r/yoga)',
-              description: `Competitors (${competitorsList[0] || 'Alo Yoga'}, ${competitorsList[1] || 'Vuori'}) actively engage discussions in community buyer hubs, capturing conversational citations when users ask for peer recommendations on squat-proof workout tights.`,
+              targetType: 'Active Community Hubs (Reddit, Forums, Review Hubs)',
+              description: `Competitors (${competitorsList[0] || 'Competitor A'}, ${competitorsList[1] || 'Competitor B'}) actively engage discussions in community buyer hubs, capturing conversational citations when users ask for peer recommendations.`,
               actionableStrategy: `Launch an authorized community engagement program addressing sizing, durability, fabric care, and longevity questions on consumer review boards.`,
             },
             {

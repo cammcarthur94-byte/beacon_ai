@@ -16,11 +16,6 @@ const nextConfig: NextConfig = {
         destination: '/audits',
         permanent: true,
       },
-      {
-        source: '/content-studio',
-        destination: '/consultant',
-        permanent: true,
-      },
     ];
   },
 };

@@ -1,8 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useMemo, useRef } from 'react';
-import Link from 'next/link';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Table,
   TableHeader,
@@ -32,7 +31,6 @@ import {
   TrendingUp,
   Target,
   RefreshCw,
-  X,
   ExternalLink,
   ChevronDown,
   ChevronUp,
@@ -44,11 +42,7 @@ import {
   Award,
   CircleAlert,
   ArrowUpRight,
-  Bot,
-  Copy,
-  Send,
-  MessageSquare,
-  FileCode,
+  X,
 } from 'lucide-react';
 import { DomainFavicon } from '@/components/citations/domain-favicon';
 import { cn } from '@/lib/utils';
@@ -56,13 +50,6 @@ import type {
   CompetitorFeatureItem,
   CompetitorMappingData,
 } from '@/app/api/competitor-mapping/route';
-
-interface ChatMessage {
-  sender: 'sentinel' | 'user';
-  text: string;
-  code?: string;
-  timestamp?: string;
-}
 
 export function CompetitorMappingClient() {
   const [data, setData] = useState<CompetitorMappingData | null>(null);
@@ -74,13 +61,6 @@ export function CompetitorMappingClient() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [insightsExpanded, setInsightsExpanded] = useState(true);
 
-  // Sentinel Drawer Chatbot state
-  const [activeDrawerFeature, setActiveDrawerFeature] = useState<CompetitorFeatureItem | null>(null);
-  const [drawerLoading, setDrawerLoading] = useState(false);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [userInput, setUserInput] = useState('');
-  const [copiedCode, setCopiedCode] = useState(false);
-  const chatBottomRef = useRef<HTMLDivElement>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -101,12 +81,6 @@ export function CompetitorMappingClient() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (chatBottomRef.current) {
-      chatBottomRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [chatMessages, drawerLoading]);
-
   const handleRunCrawl = async () => {
     setCrawling(true);
     try {
@@ -120,141 +94,6 @@ export function CompetitorMappingClient() {
     } finally {
       setCrawling(false);
     }
-  };
-
-  // Open Sentinel Drawer for a given feature
-  const handleOpenBridgeGap = (feat: CompetitorFeatureItem) => {
-    setActiveDrawerFeature(feat);
-    setDrawerLoading(true);
-    setCopiedCode(false);
-    setUserInput('');
-
-    const topComp = feat.competitors.find((c) => c.citationShare > 0) || feat.competitors[0];
-    const brandName = data?.brandName || 'Lululemon';
-
-    setTimeout(() => {
-      setDrawerLoading(false);
-      setChatMessages([
-        {
-          sender: 'sentinel',
-          text: `I've analyzed how competitors compare for "${feat.featureName}" in ${feat.category}.
-
-**Current Recommendation Rate**:
-• ${topComp?.name || 'Competitors'}: **${topComp?.citationShare || 45}% recommendation share** in AI answers
-• ${brandName}: **${feat.brandCitationShare}% recommendation share**
-• Standing: **${feat.brandStatus.toUpperCase()}**
-
-**3-Step Action Plan to Win More AI Recommendations**:
-1. **Website Product Info**: Add clear durability specifications and details to your product pages.
-2. **Comparison Content**: Publish an objective specification breakdown contrasting ${brandName} against ${topComp?.name || 'competitor'} materials.
-3. **Expert Reviews**: Share product testing results with reviewers and buyer guides to get cited more often.`,
-          code: `<!-- WEBSITE CODE FOR ${brandName.toUpperCase()} -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": "${brandName} ${feat.featureName}",
-  "category": "${feat.category}",
-  "description": "${feat.brandDetail}",
-  "brand": {
-    "@type": "Brand",
-    "name": "${brandName}"
-  },
-  "additionalProperty": [
-    {
-      "@type": "PropertyValue",
-      "name": "Fabric Engineering",
-      "value": "Proprietary Anti-Pill Interlock 100-Wash Certified"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Competitive Differentiation",
-      "value": "Outperforms ${topComp?.name || 'competitors'} in multi-planar stretch retention and durability"
-    }
-  ]
-}
-</script>`,
-        },
-      ]);
-    }, 450);
-  };
-
-  // Send interactive chat message
-  const handleSendMessage = (textToSend?: string) => {
-    const text = textToSend || userInput;
-    if (!text.trim() || !activeDrawerFeature) return;
-
-    const newMsgs: ChatMessage[] = [...chatMessages, { sender: 'user', text }];
-    setChatMessages(newMsgs);
-    setUserInput('');
-    setDrawerLoading(true);
-
-    const brandName = data?.brandName || 'Lululemon';
-    const topComp =
-      activeDrawerFeature.competitors.find((c) => c.citationShare > 0) ||
-      activeDrawerFeature.competitors[0];
-
-    setTimeout(() => {
-      setDrawerLoading(false);
-      let reply = '';
-      let codeSnippet: string | undefined = undefined;
-
-      const lower = text.toLowerCase();
-      if (lower.includes('schema') || lower.includes('json') || lower.includes('code')) {
-        reply = `Here is the ready-to-use FAQ website code to help AI platforms understand your product advantages:`;
-        codeSnippet = `<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "How does ${brandName} ${activeDrawerFeature.featureName} compare to ${topComp?.name}?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "${brandName}'s proprietary ${activeDrawerFeature.featureName} features four-way interlock knit with lab-verified zero pilling over 100 industrial wash cycles, whereas ${topComp?.name} utilizes standard poly-elastane blends."
-      }
-    }
-  ]
-}
-</script>`;
-      } else if (lower.includes('copy') || lower.includes('page') || lower.includes('landing')) {
-        reply = `### Draft Comparison Web Section
-**Headline**: Engineered for Longevity: ${brandName} vs. ${topComp?.name}
-
-* **Tensile Recovery**: 99.4% shape retention after 24h continuous wear tests.
-* **Seam Construction**: Flatlock ergonomic stitching designed for zero friction under load.
-* **Alterations & Warranty**: Complimentary lifetime in-store hemming on any style.
-
-*Recommendation*: Place this section on your main product page so AI tools see and recommend your product advantages.`;
-      } else if (lower.includes('pitch') || lower.includes('pr') || lower.includes('editor')) {
-        reply = `### Targeted Editorial PR Hook
-**Subject**: Review Sample Offer: 2026 Wear Test Data for ${activeDrawerFeature.featureName}
-
-*Hi Editorial Team,*
-
-I saw your recent roundup reviewing activewear performance and noticed ${topComp?.name} was highlighted. 
-
-We just concluded an independent laboratory wear test comparing ${brandName} with category alternatives across 100 wash cycles. Would you be open to review samples for your team to evaluate firsthand in your upcoming guides?`;
-      } else {
-        reply = `I've analyzed that angle for ${activeDrawerFeature.featureName}. To help AI tools recommend you more often, add clear comparison details and FAQ sections to your website.`;
-      }
-
-      setChatMessages([
-        ...newMsgs,
-        {
-          sender: 'sentinel',
-          text: reply,
-          code: codeSnippet,
-        },
-      ]);
-    }, 600);
-  };
-
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
   };
 
   // Categories list
@@ -322,17 +161,6 @@ We just concluded an independent laboratory wear test comparing ${brandName} wit
 
         {/* Consolidated action buttons */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <Link href="/consultant">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium cursor-pointer"
-            >
-              <Sparkles className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
-              Content Studio
-            </Button>
-          </Link>
-
           <Button
             size="sm"
             onClick={handleRunCrawl}
@@ -521,7 +349,7 @@ We just concluded an independent laboratory wear test comparing ${brandName} wit
                       const matchingFeat =
                         data?.features?.find((f) => f.category === rec.category) ||
                         data?.features?.[0];
-                      if (matchingFeat) handleOpenBridgeGap(matchingFeat);
+                      if (matchingFeat) setSearchQuery(matchingFeat.featureName);
                     }}
                     className="w-full text-xs font-semibold h-7.5 text-emerald-700 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all justify-between px-2.5 cursor-pointer"
                   >
@@ -863,18 +691,7 @@ We just concluded an independent laboratory wear test comparing ${brandName} wit
                         </div>
                       </TableCell>
 
-                      {/* Action - Opens Beacon Sentinel Drawer */}
-                      <TableCell className="text-right pr-6 py-4 align-top">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleOpenBridgeGap(feat)}
-                          className="h-8 px-2.5 text-xs text-purple-700 border-purple-200 bg-purple-50/50 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all font-medium cursor-pointer"
-                        >
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          Bridge Gap
-                        </Button>
-                      </TableCell>
+                      <TableCell className="text-right pr-6 py-4 align-top" />
                     </TableRow>
                   );
                 })
@@ -884,236 +701,6 @@ We just concluded an independent laboratory wear test comparing ${brandName} wit
         </div>
       </div>
 
-      {/* ── 6. SLIDE-OUT BEACON SENTINEL PARITY REMEDIATION DRAWER ── */}
-      {activeDrawerFeature && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
-            onClick={() => setActiveDrawerFeature(null)}
-          />
-
-          {/* Drawer Panel */}
-          <div className="relative w-full max-w-xl bg-white h-full shadow-2xl z-10 flex flex-col overflow-hidden border-l border-slate-200 animate-in slide-in-from-right duration-300">
-            {/* Drawer Header */}
-            <div className="p-5 border-b border-slate-200 bg-slate-50/80 flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="h-6 w-6 rounded-md bg-emerald-600 flex items-center justify-center text-white">
-                    <Sparkles className="h-3.5 w-3.5" />
-                  </div>
-                  <h2 className="text-base font-bold text-slate-900">
-                    Competitor Gap Action Plan
-                  </h2>
-                </div>
-                <p className="text-xs text-slate-500">
-                  AI Assistant helping you improve your product claims and visibility for{' '}
-                  <span className="font-semibold text-slate-800">
-                    &ldquo;{activeDrawerFeature.featureName}&rdquo;
-                  </span>
-                </p>
-              </div>
-
-              <button
-                onClick={() => setActiveDrawerFeature(null)}
-                className="rounded-lg p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Feature Metadata Summary Card */}
-            <div className="p-4 border-b border-slate-100 bg-slate-50/50 space-y-2.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Category &amp; Standing</span>
-                <div className="flex items-center gap-1.5">
-                  <Badge variant="outline" className="text-[10px] font-semibold border-slate-200 bg-white">
-                    {activeDrawerFeature.category}
-                  </Badge>
-                  <Badge
-                    className={cn(
-                      'text-[10px] font-bold px-2 py-0.5 uppercase',
-                      activeDrawerFeature.brandStatus === 'leader'
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : activeDrawerFeature.brandStatus === 'gap'
-                        ? 'bg-amber-50 text-amber-700 border-amber-200'
-                        : activeDrawerFeature.brandStatus === 'parity'
-                        ? 'bg-blue-50 text-blue-700 border-blue-200'
-                        : 'bg-rose-50 text-rose-700 border-rose-200'
-                    )}
-                  >
-                    {activeDrawerFeature.brandStatus}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">AI Recommendation Rate</span>
-                <span className="font-bold text-slate-900">
-                  <span className="text-emerald-700">{activeDrawerFeature.brandCitationShare}%</span> vs{' '}
-                  <span className="text-amber-700">
-                    {activeDrawerFeature.competitors.find((c) => c.citationShare > 0)?.citationShare || 45}%{' '}
-                    ({activeDrawerFeature.competitors.find((c) => c.citationShare > 0)?.name || 'Competitors'})
-                  </span>
-                </span>
-              </div>
-
-              <div className="pt-2 border-t border-slate-200/60 text-xs">
-                <span className="text-slate-400 block text-[11px] mb-0.5">Your Current Details:</span>
-                <p className="text-slate-800 font-medium leading-relaxed bg-white p-2 rounded border border-slate-200/60">
-                  {activeDrawerFeature.brandDetail}
-                </p>
-              </div>
-            </div>
-
-            {/* Chatbot Message Stream */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-4">
-              {chatMessages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={cn(
-                    'flex gap-2.5 max-w-[92%]',
-                    msg.sender === 'user' ? 'ml-auto flex-row-reverse' : ''
-                  )}
-                >
-                  {msg.sender === 'sentinel' && (
-                    <div className="h-7 w-7 rounded-lg bg-emerald-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-2xs">
-                      <Bot className="h-4 w-4" />
-                    </div>
-                  )}
-
-                  <div
-                    className={cn(
-                      'p-3.5 rounded-xl text-xs leading-relaxed space-y-2.5',
-                      msg.sender === 'user'
-                        ? 'bg-slate-900 text-white rounded-tr-none'
-                        : 'bg-slate-50 border border-slate-200 text-slate-800 rounded-tl-none'
-                    )}
-                  >
-                    <div className="whitespace-pre-wrap font-sans">{msg.text}</div>
-
-                    {msg.code && (
-                      <div className="mt-2.5 space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono font-bold text-slate-500 uppercase flex items-center gap-1">
-                            <FileCode className="h-3 w-3" />
-                            Website Code / Schema Markup
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCopy(msg.code!)}
-                            className="h-6 text-[10px] text-slate-500 hover:text-emerald-700 px-1.5"
-                          >
-                            {copiedCode ? (
-                              <CheckCircle2 className="h-3 w-3 text-emerald-600 mr-1" />
-                            ) : (
-                              <Copy className="h-3 w-3 mr-1" />
-                            )}
-                            {copiedCode ? 'Copied!' : 'Copy Code'}
-                          </Button>
-                        </div>
-                        <pre className="p-3 rounded-lg bg-slate-900 text-emerald-400 font-mono text-[11px] overflow-x-auto leading-normal">
-                          {msg.code}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {drawerLoading && (
-                <div className="flex gap-2.5 items-center text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-200 w-fit">
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-600" />
-                  <span>Analyzing competitors and generating recommendations...</span>
-                </div>
-              )}
-
-              <div ref={chatBottomRef} />
-            </div>
-
-            {/* Quick Prompt Presets */}
-            <div className="px-5 py-2 border-t border-slate-100 bg-slate-50/50 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-              <span className="text-[11px] font-semibold text-slate-400 shrink-0">Quick Ask:</span>
-              <button
-                type="button"
-                onClick={() => handleSendMessage('Generate FAQ website code')}
-                className="text-[11px] font-medium text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 px-2 py-1 rounded-md shrink-0 transition-colors cursor-pointer"
-              >
-                + FAQ Code
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSendMessage('Draft comparison web page copy')}
-                className="text-[11px] font-medium text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 px-2 py-1 rounded-md shrink-0 transition-colors cursor-pointer"
-              >
-                + Comparison Copy
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSendMessage('Draft an editorial PR pitch for gear review desks')}
-                className="text-[11px] font-medium text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 px-2 py-1 rounded-md shrink-0 transition-colors cursor-pointer"
-              >
-                + Editorial PR Pitch
-              </button>
-            </div>
-
-            {/* Chat Input Bar */}
-            <div className="p-3.5 border-t border-slate-200 bg-white">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSendMessage();
-                }}
-                className="flex items-center gap-2"
-              >
-                <Input
-                  type="text"
-                  placeholder="Ask to draft comparison copy, website code, or PR pitch..."
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  className="h-9 text-xs bg-slate-50/70 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white font-sans"
-                />
-                <Button
-                  type="submit"
-                  size="sm"
-                  disabled={!userInput.trim() || drawerLoading}
-                  className="h-9 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold cursor-pointer shrink-0 shadow-xs"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                </Button>
-              </form>
-            </div>
-
-            {/* Drawer Footer */}
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setActiveDrawerFeature(null)}
-                className="text-xs border-slate-200 text-slate-600 cursor-pointer"
-              >
-                Close
-              </Button>
-
-              <Link
-                href={`/consultant?q=${encodeURIComponent(
-                  `Sentinel, analyze how we compare for "${activeDrawerFeature.featureName}" (${activeDrawerFeature.category}). Currently competitors hold ${activeDrawerFeature.competitors[0]?.citationShare || 40}% recommendation share vs our ${activeDrawerFeature.brandCitationShare}%. Provide an action plan to win more AI recommendations.`
-                )}`}
-              >
-                <Button
-                  size="sm"
-                  className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
-                >
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  Continue in AI Co-Worker
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

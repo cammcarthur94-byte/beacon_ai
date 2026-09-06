@@ -60,23 +60,7 @@ export default async function AuditsPage() {
   }
 
   if (!project) {
-    project = {
-      id: 'demo-project-lululemon',
-      name: 'Lululemon',
-      domain: 'lululemon.com',
-      tier: 'enterprise',
-      brand_kit: {
-        industry: 'Premium Athleisure & Athletic Apparel',
-        target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, gym-goers, and fitness lifestyle consumers',
-        core_offerings: 'Align Pant (Nulu fabric), Define Jacket, Wunder Train tights, ABC Joggers, Everywhere Belt Bag & technical athleisure',
-        competitors: [
-          { name: 'Alo Yoga', domain: 'aloyoga.com' },
-          { name: 'Vuori', domain: 'vuoriclothing.com' },
-          { name: 'Athleta', domain: 'athleta.gap.com' },
-        ],
-        tone_of_voice: 'Empowering, Mindful, Elevated, Performance-Driven',
-      },
-    };
+    redirect('/onboarding');
   }
 
   const rawIndustry = (project.brand_kit?.industry || '').toLowerCase();
@@ -88,9 +72,7 @@ export default async function AuditsPage() {
     rawIndustry.includes('fashion') ||
     rawIndustry.includes('sport') ||
     rawIndustry.includes('fitness') ||
-    rawIndustry.includes('athleisure') ||
-    project.name.toLowerCase().includes('nike') ||
-    project.name.toLowerCase().includes('lululemon');
+    rawIndustry.includes('athleisure');
 
   const isCloud = Boolean(supabaseUrl && !supabaseUrl.includes('placeholder'));
   if (!isCloud) {

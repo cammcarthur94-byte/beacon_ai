@@ -10,7 +10,6 @@ import { Separator } from '@/components/ui/separator';
 import { signOut } from '@/app/login/actions';
 import {
   Radio,
-  Sparkles,
   LayoutDashboard,
   Link2,
   Search,
@@ -27,6 +26,7 @@ import {
   Sliders,
   Shield,
   Building2,
+  Sparkles,
 } from 'lucide-react';
 import type { TeamMemberRole, RolePermissionsConfig } from '@/types/database.types';
 import { getRoleBadgeColor, hasPermission } from '@/lib/auth/permissions';
@@ -95,7 +95,6 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
   }, []);
 
   const userRole = currentUser.role || 'owner';
-  const canAccessContentStudio = hasPermission(userRole, 'content_studio_pitches', project.role_permissions);
   const canEditBrandKit = hasPermission(userRole, 'edit_brand_kit', project.role_permissions);
   const canAccessSettings =
     hasPermission(userRole, 'manage_team', project.role_permissions) ||
@@ -144,19 +143,9 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
     },
   ];
 
-  const growthItems: NavItem[] = [];
+
 
   const adminItems: NavItem[] = [
-    ...(canAccessContentStudio
-      ? [
-          {
-            title: 'Content Studio',
-            href: '/consultant',
-            icon: Sparkles,
-            active: pathname.startsWith('/consultant'),
-          },
-        ]
-      : []),
     ...(canEditBrandKit || userRole === 'admin' || userRole === 'owner'
       ? [
           {
@@ -175,7 +164,7 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
     },
   ];
 
-  const navItems: NavItem[] = [...generativeItems, ...growthItems, ...adminItems];
+  const navItems: NavItem[] = [...generativeItems, ...adminItems];
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 flex flex-col lg:flex-row selection:bg-zinc-200 selection:text-zinc-950">
@@ -369,37 +358,7 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
               })}
             </div>
 
-            {growthItems.length > 0 && (
-              <div className="space-y-1 pt-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold px-2 block mb-2">
-                  Growth & Authority
-                </span>
-                {growthItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                        item.active
-                          ? 'bg-zinc-900 text-white shadow-xs'
-                          : 'text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Icon className={`h-4 w-4 ${item.active ? 'text-white' : 'text-zinc-500'}`} />
-                        <span>{item.title}</span>
-                      </div>
-                      {item.badge && (
-                        <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
+
 
             <div className="space-y-1 pt-2">
               <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold px-2 block mb-2">

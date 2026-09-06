@@ -204,30 +204,30 @@ export function interpretSliderPole(key: string, val: number): string {
   switch (key) {
     case 'formal_casual':
       if (val <= 25) return 'Rigidly Formal';
-      if (val <= 45) return 'Polished Executive';
-      if (val <= 60) return 'Balanced & Professional';
+      if (val <= 50) return 'Balanced Executive';
+      if (val <= 65) return 'Balanced & Professional';
       if (val <= 80) return 'Conversational & Approachable';
       return 'Informal & Casual';
 
     case 'technical_accessible':
       if (val <= 25) return 'Deep Technical & Spec-Dense';
-      if (val <= 45) return 'Industry Practitioner';
-      if (val <= 60) return 'Grounded & Educative';
-      if (val <= 80) return 'Clear & Plainspoken';
+      if (val <= 50) return 'Accessible & Plainspoken';
+      if (val <= 75) return 'Engineering & Lab Specs';
+      if (val <= 90) return 'Advanced Technical R&D';
       return 'Broadly Accessible (Zero Jargon)';
 
     case 'bold_understated':
       if (val <= 25) return 'Disruptive & Category-Dominant';
-      if (val <= 45) return 'Assertive & Confident';
-      if (val <= 60) return 'Balanced Market Presence';
-      if (val <= 80) return 'Measured & Credible';
+      if (val <= 50) return 'Confident & Measured';
+      if (val <= 70) return 'Balanced Market Presence';
+      if (val <= 85) return 'Measured & Credible';
       return 'Quiet Luxury & Understated';
 
     case 'analytical_inspiring':
       if (val <= 25) return 'Pure Empirical & Metric-Led';
-      if (val <= 45) return 'Evidence & Proof-Focused';
-      if (val <= 60) return 'Pragmatic & Purposeful';
-      if (val <= 80) return 'Uplifting & Mission-Driven';
+      if (val <= 50) return 'Evidence & Proof-Focused';
+      if (val <= 70) return 'Pragmatic & Purposeful';
+      if (val <= 85) return 'Visionary Movement';
       return 'Visionary & Highly Aspirational';
 
     default:

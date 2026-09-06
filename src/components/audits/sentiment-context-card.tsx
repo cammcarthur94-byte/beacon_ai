@@ -4,7 +4,6 @@ import * as React from 'react';
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Smile,
   Meh,
@@ -17,12 +16,10 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Bot,
 } from 'lucide-react';
 import { EngineIcon, getEngineMeta } from '@/components/ui/engine-badge';
 import { cn } from '@/lib/utils';
 import type { AuditRunDetail } from './raw-output-viewer';
-import type { RemediationContext } from './sentinel-remediation-drawer';
 
 export interface SentimentContextCardProps {
   runs: AuditRunDetail[];
@@ -30,7 +27,6 @@ export interface SentimentContextCardProps {
   domain?: string;
   competitors?: string[];
   queryText?: string;
-  onOpenSentinel?: (context: RemediationContext) => void;
 }
 
 export function extractEngineQuote(rawText: string, brandName: string): string {
@@ -117,7 +113,6 @@ export function SentimentContextCard({
   domain,
   competitors,
   queryText,
-  onOpenSentinel,
 }: SentimentContextCardProps) {
   const [expanded, setExpanded] = useState(true);
 
@@ -167,10 +162,6 @@ export function SentimentContextCard({
       source: formatGroundingSources(run.citedUrls, meta.label),
     };
   });
-
-  const underperformingEngines = runs
-    .filter((r) => r.visibilityScore < 70)
-    .map((r) => r.engine);
 
   const hasFriction = criticalPercent > 0 || avgVisibility < 75;
 
@@ -347,7 +338,7 @@ export function SentimentContextCard({
             )}
           </div>
 
-          {/* Sentinel Recommendation Footer */}
+          {/* Recommendation Footer */}
           <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1">
               <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
@@ -361,29 +352,6 @@ export function SentimentContextCard({
               </p>
             </div>
 
-            {onOpenSentinel && (
-              <Button
-                size="sm"
-                onClick={() =>
-                  onOpenSentinel({
-                    strategyTitle: hasFriction
-                      ? `Brand Sentiment & Authority Guide for ${brandName}`
-                      : `Brand Trust & Reputation Guide for ${brandName}`,
-                    strategyCategory: 'Sentiment & Value Framing',
-                    queryText: queryText || `Sentiment optimization for ${brandName}`,
-                    brandName: brandName,
-                    domain: domain || 'yourbrand.com',
-                    competitors: competitors && competitors.length > 0 ? competitors : ['Category Competitors'],
-                    underperformingEngines: underperformingEngines,
-                    averageScore: avgVisibility,
-                  })
-                }
-                className="h-8.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shrink-0 shadow-xs cursor-pointer"
-              >
-                <Bot className="h-3.5 w-3.5 mr-1.5" />
-                Deploy Sentiment Fix
-              </Button>
-            )}
           </div>
         </CardContent>
       )}

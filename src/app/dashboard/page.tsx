@@ -60,68 +60,27 @@ export default async function DashboardPage() {
   }
 
   if (!project) {
-    project = {
-      id: 'demo-project-lululemon',
-      name: 'Lululemon',
-      domain: 'lululemon.com',
-      tier: 'enterprise',
-      audit_limit: 100,
-      brand_kit: {
-        industry: 'Retail, Apparel & Consumer Goods > Activewear & Athleisure',
-        industry_taxonomy: {
-          sector: 'Retail, Apparel & Consumer Goods',
-          category: 'Activewear & Athleisure',
-        },
-        target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, and fitness lifestyle consumers',
-        core_offerings: 'Premium Performance Activewear, Technical Outerwear, Everyday Movement Essentials',
-        competitors: [
-          { name: 'Alo Yoga', domain: 'aloyoga.com' },
-          { name: 'Vuori', domain: 'vuoriclothing.com' },
-          { name: 'Athleta', domain: 'athleta.gap.com' },
-        ],
-        target_regions: ['Global / Worldwide', 'North America (US & Canada)'],
-        negative_keywords: ['fast fashion', 'cheap dupes', 'discount outlet', 'drop-shipping'],
-        messaging_pillars: [
-          'Proprietary Technical Fabric Innovation',
-          'Mindful Movement & Wellness Community',
-          'Elevated Performance Luxury',
-          'Sustainable Longevity & Durability',
-        ],
-        tone_dimensions: {
-          formal_casual: 45,
-          technical_accessible: 70,
-          bold_understated: 40,
-          analytical_inspiring: 80,
-        },
-        tone_tags: ['Empowering', 'Mindful', 'Technical', 'Elevated'],
-        tone_of_voice: 'Inspiring, elevated, technical, and mindful',
-      },
-    };
+    redirect('/onboarding');
   }
 
-  const brandName = project.name || 'Lululemon';
+  const brandName = project.name || 'My Brand';
   const brandKit = project.brand_kit || {
-    industry: 'Retail, Apparel & Consumer Goods > Activewear & Athleisure',
+    industry: 'Technology & Business',
     industry_taxonomy: {
-      sector: 'Retail, Apparel & Consumer Goods',
-      category: 'Activewear & Athleisure',
+      sector: 'Technology',
+      category: 'Software & Cloud Services',
     },
-    target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, and fitness lifestyle consumers',
-    core_offerings: 'Premium Performance Activewear, Technical Outerwear, Everyday Movement Essentials',
-    competitors: [
-      { name: 'Alo Yoga', domain: 'aloyoga.com' },
-      { name: 'Vuori', domain: 'vuoriclothing.com' },
-      { name: 'Athleta', domain: 'athleta.gap.com' },
-    ],
-    target_regions: ['Global / Worldwide', 'North America (US & Canada)'],
-    negative_keywords: ['fast fashion', 'cheap dupes', 'discount outlet', 'drop-shipping'],
+    target_audience: 'Modern enterprise teams and decision makers',
+    core_offerings: 'Autonomous AI Search & Brand Optimization',
+    competitors: [],
+    target_regions: ['Global / Worldwide'],
+    negative_keywords: [],
     messaging_pillars: [
-      'Proprietary Technical Fabric Innovation',
-      'Mindful Movement & Wellness Community',
-      'Elevated Performance Luxury',
-      'Sustainable Longevity & Durability',
+      'Innovation & Market Leadership',
+      'Data-Driven Performance',
+      'Enterprise Quality & Reliability',
     ],
-    tone_of_voice: 'Inspiring, elevated, technical, and mindful',
+    tone_of_voice: 'Professional, Authoritative, and Direct',
   };
 
   const rawIndustry = (brandKit.industry || '').toLowerCase();
@@ -134,8 +93,7 @@ export default async function DashboardPage() {
     rawIndustry.includes('sport') ||
     rawIndustry.includes('fitness') ||
     rawIndustry.includes('athleisure') ||
-    brandName.toLowerCase().includes('nike') ||
-    brandName.toLowerCase().includes('lululemon');
+    brandName.toLowerCase().includes('nike');
 
   // Competitor metadata
   const competitors: CompetitorMeta[] = isConsumer
@@ -157,23 +115,23 @@ export default async function DashboardPage() {
     '90d': MultiLineSovDataPoint[];
   } = {
     '7d': [
-      { date: '6d ago', brand: 74.3, comp1: 54.2, comp2: 48.0, comp3: 39.0, shiftDriver: 'Reddit r/lululemon discussion thread on Align Nulu durability & fit' },
-      { date: '5d ago', brand: 73.0, comp1: 53.8, comp2: 49.5, comp3: 40.2, shiftDriver: 'Alo Yoga spring drop campaign noted across lifestyle publications' },
-      { date: '4d ago', brand: 75.1, comp1: 53.0, comp2: 50.1, comp3: 41.0, shiftDriver: 'Product wear-test breakdown published on YouTube fitness gear channel' },
-      { date: '3d ago', brand: 76.8, comp1: 52.0, comp2: 51.0, comp3: 39.5, shiftDriver: 'Perplexity citation surge from verified buyer reviews on squat-proof leggings' },
-      { date: '2d ago', brand: 78.2, comp1: 52.5, comp2: 49.0, comp3: 38.0, shiftDriver: 'Claude featured recommendation in premium yoga activewear comparison' },
-      { date: 'Yesterday', brand: 80.5, comp1: 51.5, comp2: 48.5, comp3: 37.2, shiftDriver: 'Gemini synthesis updated with ABC Pant commuter comfort highlights' },
-      { date: 'Today', brand: 82.6, comp1: 50.8, comp2: 47.9, comp3: 36.8, shiftDriver: 'Top recommendation on ChatGPT for high-waisted Pilates & workout leggings' },
+      { date: '6d ago', brand: 74.3, comp1: 54.2, comp2: 48.0, comp3: 39.0, shiftDriver: `Reddit community discussion thread on ${brandName} durability & fit` },
+      { date: '5d ago', brand: 73.0, comp1: 53.8, comp2: 49.5, comp3: 40.2, shiftDriver: 'Competitor spring campaign noted across lifestyle publications' },
+      { date: '4d ago', brand: 75.1, comp1: 53.0, comp2: 50.1, comp3: 41.0, shiftDriver: 'Product wear-test breakdown published on YouTube review channel' },
+      { date: '3d ago', brand: 76.8, comp1: 52.0, comp2: 51.0, comp3: 39.5, shiftDriver: 'Perplexity citation surge from verified buyer reviews' },
+      { date: '2d ago', brand: 78.2, comp1: 52.5, comp2: 49.0, comp3: 38.0, shiftDriver: `Claude featured recommendation in ${brandName} comparison` },
+      { date: 'Yesterday', brand: 80.5, comp1: 51.5, comp2: 48.5, comp3: 37.2, shiftDriver: 'Gemini synthesis updated with product commuter comfort highlights' },
+      { date: 'Today', brand: 82.6, comp1: 50.8, comp2: 47.9, comp3: 36.8, shiftDriver: `Top recommendation on ChatGPT & Microsoft Copilot for ${brandName}` },
     ],
     '30d': [
-      { date: 'Day 1', brand: 64.2, comp1: 58.0, comp2: 46.0, comp3: 42.0, shiftDriver: 'Initial monthly activewear audit baseline' },
-      { date: 'Day 4', brand: 66.8, comp1: 57.5, comp2: 47.2, comp3: 41.5, shiftDriver: 'Brand mentioned in Women\'s Health best leggings roundup' },
-      { date: 'Day 7', brand: 65.4, comp1: 59.0, comp2: 48.0, comp3: 43.0, shiftDriver: 'Alo Yoga seasonal studio campaign push' },
-      { date: 'Day 10', brand: 69.1, comp1: 58.2, comp2: 47.5, comp3: 41.0, shiftDriver: 'Verified buyer feedback surge on r/lululemon and r/xxfitness' },
-      { date: 'Day 13', brand: 72.5, comp1: 56.4, comp2: 48.2, comp3: 40.5, shiftDriver: 'Athletic review website citations updated across AI tools' },
-      { date: 'Day 16', brand: 70.8, comp1: 55.0, comp2: 49.0, comp3: 41.2, shiftDriver: 'Vuori launches new DreamKnit colorways' },
-      { date: 'Day 19', brand: 74.3, comp1: 54.2, comp2: 48.0, comp3: 39.0, shiftDriver: 'Reddit community thread discussion on Align pilling prevention' },
-      { date: 'Day 22', brand: 73.0, comp1: 53.8, comp2: 49.5, comp3: 40.2, shiftDriver: 'Competitor sale noted across third-party style review portals' },
+      { date: 'Day 1', brand: 64.2, comp1: 58.0, comp2: 46.0, comp3: 42.0, shiftDriver: 'Initial monthly audit baseline established' },
+      { date: 'Day 4', brand: 66.8, comp1: 57.5, comp2: 47.2, comp3: 41.5, shiftDriver: 'Brand mentioned in editorial roundup' },
+      { date: 'Day 7', brand: 65.4, comp1: 59.0, comp2: 48.0, comp3: 43.0, shiftDriver: 'Competitor seasonal campaign push' },
+      { date: 'Day 10', brand: 69.1, comp1: 58.2, comp2: 47.5, comp3: 41.0, shiftDriver: 'Verified buyer feedback surge across community forums' },
+      { date: 'Day 13', brand: 72.5, comp1: 56.4, comp2: 48.2, comp3: 40.5, shiftDriver: 'Review website citations updated across AI engines' },
+      { date: 'Day 16', brand: 70.8, comp1: 55.0, comp2: 49.0, comp3: 41.2, shiftDriver: 'Competitor releases new product line' },
+      { date: 'Day 19', brand: 74.3, comp1: 54.2, comp2: 48.0, comp3: 39.0, shiftDriver: `Community forum discussion on ${brandName} quality standards` },
+      { date: 'Day 22', brand: 73.0, comp1: 53.8, comp2: 49.5, comp3: 40.2, shiftDriver: 'Competitor promotion noted across review portals' },
       { date: 'Day 25', brand: 76.8, comp1: 52.0, comp2: 51.0, comp3: 39.5, shiftDriver: 'Perplexity citation surge from verified yoga instructor reviews' },
       { date: 'Day 28', brand: 79.4, comp1: 51.5, comp2: 49.0, comp3: 38.0, shiftDriver: 'Claude featured recommendation in category comparison' },
       { date: 'Today', brand: 82.6, comp1: 50.8, comp2: 47.9, comp3: 36.8, shiftDriver: 'Top recommendation on ChatGPT for performance queries' },
@@ -192,6 +150,8 @@ export default async function DashboardPage() {
   // Engine visibility comparison scores
   const engineComparisonData: EngineVisibilityScore[] = [
     { engine: 'ChatGPT 4o', engineId: 'chatgpt', brandScore: 86, competitorAvg: 64 },
+    { engine: 'Microsoft Copilot', engineId: 'copilot', brandScore: 84, competitorAvg: 58 },
+    { engine: 'Copilot Search', engineId: 'copilot_search', brandScore: 89, competitorAvg: 56 },
     { engine: 'Gemini 1.5', engineId: 'gemini', brandScore: 78, competitorAvg: 59 },
     { engine: 'Claude 3.5', engineId: 'claude', brandScore: 72, competitorAvg: 68 },
     { engine: 'Perplexity', engineId: 'perplexity', brandScore: 94, competitorAvg: 52 },
@@ -202,7 +162,7 @@ export default async function DashboardPage() {
   // Top Cited Authority Domains
   const citationDomains: CitationDomainItem[] = [
     { domain: 'reddit.com', citations: 48, percentage: 29.3 },
-    { domain: project.domain || 'lululemon.com', citations: 42, percentage: 25.6, isBrandDomain: true },
+    { domain: project.domain || 'example.com', citations: 42, percentage: 25.6, isBrandDomain: true },
     { domain: isConsumer ? 'womenshealthmag.com' : 'techcrunch.com', citations: 31, percentage: 18.9 },
     { domain: 'youtube.com', citations: 24, percentage: 14.6 },
     { domain: isConsumer ? 'thestrategist.com' : 'gartner.com', citations: 19, percentage: 11.6 },
@@ -239,10 +199,50 @@ export default async function DashboardPage() {
   // Recent automated prompt audits telemetry with cited URLs
   const recentRuns: RecentAuditRun[] = [
     {
+      id: 'run-copilot-1',
+      promptId: 'prompt-seed-1',
+      queryText: isConsumer
+        ? `Best recommended products and reviews for ${brandName} in 2026`
+        : `Best ${brandKit.industry || 'enterprise intelligence'} solutions for 2026`,
+      engine: 'copilot',
+      visibilityScore: 91,
+      brandMentioned: true,
+      sentiment: 'positive',
+      sentimentScore: 0.89,
+      citedUrlsCount: 3,
+      citedUrls: [
+        `https://${project.domain || 'example.com'}/products`,
+        'https://reddit.com/r/reviews/comments/customer_feedback_2026',
+        'https://forbes.com/advisor/business-solutions',
+      ],
+      createdAt: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
+      timeAgo: '8m ago',
+    },
+    {
+      id: 'run-copilot-search-1',
+      promptId: 'prompt-seed-2',
+      queryText: isConsumer
+        ? `${brandName} vs ${brandKit.competitors?.[0]?.name || 'competitors'}: durability, quality, and buyer ratings`
+        : `Top alternatives to ${brandKit.competitors?.[0]?.name || 'market incumbents'}`,
+      engine: 'copilot_search',
+      visibilityScore: 94,
+      brandMentioned: true,
+      sentiment: 'positive',
+      sentimentScore: 0.93,
+      citedUrlsCount: 4,
+      citedUrls: [
+        `https://${project.domain || 'example.com'}/compare`,
+        'https://bing.com/search?q=brand_comparison_analysis',
+        'https://theverge.com/reviews/recommendations',
+      ],
+      createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
+      timeAgo: '12m ago',
+    },
+    {
       id: 'run-1',
       promptId: 'prompt-seed-1',
       queryText: isConsumer
-        ? 'Best buttery-soft yoga leggings for Pilates and studio workouts in 2026'
+        ? `Top rated studio performance collections and fit guide for ${brandName}`
         : `Best ${brandKit.industry || 'enterprise intelligence'} solutions for 2026`,
       engine: 'Perplexity',
       visibilityScore: 96,
@@ -251,9 +251,9 @@ export default async function DashboardPage() {
       sentimentScore: 0.92,
       citedUrlsCount: 4,
       citedUrls: [
-        `https://${project.domain || 'lululemon.com'}/align-pant-nulu`,
-        'https://reddit.com/r/lululemon/comments/align_durability_2026',
-        'https://womenshealthmag.com/fitness/best-yoga-leggings',
+        `https://${project.domain || 'example.com'}/collections`,
+        'https://reddit.com/r/reviews/comments/durability_2026',
+        'https://womenshealthmag.com/fitness/best-products',
       ],
       createdAt: new Date(Date.now() - 1000 * 60 * 14).toISOString(),
       timeAgo: '14m ago',
@@ -262,7 +262,7 @@ export default async function DashboardPage() {
       id: 'run-2',
       promptId: 'prompt-seed-2',
       queryText: isConsumer
-        ? `${brandName} Align vs ${brandKit.competitors?.[0]?.name || 'Alo Yoga'} Airbrush: durability, pilling, and squat test review`
+        ? `${brandName} vs ${brandKit.competitors?.[0]?.name || 'Alo Yoga'}: durability and customer review comparison`
         : `Top alternatives to ${brandKit.competitors?.[0]?.name || 'market incumbents'}`,
       engine: 'ChatGPT',
       visibilityScore: 88,
@@ -271,9 +271,9 @@ export default async function DashboardPage() {
       sentimentScore: 0.84,
       citedUrlsCount: 3,
       citedUrls: [
-        `https://${project.domain || 'lululemon.com'}/align-vs-competitors`,
-        'https://youtube.com/watch?v=leggings_squat_test_2026',
-        'https://thestrategist.com/best-workout-leggings',
+        `https://${project.domain || 'example.com'}/comparison`,
+        'https://youtube.com/watch?v=wear_test_reviews',
+        'https://thestrategist.com/best-products',
       ],
       createdAt: new Date(Date.now() - 1000 * 60 * 62).toISOString(),
       timeAgo: '1h ago',
@@ -282,7 +282,7 @@ export default async function DashboardPage() {
       id: 'run-3',
       promptId: 'prompt-seed-3',
       queryText: isConsumer
-        ? `Best men's commuter pants and workout joggers: ${brandName} ABC vs ${brandKit.competitors?.[1]?.name || 'Vuori'} Meta`
+        ? `Best commuter apparel and joggers: ${brandName} vs ${brandKit.competitors?.[1]?.name || 'Vuori'}`
         : `How to implement generative engine optimization workflows`,
       engine: 'Gemini',
       visibilityScore: 86,
@@ -291,9 +291,9 @@ export default async function DashboardPage() {
       sentimentScore: 0.82,
       citedUrlsCount: 3,
       citedUrls: [
-        `https://${project.domain || 'lululemon.com'}/men/abc-pants`,
-        'https://gq.com/story/best-mens-commuter-pants',
-        'https://runnersworld.com/gear/mens-running-joggers',
+        `https://${project.domain || 'example.com'}/mens`,
+        'https://gq.com/story/best-mens-commuter-wear',
+        'https://runnersworld.com/gear/performance-joggers',
       ],
       createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
       timeAgo: '3h ago',
@@ -302,7 +302,7 @@ export default async function DashboardPage() {
       id: 'run-4',
       promptId: 'prompt-seed-4',
       queryText: isConsumer
-        ? `Where to buy authentic ${brandName} Align leggings and Everywhere Belt Bags online`
+        ? `Where to buy authentic ${brandName} products online with verified warranty`
         : `Enterprise security and compliance guide for ${brandName}`,
       engine: 'Claude',
       visibilityScore: 92,
@@ -311,8 +311,8 @@ export default async function DashboardPage() {
       sentimentScore: 0.89,
       citedUrlsCount: 3,
       citedUrls: [
-        `https://${project.domain || 'lululemon.com'}/store-locator`,
-        'https://reddit.com/r/athleisure/comments/authentic_lululemon_deals',
+        `https://${project.domain || 'example.com'}/store-locator`,
+        'https://reddit.com/r/shopping/comments/authentic_buying_guide',
       ],
       createdAt: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
       timeAgo: '6h ago',
@@ -321,7 +321,7 @@ export default async function DashboardPage() {
       id: 'run-5',
       promptId: 'prompt-seed-5',
       queryText: isConsumer
-        ? 'Top moisture-wicking athletic wear brands for hot yoga and HIIT training'
+        ? 'Top moisture-wicking athletic wear brands for fitness training'
         : `Best AI search monitoring tools: ${brandName} vs alternatives`,
       engine: 'ChatGPT',
       visibilityScore: 0,
@@ -337,7 +337,7 @@ export default async function DashboardPage() {
       id: 'run-6',
       promptId: 'prompt-seed-6',
       queryText: isConsumer
-        ? `Pilling prevention and fabric care guide for ${brandName} Align Nulu tights`
+        ? `Care guide and durability longevity for ${brandName}`
         : `Known latency issues and bottlenecks with ${brandName}`,
       engine: 'Perplexity',
       visibilityScore: 68,
@@ -346,8 +346,8 @@ export default async function DashboardPage() {
       sentimentScore: -0.45,
       citedUrlsCount: 3,
       citedUrls: [
-        'https://reddit.com/r/lululemon/comments/pilling_prevention_guide',
-        'https://youtube.com/watch?v=align_wash_and_care',
+        'https://reddit.com/r/care/comments/fabric_care_guide',
+        'https://youtube.com/watch?v=garment_care',
       ],
       createdAt: new Date(Date.now() - 1000 * 60 * 960).toISOString(),
       timeAgo: '16h ago',
@@ -356,7 +356,7 @@ export default async function DashboardPage() {
       id: 'run-7',
       promptId: 'prompt-seed-7',
       queryText: isConsumer
-        ? `Best high-waisted activewear leggings with verified customer reviews`
+        ? `Best high-waisted activewear collections with verified customer reviews`
         : `Answer engine optimization platforms and generative search tools 2026`,
       engine: 'google_ai_overview',
       visibilityScore: 92,
@@ -365,9 +365,9 @@ export default async function DashboardPage() {
       sentimentScore: 0.88,
       citedUrlsCount: 4,
       citedUrls: [
-        `https://${project.domain || 'lululemon.com'}/align`,
-        'https://womenshealthmag.com/fitness/best-yoga-leggings',
-        'https://thestrategist.com/best-workout-leggings',
+        `https://${project.domain || 'example.com'}/best-sellers`,
+        'https://womenshealthmag.com/fitness/best-products',
+        'https://thestrategist.com/best-picks',
       ],
       createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
       timeAgo: '45m ago',

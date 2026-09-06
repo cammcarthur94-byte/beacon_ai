@@ -26,7 +26,6 @@ import { ModelGridMatrix } from './model-grid-matrix';
 import { ModelComparisonView } from './model-comparison-view';
 import { LowScoreStrategyCard } from './low-score-strategy-card';
 import { SentimentContextCard } from './sentiment-context-card';
-import { SentinelRemediationDrawer, type RemediationContext } from './sentinel-remediation-drawer';
 import { triggerInstantRun } from '@/app/audits/actions';
 import type { AuditRunDetail } from './raw-output-viewer';
 import type { SearchIntent, BrandAssociation } from '@/types/database.types';
@@ -62,8 +61,6 @@ export function AuditResultsClient({
   const [viewMode, setViewMode] = useState<'grid' | 'comparison'>('grid');
   const [runs, setRuns] = useState<AuditRunDetail[]>(initialRuns);
   const [isPending, startTransition] = useTransition();
-  const [sentinelOpen, setSentinelOpen] = useState(false);
-  const [sentinelContext, setSentinelContext] = useState<RemediationContext | null>(null);
   const [showStrategyManual, setShowStrategyManual] = useState(false);
 
   // Compute aggregate KPI metrics
@@ -107,11 +104,6 @@ export function AuditResultsClient({
     });
   };
 
-  const handleOpenSentinel = (context: RemediationContext) => {
-    setSentinelContext(context);
-    setSentinelOpen(true);
-  };
-
   return (
     <div className="space-y-8 pb-16 font-sans">
       {/* ── 1. BREADCRUMB & PAGE TITLE HEADER ────────────────────── */}
@@ -134,27 +126,6 @@ export function AuditResultsClient({
 
         {/* Action Controls */}
         <div className="flex items-center gap-2.5">
-          {/* Quick Sentinel Drawer Trigger */}
-          <Button
-            variant="outline"
-            onClick={() =>
-              handleOpenSentinel({
-                strategyTitle: 'General Prompt Optimization Blueprint',
-                strategyCategory: 'Topical Authority Blueprint',
-                queryText: prompt.query_text,
-                brandName: project.name,
-                domain: project.domain,
-                competitors: competitorsList,
-                underperformingEngines,
-                averageScore: averageSOV,
-              })
-            }
-            className="h-10 text-xs font-semibold border-slate-200 bg-white text-slate-800 hover:bg-slate-50 shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
-          >
-            <Bot className="h-4 w-4 text-emerald-600" />
-            <span>Consult Sentinel</span>
-          </Button>
-
           {/* Live Run Trigger */}
           <Button
             onClick={handleRunAudit}
@@ -274,7 +245,6 @@ export function AuditResultsClient({
         averageScore={averageSOV}
         competitors={competitorsList}
         underperformingEngines={underperformingEngines}
-        onOpenSentinel={handleOpenSentinel}
         forceShow={showStrategyManual}
       />
 
@@ -299,7 +269,6 @@ export function AuditResultsClient({
         domain={project.domain}
         competitors={competitorsList}
         queryText={prompt.query_text}
-        onOpenSentinel={handleOpenSentinel}
       />
 
       {/* ── 4. VIEW SWITCHER (GRID MATRIX VS MODEL COMPARISON) ──── */}
@@ -354,13 +323,6 @@ export function AuditResultsClient({
           competitors={competitorsList}
         />
       )}
-
-      {/* ── 6. INLINE SENTINEL REMEDIATION DRAWER ────────────────── */}
-      <SentinelRemediationDrawer
-        open={sentinelOpen}
-        onOpenChange={setSentinelOpen}
-        context={sentinelContext}
-      />
     </div>
   );
 }

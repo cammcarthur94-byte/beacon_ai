@@ -24,6 +24,7 @@ import {
   CHART_THEME_COLORS,
 } from '@/lib/chart-theme';
 import { DomainFavicon } from '@/components/citations/domain-favicon';
+import { ChartExpandButton, ExpandableChartModal } from '@/components/charts/expandable-chart-modal';
 
 interface CitationGapsCardProps {
   citationAnalysis: ExecutiveReportData['citationAnalysis'];
@@ -31,6 +32,8 @@ interface CitationGapsCardProps {
 }
 
 export function CitationGapsCard({ citationAnalysis, brandName }: CitationGapsCardProps) {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+
   const chartData = citationAnalysis.topDomains && citationAnalysis.topDomains.length > 0
     ? citationAnalysis.topDomains.slice(0, 6)
     : [
@@ -40,6 +43,58 @@ export function CitationGapsCard({ citationAnalysis, brandName }: CitationGapsCa
         { domain: 'retaildive.com', count: 11 },
         { domain: 'hypebeast.com', count: 9 },
       ];
+
+  const renderBarChart = (heightClass = 'h-[220px]') => (
+    <div className={cn(heightClass, 'w-full')}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={chartData}
+          layout="vertical"
+          margin={{ top: 5, right: 20, left: 40, bottom: 5 }}
+        >
+          <CartesianGrid {...chartGridProps} />
+          <XAxis
+            type="number"
+            {...chartXAxisProps}
+            allowDecimals={false}
+          />
+          <YAxis
+            type="category"
+            dataKey="domain"
+            {...chartYAxisProps}
+            width={90}
+          />
+          <Tooltip
+            content={({ active, payload }: any) => {
+              if (active && payload && payload.length) {
+                const domain = payload[0].payload.domain;
+                return (
+                  <div className={cn(chartTooltipContainerClass, 'shadow-md flex items-center gap-2')}>
+                    <DomainFavicon domain={domain} size="xs" />
+                    <span className="font-semibold text-zinc-950">{domain}: </span>
+                    <span className="font-bold text-zinc-950">{payload[0].value} citations</span>
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
+          <Bar
+            dataKey="count"
+            fill={CHART_THEME_COLORS.primary}
+            radius={[0, 4, 4, 0]}
+            maxBarSize={22}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+
+  const badgeElement = (
+    <Badge variant="outline" className="font-mono text-xs border-zinc-200 bg-zinc-50 text-zinc-700 rounded-full">
+      Source Breakdown
+    </Badge>
+  );
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -55,57 +110,30 @@ export function CitationGapsCard({ citationAnalysis, brandName }: CitationGapsCa
               Websites most cited across ChatGPT, Gemini, Claude, and Perplexity when recommending {brandName}
             </CardDescription>
           </div>
-          <Badge variant="outline" className="font-mono text-xs border-zinc-200 bg-zinc-50 text-zinc-700 rounded-full">
-            Source Breakdown
-          </Badge>
+          <div className="flex items-center gap-2">
+            {badgeElement}
+            <ChartExpandButton onClick={() => setIsModalOpen(true)} />
+          </div>
         </CardHeader>
 
         <CardContent className="pt-2">
-          <div className="h-[220px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartData}
-                layout="vertical"
-                margin={{ top: 5, right: 20, left: 40, bottom: 5 }}
-              >
-                <CartesianGrid {...chartGridProps} />
-                <XAxis
-                  type="number"
-                  {...chartXAxisProps}
-                  allowDecimals={false}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="domain"
-                  {...chartYAxisProps}
-                  width={90}
-                />
-                <Tooltip
-                  content={({ active, payload }: any) => {
-                    if (active && payload && payload.length) {
-                      const domain = payload[0].payload.domain;
-                      return (
-                        <div className={cn(chartTooltipContainerClass, 'shadow-md flex items-center gap-2')}>
-                          <DomainFavicon domain={domain} size="xs" />
-                          <span className="font-semibold text-zinc-950">{domain}: </span>
-                          <span className="font-bold text-zinc-950">{payload[0].value} citations</span>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar
-                  dataKey="count"
-                  fill={CHART_THEME_COLORS.primary}
-                  radius={[0, 4, 4, 0]}
-                  maxBarSize={22}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {renderBarChart('h-[220px]')}
         </CardContent>
       </Card>
+
+      <ExpandableChartModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Top Citing Websites"
+        description={`Websites most cited across ChatGPT, Gemini, Claude, and Perplexity when recommending ${brandName}.`}
+        exportFilename="top-citing-websites"
+        csvData={chartData}
+        badge={badgeElement}
+      >
+        <div className="w-full h-full flex flex-col justify-center">
+          {renderBarChart('h-[380px] sm:h-[420px]')}
+        </div>
+      </ExpandableChartModal>
 
       {/* 2. IDENTIFIED GAPS WITH AGENT HANDOFF */}
       <Card className="border-zinc-200 bg-white shadow-xs">

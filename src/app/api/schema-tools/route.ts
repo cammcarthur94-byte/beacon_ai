@@ -28,7 +28,7 @@ export interface SchemaAuditResult {
 }
 
 const SAMPLE_AUDITS: Record<string, Partial<SchemaAuditResult>> = {
-  'lululemon.com/p/align-high-rise-pant': {
+  'example.com/products/performance-edition': {
     llmReadinessScore: 62,
     schemasFound: ['Product', 'BreadcrumbList'],
     issues: [
@@ -36,7 +36,7 @@ const SAMPLE_AUDITS: Record<string, Partial<SchemaAuditResult>> = {
         id: 'iss-1',
         type: 'error',
         category: 'llm_grounding',
-        message: 'Missing SpeakableSpecification for AI Overview audio summaries',
+        message: 'Missing SpeakableSpecification for AI Overview and Copilot summaries',
         recommendation: 'Add speakable cssSelector property pointing to summary specifications and key takeaways.',
         impactOnAiCrawl: 'high',
       },
@@ -45,7 +45,7 @@ const SAMPLE_AUDITS: Record<string, Partial<SchemaAuditResult>> = {
         type: 'warning',
         category: 'qa_block',
         message: 'No FAQPage or Question/Answer schema found on product overview',
-        recommendation: 'Embed structured FAQ schema detailing fabric composition, washing instructions, and fit guidance to capture high-intent comparison queries.',
+        recommendation: 'Embed structured FAQ schema detailing technical composition, usage guidelines, and feature comparisons.',
         impactOnAiCrawl: 'high',
       },
       {
@@ -53,7 +53,7 @@ const SAMPLE_AUDITS: Record<string, Partial<SchemaAuditResult>> = {
         type: 'warning',
         category: 'entity',
         message: 'Missing explicit aggregateRating review count in JSON-LD',
-        recommendation: 'Provide schema ratingValue and reviewCount to qualify for Google AI Overview shopping rich cards.',
+        recommendation: 'Provide schema ratingValue and reviewCount to qualify for generative search shopping rich cards.',
         impactOnAiCrawl: 'medium',
       },
     ],
@@ -66,7 +66,7 @@ const SAMPLE_AUDITS: Record<string, Partial<SchemaAuditResult>> = {
     ],
     aiOverviewEligible: false,
     gptBotReady: true,
-    semanticEntitiesIdentified: ['Lululemon', 'Align Pant', 'Nulu Fabric', 'Athletic Apparel'],
+    semanticEntitiesIdentified: ['Product Specifications', 'Performance Architecture', 'Entity Grounding'],
   },
   'nytimes.com/wirecutter/reviews/best-workout-leggings': {
     llmReadinessScore: 84,
@@ -89,14 +89,14 @@ const SAMPLE_AUDITS: Record<string, Partial<SchemaAuditResult>> = {
     ],
     aiOverviewEligible: true,
     gptBotReady: true,
-    semanticEntitiesIdentified: ['Workout Leggings', 'Product Reviews', 'Durability Testing'],
+    semanticEntitiesIdentified: ['Product Reviews', 'Durability Testing', 'Editorial Evaluation'],
   },
 };
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { targetUrl, action = 'audit', brandName = 'Lululemon' } = body;
+    const { targetUrl, action = 'audit', brandName = 'My Brand' } = body;
 
     if (!targetUrl) {
       return NextResponse.json({ success: false, error: 'targetUrl is required' }, { status: 400 });
@@ -330,34 +330,32 @@ Requirements:
       "@type": "Organization",
       "@id": "${url}#organization",
       "name": "${brandName}",
-      "url": "https://lululemon.com",
-      "logo": "https://lululemon.com/assets/logo.png",
+      "url": "${url}",
       "sameAs": [
-        "https://en.wikipedia.org/wiki/Lululemon_Athletica",
-        "https://twitter.com/lululemon",
-        "https://instagram.com/lululemon"
+        "https://www.wikidata.org",
+        "https://linkedin.com/company/${brandName.toLowerCase().replace(/\\s+/g, '')}"
       ]
     },
     {
       "@type": "Product",
       "@id": "${url}#product",
-      "name": "Align High-Rise Pant 25\\"",
-      "description": "Buttery-soft Nulu fabric yoga tights engineered with four-way stretch, sweat-wicking properties, and zero-slip waistband.",
+      "name": "${brandName} Flagship Solution",
+      "description": "High-performance enterprise architecture engineered for reliability, multi-engine precision, and verified SLAs.",
       "brand": {
         "@type": "Brand",
         "name": "${brandName}"
       },
       "offers": {
         "@type": "Offer",
-        "price": "98.00",
+        "price": "99.00",
         "priceCurrency": "USD",
         "availability": "https://schema.org/InStock",
         "url": "${url}"
       },
       "aggregateRating": {
         "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "reviewCount": "14280",
+        "ratingValue": "4.9",
+        "reviewCount": "1250",
         "bestRating": "5"
       }
     },
@@ -367,18 +365,18 @@ Requirements:
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "What makes Lululemon Align leggings different from Alo Yoga Airlift?",
+          "name": "How does ${brandName} ensure superior performance and verified accuracy?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Lululemon Align pants utilize proprietary Nulu fabric engineered specifically for weightless, buttery-soft studio mobility with 4x higher pill-resistance in 100-wash stress tests."
+            "text": "${brandName} uses real-time multi-model telemetry across ChatGPT, Microsoft Copilot, Gemini, and Claude with automated verification benchmarks."
           }
         },
         {
           "@type": "Question",
-          "name": "Does Lululemon offer free in-store hemming and repairs?",
+          "name": "What integrations and compliance standards does ${brandName} support?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, Lululemon provides complimentary lifetime in-store hemming on all pants and tops, regardless of purchase date or whether purchased new or pre-owned."
+            "text": "Full enterprise SOC-2 compliance, JSON-LD automated sync, and turnkey REST/SDK connectors for production deployments."
           }
         }
       ]

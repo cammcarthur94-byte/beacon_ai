@@ -12,6 +12,7 @@ import { executeMultiEngineAudit } from '@/lib/ai/engine-runner';
 import type { AuditFrequency, BrandKit, SearchIntent, BrandAssociation } from '@/types/database.types';
 import { extractDomain, categorizeSource } from '@/lib/citations/categorizer';
 import { checkTierAccess, isTierEligibleForGoogleAi } from '@/lib/billing/tier-access';
+import { getTierAuditLimit, normalizeTier } from '@/lib/billing/tier-utils';
 import { getDemoPrompts } from '@/lib/demo-prompts';
 
 function getActiveProjectFromCookie(cookieStore: any) {
@@ -59,6 +60,8 @@ export async function createPromptAudit(formData: FormData) {
   let projectId = '';
   let brandName = 'Brand';
   let domain = 'brand.com';
+  let projectTier = 'starter';
+  let auditLimit = 20;
   let brandKit: BrandKit = {
     industry: 'Technology',
     target_audience: 'B2B Buyers',
@@ -76,9 +79,13 @@ export async function createPromptAudit(formData: FormData) {
       brandName = parsed.name || brandName;
       domain = parsed.domain || domain;
       brandKit = parsed.brand_kit || brandKit;
+      if (parsed.tier) projectTier = parsed.tier;
+      auditLimit = parsed.audit_limit || getTierAuditLimit(projectTier);
     } catch {
       // ignore
     }
+  } else {
+    auditLimit = getTierAuditLimit(projectTier);
   }
 
   // Tier-2 Access Control: Check permissions for Google AI engines
@@ -105,6 +112,12 @@ export async function createPromptAudit(formData: FormData) {
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
     const project = getActiveProjectFromCookie(cookieStore);
     const promptsList = [...getDemoPrompts(cookieStore, project)];
+
+    if (promptsList.length >= auditLimit) {
+      return {
+        error: `Audit quota reached (${promptsList.length}/${auditLimit} active prompts on ${projectTier.toUpperCase()} tier). Upgrade your plan in Settings & Billing to track more queries.`,
+      };
+    }
 
     const newPrompt = {
       id: 'prompt-' + Date.now(),
@@ -145,7 +158,7 @@ export async function createPromptAudit(formData: FormData) {
   if (!projectId) {
     const { data: projects } = await supabase
       .from('projects')
-      .select('id, name, domain, brand_kit')
+      .select('id, name, domain, brand_kit, tier, audit_limit')
       .eq('user_id', user.id)
       .limit(1);
 
@@ -156,6 +169,20 @@ export async function createPromptAudit(formData: FormData) {
     brandName = projects[0].name;
     domain = projects[0].domain;
     brandKit = projects[0].brand_kit;
+    if (projects[0].tier) projectTier = projects[0].tier;
+    auditLimit = projects[0].audit_limit || getTierAuditLimit(projectTier);
+  }
+
+  // Check audit quota in database
+  const { count: existingDbCount } = await supabase
+    .from('prompts')
+    .select('id', { count: 'exact', head: true })
+    .eq('project_id', projectId);
+
+  if (typeof existingDbCount === 'number' && existingDbCount >= auditLimit) {
+    return {
+      error: `Audit quota reached (${existingDbCount}/${auditLimit} active prompts on ${projectTier.toUpperCase()} tier). Upgrade your plan in Settings & Billing to track more queries.`,
+    };
   }
 
   // Insert prompt record
@@ -537,20 +564,16 @@ export async function generateAiPrompts(params: {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   let projectId = '';
-  let brandName = 'Lululemon';
-  let domain = 'lululemon.com';
+  let brandName = 'My Brand';
+  let domain = 'example.com';
   let projectTier = 'starter';
   let auditLimit = 20;
   let brandKit: BrandKit = {
-    industry: 'Premium Athleisure & Athletic Apparel',
-    target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, gym-goers, and fitness lifestyle consumers',
-    core_offerings: 'Align Pant (Nulu fabric), Define Jacket, Wunder Train tights, ABC Joggers, Everywhere Belt Bag & technical athleisure',
-    competitors: [
-      { name: 'Alo Yoga', domain: 'aloyoga.com' },
-      { name: 'Vuori', domain: 'vuoriclothing.com' },
-      { name: 'Athleta', domain: 'athleta.gap.com' },
-    ],
-    tone_of_voice: 'Empowering, Mindful, Elevated, Performance-Driven',
+    industry: 'Technology & Services',
+    target_audience: 'Modern enterprise teams and decision makers',
+    core_offerings: 'Software, products, and services',
+    competitors: [],
+    tone_of_voice: 'Professional, Authoritative, and Direct',
   };
 
   const projectCookie = cookieStore.get('beacon_active_project');
@@ -562,11 +585,7 @@ export async function generateAiPrompts(params: {
       domain = parsed.domain || domain;
       if (parsed.brand_kit) brandKit = parsed.brand_kit;
       if (parsed.tier) projectTier = parsed.tier;
-      if (parsed.audit_limit) {
-        auditLimit = parsed.audit_limit;
-      } else {
-        auditLimit = TIER_PROMPT_LIMITS[projectTier] || 20;
-      }
+      auditLimit = parsed.audit_limit || getTierAuditLimit(projectTier);
     } catch {
       // ignore
     }
@@ -904,11 +923,7 @@ export async function batchCreatePromptAudits(prompts: BatchPromptInput[]) {
       const parsed = JSON.parse(projectCookie.value);
       projectId = parsed.id || '';
       if (parsed.tier) projectTier = parsed.tier;
-      if (parsed.audit_limit) {
-        auditLimit = parsed.audit_limit;
-      } else {
-        auditLimit = TIER_PROMPT_LIMITS[projectTier] || 20;
-      }
+      auditLimit = parsed.audit_limit || getTierAuditLimit(projectTier);
     } catch {
       // ignore
     }

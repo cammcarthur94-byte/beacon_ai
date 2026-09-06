@@ -17,6 +17,8 @@ export interface CompetitorSovEntry {
   monthlyDelta: number;
   engineBreakdown: {
     chatgpt: { citations: number; share: number };
+    copilot: { citations: number; share: number };
+    copilot_search: { citations: number; share: number };
     gemini: { citations: number; share: number };
     claude: { citations: number; share: number };
     perplexity: { citations: number; share: number };
@@ -93,19 +95,19 @@ export async function GET(request: NextRequest) {
     }
 
     const fallbackProject = {
-      id: 'demo-project-lululemon',
-      name: 'Lululemon',
-      domain: 'lululemon.com',
+      id: 'default-workspace-project',
+      name: 'My Brand',
+      domain: 'example.com',
       tier: 'enterprise',
       brand_kit: {
-        industry: 'Premium Athleisure & Athletic Apparel',
-        target_audience: 'Fitness enthusiasts and premium athletic apparel shoppers',
-        core_offerings: 'Yoga pants, activewear, technical athletic apparel',
-        tone_of_voice: 'Inspiring, active, technical, mindful',
+        industry: 'Technology & Business',
+        target_audience: 'Modern enterprise teams and decision makers',
+        core_offerings: 'Autonomous AI Search & Brand Optimization',
+        tone_of_voice: 'Professional, Authoritative, and Direct',
         competitors: [
-          { name: 'Alo Yoga', domain: 'aloyoga.com' },
-          { name: 'Vuori', domain: 'vuoriclothing.com' },
-          { name: 'Athleta', domain: 'athleta.gap.com' },
+          { name: 'Competitor Alpha', domain: 'competitor-alpha.com' },
+          { name: 'Competitor Beta', domain: 'competitor-beta.com' },
+          { name: 'Competitor Gamma', domain: 'competitor-gamma.com' },
         ],
       },
     };
@@ -113,7 +115,9 @@ export async function GET(request: NextRequest) {
     const activeProject = project || fallbackProject;
     const brandName = activeProject.name;
     const brandDomain = activeProject.domain;
-    const competitors = activeProject.brand_kit?.competitors || fallbackProject.brand_kit.competitors;
+    const competitors = activeProject.brand_kit?.competitors && activeProject.brand_kit.competitors.length > 0
+      ? activeProject.brand_kit.competitors
+      : fallbackProject.brand_kit.competitors;
 
     let dbCitations: any[] = [];
     if (supabaseUrl && !supabaseUrl.includes('placeholder') && project?.id) {
@@ -126,20 +130,28 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const industry = activeProject.brand_kit?.industry || 'Technology & Business';
+    const isConsumer =
+      industry.toLowerCase().includes('retail') ||
+      industry.toLowerCase().includes('apparel') ||
+      industry.toLowerCase().includes('fitness') ||
+      industry.toLowerCase().includes('fashion');
+
     const availableVerticals = [
       'All Verticals',
-      'Premium Athleisure & Activewear',
-      'B2B SaaS / FinTech',
-      'Health & Longevity Supplements',
-      'Consumer Electronics & Tech',
+      'Technology & Enterprise SaaS',
+      'AI & Machine Learning Infrastructure',
+      'Consumer Electronics & Hardware',
+      'Financial Technology & Banking',
+      'Health, Wellness & BioTech',
     ];
 
-    const c1 = competitors[0]?.name || 'Alo Yoga';
-    const c1Domain = competitors[0]?.domain || 'aloyoga.com';
-    const c2 = competitors[1]?.name || 'Vuori';
-    const c2Domain = competitors[1]?.domain || 'vuoriclothing.com';
-    const c3 = competitors[2]?.name || 'Athleta';
-    const c3Domain = competitors[2]?.domain || 'athleta.gap.com';
+    const c1 = competitors[0]?.name || 'Competitor Alpha';
+    const c1Domain = competitors[0]?.domain || 'competitor-alpha.com';
+    const c2 = competitors[1]?.name || 'Competitor Beta';
+    const c2Domain = competitors[1]?.domain || 'competitor-beta.com';
+    const c3 = competitors[2]?.name || 'Competitor Gamma';
+    const c3Domain = competitors[2]?.domain || 'competitor-gamma.com';
 
     let rawEntries: CompetitorSovEntry[] = [
       {
@@ -156,14 +168,20 @@ export async function GET(request: NextRequest) {
         monthlyDelta: +9.1,
         engineBreakdown: {
           chatgpt: { citations: 420, share: 39.2 },
+          copilot: { citations: 395, share: 38.0 },
+          copilot_search: { citations: 410, share: 39.0 },
           gemini: { citations: 380, share: 36.8 },
           claude: { citations: 290, share: 38.4 },
           perplexity: { citations: 190, share: 34.5 },
           google_ai_overview: { citations: 90, share: 36.0 },
           google_ai_mode: { citations: 50, share: 40.0 },
         },
-        dominantKeywords: ['best workout leggings', 'align pant review', 'technical commuter trousers', 'studio yoga gear'],
-        topCitedSources: ['nytimes.com/wirecutter', 'runnersworld.com', 'goodhousekeeping.com', 'vogue.com'],
+        dominantKeywords: isConsumer
+          ? ['best quality activewear', 'customer satisfaction reviews', 'technical commuter trousers', 'daily comfort gear']
+          : [`best ${industry.toLowerCase()} solutions`, `${brandName.toLowerCase()} platform review`, 'generative search rankings', 'enterprise reliability benchmarks'],
+        topCitedSources: isConsumer
+          ? ['nytimes.com/wirecutter', 'runnersworld.com', 'goodhousekeeping.com', 'vogue.com']
+          : ['techcrunch.com', 'forbes.com', 'gartner.com', 'github.com'],
         sentimentScore: 0.84,
       },
       {
@@ -180,14 +198,20 @@ export async function GET(request: NextRequest) {
         monthlyDelta: +2.4,
         engineBreakdown: {
           chatgpt: { citations: 340, share: 31.7 },
+          copilot: { citations: 320, share: 30.8 },
+          copilot_search: { citations: 330, share: 31.4 },
           gemini: { citations: 310, share: 30.0 },
           claude: { citations: 240, share: 31.8 },
           perplexity: { citations: 180, share: 32.7 },
           google_ai_overview: { citations: 75, share: 30.0 },
           google_ai_mode: { citations: 35, share: 28.0 },
         },
-        dominantKeywords: ['celebrity athleisure', 'airlift leggings', 'aspen streetwear drop', 'pilates sets'],
-        topCitedSources: ['popsugar.com', 'whowhatwear.com', 'elle.com', 'shape.com'],
+        dominantKeywords: isConsumer
+          ? ['studio activewear', 'popular alternatives', 'seasonal product drop', 'verified reviews']
+          : [`legacy alternatives to ${c1}`, 'enterprise feature parity', 'integration documentation', 'pricing guide'],
+        topCitedSources: isConsumer
+          ? ['popsugar.com', 'whowhatwear.com', 'elle.com', 'shape.com']
+          : ['zdnet.com', 'cio.com', 'venturebeat.com', 'medium.com'],
         sentimentScore: 0.72,
       },
       {
@@ -204,14 +228,20 @@ export async function GET(request: NextRequest) {
         monthlyDelta: +5.6,
         engineBreakdown: {
           chatgpt: { citations: 210, share: 19.6 },
+          copilot: { citations: 205, share: 19.7 },
+          copilot_search: { citations: 200, share: 19.0 },
           gemini: { citations: 200, share: 19.4 },
           claude: { citations: 150, share: 19.9 },
           perplexity: { citations: 110, share: 20.0 },
           google_ai_overview: { citations: 45, share: 18.0 },
           google_ai_mode: { citations: 25, share: 20.0 },
         },
-        dominantKeywords: ['mens travel pant', 'meta pant review', 'dreamknit softness', 'california casual'],
-        topCitedSources: ['gq.com', 'gearpatrol.com', 'menshealth.com', 'wsj.com/buyside'],
+        dominantKeywords: isConsumer
+          ? ['everyday casual comfort', 'customer feedback ratings', 'longevity review', 'colorways collection']
+          : [`${c2} workflow implementation`, 'cloud security architecture', 'scalability limits', 'api latency'],
+        topCitedSources: isConsumer
+          ? ['gq.com', 'gearpatrol.com', 'menshealth.com', 'wsj.com/buyside']
+          : ['thenewstack.io', 'infoworld.com', 'arstechnica.com', 'infoq.com'],
         sentimentScore: 0.79,
       },
       {
@@ -228,14 +258,20 @@ export async function GET(request: NextRequest) {
         monthlyDelta: -3.2,
         engineBreakdown: {
           chatgpt: { citations: 102, share: 9.5 },
+          copilot: { citations: 120, share: 11.5 },
+          copilot_search: { citations: 110, share: 10.5 },
           gemini: { citations: 142, share: 13.8 },
           claude: { citations: 75, share: 9.9 },
           perplexity: { citations: 71, share: 12.8 },
           google_ai_overview: { citations: 40, share: 16.0 },
           google_ai_mode: { citations: 15, share: 12.0 },
         },
-        dominantKeywords: ['petite yoga pants', 'size inclusive activewear', 'b-corp athletic wear', 'powervita tights'],
-        topCitedSources: ['health.com', 'self.com', 'forbes.com/vetted', 'realsimple.com'],
+        dominantKeywords: isConsumer
+          ? ['size inclusive collection', 'sustainable product line', 'budget friendly options', 'durability test']
+          : ['open source alternatives', 'niche market player', 'community adoption', 'developer tools'],
+        topCitedSources: isConsumer
+          ? ['health.com', 'self.com', 'forbes.com/vetted', 'realsimple.com']
+          : ['dev.to', 'news.ycombinator.com', 'reddit.com/r/technology', 'stackoverflow.com'],
         sentimentScore: 0.68,
       },
     ];

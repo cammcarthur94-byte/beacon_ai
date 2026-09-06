@@ -122,7 +122,6 @@ export async function updateProjectSettings(formData: FormData) {
     revalidatePath('/brand-kit');
     revalidatePath('/dashboard');
     revalidatePath('/audits');
-    revalidatePath('/consultant');
     return { success: true };
   }
 
@@ -155,7 +154,6 @@ export async function updateProjectSettings(formData: FormData) {
   revalidatePath('/brand-kit');
   revalidatePath('/dashboard');
   revalidatePath('/audits');
-  revalidatePath('/consultant');
   return { success: true };
 }
 
@@ -312,3 +310,56 @@ export async function deleteWorkspaceAction(domainConfirmation: string) {
   revalidatePath('/dashboard');
   return { success: true };
 }
+
+export async function switchDemoTierAction(targetTier: 'starter' | 'pro' | 'enterprise') {
+  const cookieStore = await cookies();
+  const existingCookie = cookieStore.get('beacon_active_project')?.value;
+  const auditLimit = targetTier === 'enterprise' ? 500 : targetTier === 'pro' ? 100 : 20;
+
+  let projectId = 'project-default';
+  if (existingCookie) {
+    try {
+      const parsed = JSON.parse(existingCookie);
+      if (parsed.id) projectId = parsed.id;
+      parsed.tier = targetTier;
+      parsed.audit_limit = auditLimit;
+      cookieStore.set('beacon_active_project', JSON.stringify(parsed), { path: '/' });
+    } catch {
+      // ignore
+    }
+  } else {
+    cookieStore.set(
+      'beacon_active_project',
+      JSON.stringify({
+        id: projectId,
+        name: 'My Brand',
+        domain: 'example.com',
+        tier: targetTier,
+        audit_limit: auditLimit,
+      }),
+      { path: '/' }
+    );
+  }
+
+  // Clear demo team member overrides so tier-specific seat defaults take effect
+  cookieStore.delete(`beacon_members_${projectId}`);
+  cookieStore.delete(`beacon_invites_${projectId}`);
+
+  // Update Supabase project if user session is active
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase
+        .from('projects')
+        .update({ tier: targetTier, audit_limit: auditLimit })
+        .eq('user_id', user.id);
+    }
+  } catch {}
+
+  revalidatePath('/dashboard');
+  revalidatePath('/audits');
+  revalidatePath('/settings');
+  return { success: true, tier: targetTier, auditLimit };
+}
+

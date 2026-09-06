@@ -46,7 +46,6 @@ const ACTION_KEYS: PermissionAction[] = [
   'edit_brand_kit',
   'manage_prompts',
   'trigger_audits',
-  'content_studio_pitches',
   'export_reports',
   'view_telemetry',
 ];

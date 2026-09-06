@@ -32,24 +32,24 @@ import type { SchemaAuditResult, SchemaValidationIssue } from '@/app/api/schema-
 
 const PRESETS = [
   {
-    label: 'Product Page',
-    sub: 'Lululemon Align Pant',
-    url: 'https://lululemon.com/p/align-high-rise-pant',
+    label: 'Product Specification',
+    sub: 'Flagship Core Offering',
+    url: 'https://example.com/products/core-offering',
   },
   {
     label: 'Editorial Review',
-    sub: 'Wirecutter Leggings Guide',
-    url: 'https://nytimes.com/wirecutter/reviews/best-workout-leggings',
+    sub: 'Industry Roundup Guide',
+    url: 'https://wirecutter.com/reviews/best-solutions',
   },
   {
-    label: 'Custom Landing Page',
-    sub: 'Clean Demo Scan',
-    url: 'https://lululemon.com/c/womens-pants',
+    label: 'Catalog Category',
+    sub: 'Category Landing Page',
+    url: 'https://example.com/categories/flagship',
   },
 ];
 
 export function SchemaToolsClient() {
-  const [urlInput, setUrlInput] = useState('https://lululemon.com/p/align-high-rise-pant');
+  const [urlInput, setUrlInput] = useState('https://example.com/products/core-offering');
   const [loading, setLoading] = useState(false);
   const [auditResult, setAuditResult] = useState<SchemaAuditResult | null>(null);
 

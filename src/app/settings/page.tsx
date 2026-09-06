@@ -74,43 +74,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   }
 
   if (!project) {
-    project = {
-      id: 'demo-project-lululemon',
-      name: 'Lululemon',
-      domain: 'lululemon.com',
-      tier: 'enterprise',
-      audit_limit: 100,
-      brand_kit: {
-        industry: 'Retail, Apparel & Consumer Goods > Activewear & Athleisure',
-        industry_taxonomy: {
-          sector: 'Retail, Apparel & Consumer Goods',
-          category: 'Activewear & Athleisure',
-        },
-        target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, and fitness lifestyle consumers',
-        core_offerings: 'Premium Performance Activewear, Technical Outerwear, Everyday Movement Essentials',
-        competitors: [
-          { name: 'Alo Yoga', domain: 'aloyoga.com' },
-          { name: 'Vuori', domain: 'vuoriclothing.com' },
-          { name: 'Athleta', domain: 'athleta.gap.com' },
-        ],
-        target_regions: ['Global / Worldwide', 'North America (US & Canada)'],
-        negative_keywords: ['fast fashion', 'cheap dupes', 'discount outlet', 'drop-shipping'],
-        messaging_pillars: [
-          'Proprietary Technical Fabric Innovation',
-          'Mindful Movement & Wellness Community',
-          'Elevated Performance Luxury',
-          'Sustainable Longevity & Durability',
-        ],
-        tone_dimensions: {
-          formal_casual: 45,
-          technical_accessible: 70,
-          bold_understated: 40,
-          analytical_inspiring: 80,
-        },
-        tone_tags: ['Empowering', 'Mindful', 'Technical', 'Elevated'],
-        tone_of_voice: 'Inspiring, elevated, technical, and mindful',
-      },
-    };
+    redirect('/onboarding');
   }
 
   return (

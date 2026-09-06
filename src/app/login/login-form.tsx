@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { signInWithEmail, signUpWithEmail, signInWithGoogle, signInAsDemo, type AuthActionResult } from './actions';
-import { Loader2, ArrowRight, Sparkles, Play } from 'lucide-react';
+import { signInWithEmail, signUpWithEmail, signInWithGoogle, type AuthActionResult } from './actions';
+import { Loader2, ArrowRight } from 'lucide-react';
 
 export function LoginForm({ initialMode = 'signin' }: { initialMode?: 'signin' | 'signup' }) {
   const [tab, setTab] = React.useState<string>(initialMode);
@@ -62,30 +62,12 @@ export function LoginForm({ initialMode = 'signin' }: { initialMode?: 'signin' |
         </Button>
       </form>
 
-      {/* Instant Demo Workspace Access */}
-      <form action={signInAsDemo}>
-        <Button
-          type="submit"
-          className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-medium justify-between px-4 transition-all duration-200 shadow-sm group hover:shadow-md"
-        >
-          <div className="flex items-center gap-2 text-xs">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-            </span>
-            <Sparkles className="h-4 w-4" />
-            <span>Enter Live Demo Workspace (Instant Access)</span>
-          </div>
-          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
-        </Button>
-      </form>
-
       <div className="relative flex items-center justify-center">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-zinc-200" />
         </div>
         <div className="relative px-3 bg-white text-[11px] uppercase tracking-wider text-zinc-400 font-mono">
-          or sign in with credentials
+          or continue with email
         </div>
       </div>
 

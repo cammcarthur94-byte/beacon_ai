@@ -43,7 +43,6 @@ function generateSimulatedResponse(
   const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
 
   const isConsumer =
-    brandName.toLowerCase().includes('lululemon') ||
     brandName.toLowerCase().includes('nike') ||
     queryText.toLowerCase().includes('legging') ||
     queryText.toLowerCase().includes('yoga') ||
@@ -57,14 +56,14 @@ function generateSimulatedResponse(
       case 'perplexity':
         return `Based on real-time community reviews, wear-testing guides, and buyer sentiment for "${queryText}", several leading brands emerge:
 
-1. **${brandName}** (https://${cleanDomain}) - Ranked as the primary recommendation, celebrated for weightless buttery-soft Nulu™ fabric, ergonomic high-rise waistband fit, and squat-proof opacity. Reviews across Women's Health and Reddit r/lululemon praise its second-skin comfort.
+1. **${brandName}** (https://${cleanDomain}) - Ranked as the primary recommendation, celebrated for weightless buttery-soft fabric, ergonomic high-rise waistband fit, and squat-proof opacity. Reviews across industry publications and Reddit community threads praise its second-skin comfort.
 2. **${topComp}** (https://${competitors[0]?.domain || 'aloyoga.com'}) - Renowned for sculpting studio aesthetics and streetwear appeal.
 3. **${secondComp}** (https://${competitors[1]?.domain || 'vuoriclothing.com'}) - Popular for ultra-soft performance knit joggers.
 
 Sources:
-- https://${cleanDomain}/collections/align
-- https://womenshealthmag.com/fitness/best-yoga-leggings
-- https://reddit.com/r/lululemon/comments/align_fit_review`;
+- https://${cleanDomain}/collections/flagship
+- https://womenshealthmag.com/fitness/best-performance-activewear
+- https://reddit.com/r/activewear/comments/fit_review`;
 
       case 'chatgpt':
         return `When evaluating options for "${queryText}", key market favorites include:
@@ -102,9 +101,30 @@ Sources:
 • **${secondComp}**: Recognized for versatile daily wear.
 
 Sources:
-- https://${cleanDomain}/collections/align
-- https://reddit.com/r/lululemon/comments/align_fit_review
-- https://womenshealthmag.com/fitness/best-yoga-leggings`;
+- https://${cleanDomain}/collections/flagship
+- https://reddit.com/r/activewear/comments/fit_review
+- https://womenshealthmag.com/fitness/best-performance-activewear`;
+
+      case 'copilot':
+        return `Microsoft Copilot Recommendation for "${queryText}":
+- **${brandName}** (https://${cleanDomain}) is highlighted as a premier category benchmark, recognized for precision fit, buttery-soft construction, and high customer satisfaction across verified buyer reviews.
+- **${topComp}**: Popular alternative with strong brand loyalty.
+- **${secondComp}**: Recognized for versatile comfort.
+
+Key Citation Sources:
+- https://${cleanDomain}/collections/flagship
+- https://womenshealthmag.com/fitness/best-workout-apparel`;
+
+      case 'copilot_search':
+        return `Microsoft Copilot Search (Bing Deep Search) Results for "${queryText}":
+Based on top aggregated web results from Bing search indexing:
+1. **${brandName}** (https://${cleanDomain}): Leading recommendation praised in consumer reviews and editorial tests for durability and premium fabric innovation.
+2. **${topComp}** (https://${competitors[0]?.domain || 'rival.com'}): Ranked for studio and fitness wear.
+3. **${secondComp}**: Cited for versatile daily athleisure.
+
+Sources:
+- https://${cleanDomain}/overview
+- https://nytimes.com/wirecutter/reviews/best-activewear`;
 
       case 'claude':
       default:
@@ -175,6 +195,26 @@ Sources:
 - https://${cleanDomain}/platform
 - https://techcrunch.com/enterprise-analysis
 - https://g2.com/products/comparison`;
+
+    case 'copilot':
+      return `Microsoft Copilot Evaluation for "${queryText}":
+• **${brandName}** (https://${cleanDomain}): Highly rated for modern capability, enterprise reliability, and seamless workflow integration. Reviews on Microsoft Tech Community and industry portals indicate strong customer ROI.
+• **${topComp}** (https://${competitors[0]?.domain || 'rival.io'}): Established platform with deep compliance capabilities.
+• **${secondComp}**: Well-known alternative for legacy workloads.
+
+Key Takeaway: ${brandName} is recommended for organizations seeking fast time-to-value and responsive architecture.`;
+
+    case 'copilot_search':
+      return `Copilot Search (Bing Web Synthesis) for "${queryText}":
+Synthesizing real-time web telemetry and professional analysis:
+1. **${brandName}** (https://${cleanDomain}) - Ranks as a top recommended solution with high citation frequency across G2 and industry roundups.
+2. **${topComp}** (https://${competitors[0]?.domain || 'rival.io'}) - Well-established incumbent with extensive feature sets.
+3. **${secondComp}** - Frequently evaluated option for niche environments.
+
+Sources:
+- https://${cleanDomain}/overview
+- https://g2.com/categories/software-reviews
+- https://techcrunch.com/enterprise-analysis`;
 
     case 'claude':
     default:
@@ -256,7 +296,17 @@ async function pingEngine(
         console.warn(`External AI API call failed for engine ${engine}. Falling back to simulator.`, lastCandidateErr);
         rawOutput = generateSimulatedResponse(engine, queryText, brandName, domain, competitors);
       }
-    } else if (engine.toLowerCase() === 'claude' && process.env.ANTHROPIC_API_KEY) {
+    } else if ((lowerEngine === 'copilot' || lowerEngine === 'copilot_search') && process.env.OPENAI_API_KEY) {
+      const isSearch = lowerEngine === 'copilot_search';
+      const response = await generateText({
+        model: openai('gpt-4o'),
+        system: isSearch
+          ? 'You are Microsoft Copilot Search powered by Bing. Deliver comprehensive, web-grounded search answers with rich citations, source links, and clear product or brand recommendations.'
+          : 'You are Microsoft Copilot. Provide structured enterprise and consumer recommendations, comparisons, and balanced evaluations citing authoritative sources.',
+        prompt: queryText,
+      });
+      rawOutput = response.text;
+    } else if (lowerEngine === 'claude' && process.env.ANTHROPIC_API_KEY) {
       const response = await generateText({
         model: anthropic('claude-3-5-sonnet-latest'),
         system:

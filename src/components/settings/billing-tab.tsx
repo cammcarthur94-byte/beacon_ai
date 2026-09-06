@@ -24,7 +24,9 @@ import { BILLING_PLANS } from '@/lib/stripe';
 import {
   createCheckoutSessionAction,
   createPortalSessionAction,
+  switchDemoTierAction,
 } from '@/app/settings/actions';
+import { normalizeTier, getTierAuditLimit } from '@/lib/billing/tier-utils';
 import type { InvoiceItem } from '@/types/database.types';
 
 interface BillingTabProps {
@@ -67,16 +69,38 @@ const DEFAULT_INVOICES: InvoiceItem[] = [
 
 export function BillingTab({ project, activeAuditsCount }: BillingTabProps) {
   const [isPending, startTransition] = useTransition();
-  const currentTier = project.tier || 'enterprise';
-  const auditLimit = project.audit_limit || 100;
+  const [activeTier, setActiveTier] = useState(normalizeTier(project.tier));
+  const currentTier = activeTier;
+  const auditLimit = project.audit_limit || getTierAuditLimit(activeTier);
   const usagePercent = Math.min(100, Math.round((activeAuditsCount / auditLimit) * 100));
+
+  const handleSwitchTier = (targetTier: 'starter' | 'pro' | 'enterprise') => {
+    startTransition(async () => {
+      try {
+        const res = await switchDemoTierAction(targetTier);
+        if (res?.success) {
+          setActiveTier(targetTier);
+          toast.success(`Active workspace switched to ${targetTier.toUpperCase()} plan.`);
+        }
+      } catch (err: any) {
+        toast.error('Failed to switch plan tier.');
+      }
+    });
+  };
 
   const handleUpgrade = (targetTier: 'growth' | 'enterprise') => {
     startTransition(async () => {
       try {
-        const res = await createCheckoutSessionAction(targetTier);
-        if (res?.error) {
-          toast.error(res.error);
+        const normalized = targetTier === 'growth' ? 'pro' : targetTier;
+        const res = await switchDemoTierAction(normalized);
+        if (res?.success) {
+          setActiveTier(normalized);
+          toast.success(`Active workspace upgraded to ${normalized.toUpperCase()} plan.`);
+          return;
+        }
+        const stripeRes = await createCheckoutSessionAction(targetTier);
+        if (stripeRes?.error) {
+          toast.error(stripeRes.error);
         }
       } catch (err: any) {
         if (err?.message?.includes('NEXT_REDIRECT')) throw err;
@@ -283,16 +307,13 @@ Thank you for your business!
             Available Plans &amp; Scaling Tiers
           </h3>
           <p className="text-xs text-slate-500 font-sans">
-            Scale tracking frequency, AI tool coverage, and consultant capacity.
+            Scale tracking frequency and AI tool coverage.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {BILLING_PLANS.map((plan) => {
-            const isCurrent =
-              currentTier === plan.id ||
-              ((currentTier === 'pro' || currentTier === 'growth') &&
-                (plan.id === 'pro' || plan.id === 'growth'));
+            const isCurrent = normalizeTier(plan.id) === currentTier;
 
             return (
               <Card
@@ -344,29 +365,44 @@ Thank you for your business!
                     <Button
                       disabled
                       variant="secondary"
-                      className="w-full text-xs font-medium bg-zinc-200 text-zinc-600 border border-zinc-300"
+                      className="w-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
                     >
-                      Active Plan
+                      <Check className="h-3.5 w-3.5 mr-1" /> Active Plan
                     </Button>
                   ) : plan.id === 'starter' ? (
                     <Button
-                      disabled
+                      type="button"
                       variant="outline"
-                      className="w-full text-xs border-zinc-200 text-zinc-400"
+                      onClick={() => handleSwitchTier('starter')}
+                      disabled={isPending}
+                      className="w-full text-xs border-zinc-300 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 font-medium cursor-pointer"
                     >
-                      Included Default
+                      {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Switch to Starter Plan'}
                     </Button>
-                  ) : (
+                  ) : plan.id === 'growth' || plan.id === 'pro' ? (
                     <Button
                       type="button"
-                      onClick={() => handleUpgrade(plan.id as 'growth' | 'enterprise')}
+                      onClick={() => handleSwitchTier('pro')}
                       disabled={isPending}
                       className="w-full bg-zinc-900 text-white hover:bg-zinc-800 text-xs font-medium shadow-xs cursor-pointer"
                     >
                       {isPending ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
-                        `Upgrade to ${plan.name.replace(' Tier', '')}`
+                        'Upgrade to Pro Plan'
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={() => handleSwitchTier('enterprise')}
+                      disabled={isPending}
+                      className="w-full bg-zinc-900 text-white hover:bg-zinc-800 text-xs font-medium shadow-xs cursor-pointer"
+                    >
+                      {isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        'Upgrade to Enterprise'
                       )}
                     </Button>
                   )}

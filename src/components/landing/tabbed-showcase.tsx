@@ -7,7 +7,6 @@ import {
   FileText,
   Globe,
   Search,
-  Bot,
   Lock,
   ArrowRight,
   ShieldCheck,
@@ -67,19 +66,6 @@ const CAPABILITIES: CapabilityItem[] = [
     path: 'audits',
     imageSrc: '/screenshots/audits.png',
     imageAlt: 'Beacon Search Tracking Matrix',
-  },
-  {
-    id: 'consultant',
-    title: 'Beacon Assistant',
-    shortDescription: 'Instant alerts & ready-made drafts',
-    badge: 'AI Marketing Assistant',
-    headline: 'Your Smart AI Marketing Assistant',
-    fullDescription:
-      'Beacon Assistant notifies you when a competitor gets recommended over you and creates ready-to-use articles and outreach emails to win customers back.',
-    icon: Bot,
-    path: 'consultant',
-    imageSrc: '/screenshots/consultant.png',
-    imageAlt: 'Beacon Smart AI Marketing Assistant',
   },
 ];
 

@@ -12,6 +12,7 @@ import type {
 } from '@/types/database.types';
 import { DEFAULT_ROLE_PERMISSIONS } from '@/types/database.types';
 import { hasPermission } from '@/lib/auth/permissions';
+import { canInviteTeamMember, getTierTeamSeatLimit, normalizeTier } from '@/lib/billing/tier-utils';
 
 export interface InviteResult {
   success: boolean;
@@ -35,23 +36,23 @@ export interface WorkspaceTeamData {
 const DEFAULT_MEMBERS: TeamMember[] = [
   {
     id: 'mem-1',
-    email: 'cam@beaconmetrics.io',
-    name: 'Cameron M.',
+    email: 'owner@company.com',
+    name: 'Workspace Owner',
     role: 'owner',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop&crop=face',
     lastActive: 'Active right now',
   },
   {
     id: 'mem-2',
-    email: 'elena.rostova@lululemon.com',
-    name: 'Elena Rostova',
+    email: 'alex@company.com',
+    name: 'Alex Vance',
     role: 'admin',
     avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=96&h=96&fit=crop&crop=face',
     lastActive: '2 hours ago',
   },
   {
     id: 'mem-3',
-    email: 'david.chen@lululemon.com',
+    email: 'david@company.com',
     name: 'David Chen',
     role: 'editor',
     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face',
@@ -59,7 +60,7 @@ const DEFAULT_MEMBERS: TeamMember[] = [
   },
   {
     id: 'mem-4',
-    email: 'auditor.external@deloitte.com',
+    email: 'auditor@partner.com',
     name: 'Marcus Vance',
     role: 'viewer',
     avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=96&h=96&fit=crop&crop=face',
@@ -67,16 +68,7 @@ const DEFAULT_MEMBERS: TeamMember[] = [
   },
 ];
 
-const DEFAULT_INVITES: TeamInvitation[] = [
-  {
-    id: 'inv-1',
-    email: 'sarah.marketing@lululemon.com',
-    role: 'editor',
-    status: 'pending',
-    sentAt: 'Sep 2, 2026',
-    token: 'inv-tok-demo-12345',
-  },
-];
+const DEFAULT_INVITES: TeamInvitation[] = [];
 
 /**
  * Fetch team members, pending invitations, and workspace permission matrix.
@@ -181,16 +173,34 @@ export async function getWorkspaceTeamData(projectId: string): Promise<Workspace
   }
 
   // 2. Fallback to cookie / demo workspace state
+  let projectTier = 'starter';
+  const projectCookie = cookieStore.get('beacon_active_project')?.value;
+  if (projectCookie) {
+    try {
+      const parsed = JSON.parse(projectCookie);
+      if (parsed.tier) projectTier = normalizeTier(parsed.tier);
+    } catch {}
+  }
+
+  const defaultTierMembers =
+    projectTier === 'starter'
+      ? [DEFAULT_MEMBERS[0]]
+      : projectTier === 'pro'
+      ? DEFAULT_MEMBERS.slice(0, 2)
+      : DEFAULT_MEMBERS;
+
+  const defaultTierInvites = projectTier === 'starter' ? [] : DEFAULT_INVITES;
+
   if (members.length === 0) {
     const memCookie = cookieStore.get(`beacon_members_${projectId}`);
     if (memCookie?.value) {
       try {
         members = JSON.parse(memCookie.value);
       } catch {
-        members = DEFAULT_MEMBERS;
+        members = defaultTierMembers;
       }
     } else {
-      members = DEFAULT_MEMBERS;
+      members = defaultTierMembers;
     }
   }
 
@@ -200,10 +210,10 @@ export async function getWorkspaceTeamData(projectId: string): Promise<Workspace
       try {
         invitations = JSON.parse(invCookie.value);
       } catch {
-        invitations = DEFAULT_INVITES;
+        invitations = defaultTierInvites;
       }
     } else {
-      invitations = DEFAULT_INVITES;
+      invitations = defaultTierInvites;
     }
   }
 
@@ -239,6 +249,26 @@ export async function inviteTeamMember(
   const cleanEmail = email.trim().toLowerCase();
   if (!cleanEmail || !cleanEmail.includes('@')) {
     return { success: false, error: 'Please enter a valid email address.' };
+  }
+
+  // Tier seat limit check
+  let projectTier = 'starter';
+  const projectCookie = cookieStore.get('beacon_active_project')?.value;
+  if (projectCookie) {
+    try {
+      const parsed = JSON.parse(projectCookie);
+      if (parsed.tier) projectTier = normalizeTier(parsed.tier);
+    } catch {}
+  }
+
+  const teamData = await getWorkspaceTeamData(projectId);
+  const currentSeatCount = teamData.members.length;
+  if (!canInviteTeamMember(projectTier, currentSeatCount)) {
+    const limit = getTierTeamSeatLimit(projectTier);
+    return {
+      success: false,
+      error: `Team seat limit reached (${currentSeatCount}/${limit} seats on ${projectTier.toUpperCase()} plan). Upgrade your plan in Settings & Billing to invite more team members.`,
+    };
   }
 
   // Generate secure 32-character hexadecimal token
@@ -443,7 +473,6 @@ export async function updateRolePermissionsConfig(
       'edit_brand_kit',
       'manage_prompts',
       'trigger_audits',
-      'content_studio_pitches',
       'export_reports',
       'view_telemetry',
     ],
@@ -474,8 +503,8 @@ export async function getInvitationByToken(token: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   let invitation: TeamInvitation | null = null;
-  let brandName = 'Lululemon';
-  let projectId = 'demo-project-id';
+  let brandName = 'My Brand';
+  let projectId = 'project-default';
 
   if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
     const supabase = await createClient();
@@ -527,9 +556,9 @@ export async function getInvitationByToken(token: string) {
     if (activeProj?.value) {
       try {
         const proj = JSON.parse(activeProj.value);
-        brandName = proj.name || 'Lululemon';
+        brandName = proj.name || 'My Brand';
         if (!invitation?.projectId) {
-          projectId = proj.id || 'demo-project-id';
+          projectId = proj.id || 'project-default';
         }
       } catch {}
     }

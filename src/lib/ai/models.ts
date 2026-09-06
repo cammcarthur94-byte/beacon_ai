@@ -6,20 +6,12 @@ import { openai } from '@ai-sdk/openai';
  * Centralized Model Registry for Beacon AI
  *
  * Feature Assignments:
- * 1. Chat Bot & AI Co-Worker Agent ("Beacon Sentinel"): Claude Sonnet 5
- * 2. Content Creation (Meta descriptions, FAQ blocks, optimization briefs): Claude Sonnet 5
- * 3. Competitor Product Mapping (Parsing crawler text & feature disparities): Claude Haiku 4.5
- * 4. Prompt Creation ("Generate Prompt with AI"): Gemini 3.8 Flash OR OpenAI GPT-4o-mini
- * 5. Search Grounding & SERP Cross-Checking: Gemini 2.5 Pro
+ * 1. Content Creation (Meta descriptions, FAQ blocks, optimization briefs): Claude Sonnet 5
+ * 2. Competitor Product Mapping (Parsing crawler text & feature disparities): Claude Haiku 4.5
+ * 3. Prompt Creation ("Generate Prompt with AI"): Gemini 3.8 Flash OR OpenAI GPT-4o-mini
+ * 4. Search Grounding & SERP Cross-Checking: Gemini 2.5 Pro
  */
 export const BEACON_MODELS = {
-  SENTINEL_CHAT: {
-    id: 'claude-sonnet-5',
-    provider: 'anthropic',
-    displayName: 'Claude Sonnet 5',
-    role: 'Beacon Sentinel Co-Worker Agent',
-    fallbackIds: ['claude-3-7-sonnet-latest', 'claude-3-5-sonnet-latest'] as const,
-  },
   CONTENT_CREATION: {
     id: 'gemini-3.1-flash-lite',
     provider: 'google',
@@ -46,14 +38,21 @@ export const BEACON_MODELS = {
     role: 'Search Grounding & SERP Cross-Checking',
     fallbackIds: ['gemini-1.5-pro'] as const,
   },
+  CONTENT_STUDIO_RESEARCH: {
+    id: 'gemini-2.5-pro',
+    provider: 'google',
+    displayName: 'Gemini 2.5 Pro',
+    role: 'Source Material Analysis & Argument Extraction',
+    fallbackIds: ['gemini-1.5-pro', 'gemini-3.1-flash-lite'] as const,
+  },
+  CONTENT_STUDIO_COPYWRITER: {
+    id: 'claude-sonnet-4-20250514',
+    provider: 'anthropic',
+    displayName: 'Claude Sonnet 4',
+    role: 'Senior Brand Copywriter & Multi-Angle Synthesis',
+    fallbackIds: ['claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022'] as const,
+  },
 } as const;
-
-/**
- * Resolves the primary Claude Sonnet 5 model for Beacon Sentinel Chat.
- */
-export function getSentinelChatModel() {
-  return anthropic(BEACON_MODELS.SENTINEL_CHAT.id);
-}
 
 /**
  * Resolves Gemini 3.8 Flash for content generation, recommendations, and outreach emails.
@@ -81,4 +80,18 @@ export function getPromptCreationModel() {
  */
 export function getSearchGroundingModel() {
   return google(BEACON_MODELS.SEARCH_GROUNDING.id);
+}
+
+/**
+ * Resolves Gemini 2.5 Pro for deep source material analysis, author extraction, and argument mapping.
+ */
+export function getSourceResearchModel() {
+  return google(BEACON_MODELS.CONTENT_STUDIO_RESEARCH.id);
+}
+
+/**
+ * Resolves Claude Sonnet 4 for senior brand copywriting, tone tuning, and multi-angle content synthesis.
+ */
+export function getSeniorCopywriterModel() {
+  return anthropic(BEACON_MODELS.CONTENT_STUDIO_COPYWRITER.id);
 }

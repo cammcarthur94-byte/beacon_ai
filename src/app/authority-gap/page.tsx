@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { AppSidebarLayout } from '@/components/layout/app-sidebar-layout';
 import { AuthorityGapClient } from '@/components/authority-gap/authority-gap-client';
@@ -45,26 +46,12 @@ export default async function AuthorityGapPage() {
   }
 
   // 3. Demo fallback
-  const finalProject = project || {
-    id: 'demo-project-lululemon',
-    name: 'Lululemon',
-    domain: 'lululemon.com',
-    tier: 'enterprise',
-    brand_kit: {
-      industry: 'Premium Athleisure & Athletic Apparel',
-      target_audience: 'Fitness enthusiasts and premium athletic apparel shoppers',
-      core_offerings: 'Yoga pants, activewear, technical athletic apparel',
-      tone_of_voice: 'Inspiring, active, technical, mindful',
-      competitors: [
-        { name: 'Alo Yoga', domain: 'aloyoga.com' },
-        { name: 'Vuori', domain: 'vuoriclothing.com' },
-        { name: 'Athleta', domain: 'athleta.gap.com' },
-      ],
-    },
-  };
+  if (!project) {
+    redirect('/onboarding');
+  }
 
   return (
-    <AppSidebarLayout project={finalProject}>
+    <AppSidebarLayout project={project}>
       <div className="p-6 lg:p-10 max-w-7xl w-full mx-auto">
         <AuthorityGapClient />
       </div>

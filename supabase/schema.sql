@@ -23,12 +23,6 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-DO $$ BEGIN
-    CREATE TYPE chat_sender_enum AS ENUM ('user', 'agent');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
 -- 3. USERS (Extends Supabase auth.users)
 CREATE TABLE IF NOT EXISTS public.users (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -95,30 +89,18 @@ CREATE TABLE IF NOT EXISTS public.results (
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
--- 7. CHAT MESSAGES (Proactive AI Agent Conversations)
-CREATE TABLE IF NOT EXISTS public.chat_messages (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
-    sender chat_sender_enum NOT NULL,
-    content TEXT NOT NULL,
-    metadata JSONB DEFAULT '{}'::jsonb,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
-);
-
 -- 8. INDEXES FOR HIGH QUERY EFFICIENCY
 CREATE INDEX IF NOT EXISTS idx_projects_user_id ON public.projects(user_id);
 CREATE INDEX IF NOT EXISTS idx_prompts_project_id ON public.prompts(project_id);
 CREATE INDEX IF NOT EXISTS idx_prompts_next_run ON public.prompts(next_run_at) WHERE is_active = true;
 CREATE INDEX IF NOT EXISTS idx_results_prompt_id ON public.results(prompt_id);
 CREATE INDEX IF NOT EXISTS idx_results_created_at ON public.results(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_chat_messages_project_id ON public.chat_messages(project_id, created_at ASC);
 
 -- 9. ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.prompts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.results ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
 
 -- Users policies
 CREATE POLICY "Users can view and update own profile"
@@ -201,29 +183,6 @@ CREATE POLICY "Users can view results for their prompts"
             SELECT 1 FROM public.prompts
             JOIN public.projects ON projects.id = prompts.project_id
             WHERE prompts.id = results.prompt_id
-            AND projects.user_id = auth.uid()
-        )
-    );
-
--- Chat messages policies
-CREATE POLICY "Users can view chat messages for their projects"
-    ON public.chat_messages
-    FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.projects
-            WHERE projects.id = chat_messages.project_id
-            AND projects.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can insert chat messages for their projects"
-    ON public.chat_messages
-    FOR INSERT
-    WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM public.projects
-            WHERE projects.id = chat_messages.project_id
             AND projects.user_id = auth.uid()
         )
     );

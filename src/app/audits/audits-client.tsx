@@ -68,6 +68,7 @@ import {
   ListFilter,
   X,
   Lock,
+  AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -75,7 +76,7 @@ import { cn } from '@/lib/utils';
 import { EngineBadge, EngineIcon, getEngineMeta } from '@/components/ui/engine-badge';
 import { GeneratePromptModal } from '@/components/audits/generate-prompt-modal';
 import type { SearchIntent, BrandAssociation, BrandKit } from '@/types/database.types';
-import { isTierEligibleForGoogleAi } from '@/lib/billing/tier-utils';
+import { isTierEligibleForGoogleAi, getTierAuditLimit, normalizeTier } from '@/lib/billing/tier-utils';
 
 export interface AuditPromptItem {
   id: string;
@@ -96,6 +97,8 @@ const AVAILABLE_ENGINES = [
   { id: 'gemini', label: 'Gemini 1.5 Pro', isGated: false },
   { id: 'claude', label: 'Claude 3.5', isGated: false },
   { id: 'perplexity', label: 'Perplexity Sonar', isGated: false },
+  { id: 'copilot', label: 'Microsoft Copilot', isGated: false },
+  { id: 'copilot_search', label: 'Copilot Search', isGated: false },
   { id: 'google_ai_overview', label: 'Google AI Overview', isGated: true },
   // { id: 'google_ai_mode', label: 'Google AI Mode', isGated: true }, // hidden for now
 ];
@@ -231,6 +234,8 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
     'gemini',
     'claude',
     'perplexity',
+    'copilot',
+    'copilot_search',
   ]);
 
   // Filtering State
@@ -248,15 +253,16 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
     rawIndustry.includes('fashion') ||
     rawIndustry.includes('sport') ||
     rawIndustry.includes('fitness') ||
-    rawIndustry.includes('athleisure') ||
-    brandName.toLowerCase().includes('nike') ||
-    brandName.toLowerCase().includes('lululemon');
+    rawIndustry.includes('athleisure');
 
   const placeholderText = isConsumer
     ? 'e.g. "Best buttery-soft yoga leggings for studio workouts in 2026"'
     : `e.g. "What are the best ${project?.brand_kit?.core_offerings || brandName || 'software'} platforms in 2026?"`;
 
+  const normalizedTier = normalizeTier(project?.tier);
   const hasProTier = isTierEligibleForGoogleAi(project?.tier);
+  const auditLimit = (project as any)?.audit_limit || getTierAuditLimit(project?.tier);
+  const isQuotaReached = prompts.length >= auditLimit;
 
   const toggleEngine = (engineId: string) => {
     const target = AVAILABLE_ENGINES.find((e) => e.id === engineId);
@@ -265,7 +271,7 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
         action: {
           label: 'Upgrade to Pro',
           onClick: () => {
-            window.location.href = '/settings/billing';
+            window.location.href = '/settings?tab=billing';
           },
         },
       });
@@ -281,6 +287,17 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
 
   const handleCreatePrompt = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isQuotaReached) {
+      toast.error(`Audit quota reached (${prompts.length}/${auditLimit} active monitors on ${normalizedTier.toUpperCase()} tier). Upgrade your plan in Settings & Billing to track more queries.`, {
+        action: {
+          label: 'Upgrade Plan',
+          onClick: () => {
+            window.location.href = '/settings?tab=billing';
+          },
+        },
+      });
+      return;
+    }
     if (!queryText.trim()) {
       toast.error('Please enter a query phrase.');
       return;
@@ -464,6 +481,24 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
 
         {/* ACTIONS ROW: GENERATE WITH AI + ADD TRACKING PHRASE */}
         <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+          <div
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              isQuotaReached
+                ? 'bg-rose-50 text-rose-800 border-rose-200'
+                : prompts.length >= auditLimit * 0.8
+                ? 'bg-amber-50 text-amber-800 border-amber-200'
+                : 'bg-slate-50 text-slate-700 border-slate-200'
+            }`}
+          >
+            <span className="font-mono font-bold">{prompts.length} / {auditLimit}</span>
+            <span className="text-[11px] text-slate-500">Trackers</span>
+            {isQuotaReached && (
+              <span className="ml-1 text-[9px] font-bold uppercase tracking-wider bg-rose-200 text-rose-800 px-1.5 py-0.5 rounded">
+                Full
+              </span>
+            )}
+          </div>
+
           <Button
             type="button"
             variant="outline"
@@ -496,6 +531,27 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
 
             <form onSubmit={handleCreatePrompt}>
               <div className="space-y-5 px-6 py-5 max-h-[75vh] overflow-y-auto">
+                {isQuotaReached && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2.5 text-xs text-amber-900">
+                    <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="font-semibold">
+                        Audit Quota Reached ({prompts.length} / {auditLimit} active monitors)
+                      </p>
+                      <p className="text-[11px] text-amber-800 leading-relaxed">
+                        Your workspace is at capacity for the {normalizedTier.toUpperCase()} tier. Upgrade your plan to track additional search queries.
+                      </p>
+                      <div className="pt-1">
+                        <Link
+                          href="/settings?tab=billing"
+                          className="inline-flex items-center text-[11px] font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-950"
+                        >
+                          Upgrade Plan in Settings &amp; Billing &rarr;
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Multi-line Textarea with industry-tailored placeholder */}
                 <div className="space-y-1.5">
                   <Label htmlFor="audit-query" className="text-xs font-semibold text-slate-800 uppercase tracking-wider font-sans">
@@ -657,14 +713,16 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
                 </DialogClose>
                 <Button
                   type="submit"
-                  disabled={isPending}
+                  disabled={isPending || isQuotaReached}
                   size="sm"
-                  className="bg-zinc-900 text-white hover:bg-zinc-800 text-xs font-medium shadow-xs cursor-pointer px-4"
+                  className="bg-zinc-900 text-white hover:bg-zinc-800 disabled:opacity-50 text-xs font-medium shadow-xs cursor-pointer px-4"
                 >
                   {isPending ? (
                     <>
-                      <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> Saving & Evaluating...
+                      <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> Saving &amp; Evaluating...
                     </>
+                  ) : isQuotaReached ? (
+                    `Quota Reached (${prompts.length}/${auditLimit})`
                   ) : (
                     'Save Tracker & Run Initial Audit'
                   )}
@@ -1003,7 +1061,7 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
         brandName={brandName}
         tier={project?.tier || 'starter'}
         existingCount={prompts.length}
-        auditLimit={(project as any)?.audit_limit}
+        auditLimit={auditLimit}
         onPromptsAdded={(newPrompts) => {
           setPrompts((prev) => [...newPrompts, ...prev]);
         }}

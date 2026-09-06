@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { extractEngineQuote, formatGroundingSources } from './sentiment-context-card';
 
 describe('extractEngineQuote', () => {
@@ -30,6 +30,6 @@ describe('formatGroundingSources', () => {
 
   it('falls back to engine label when no URLs are present', () => {
     const formatted = formatGroundingSources([], 'ChatGPT');
-    expect(formatted).toBe('ChatGPT Grounding & Web Index');
+    expect(formatted).toBe('ChatGPT Search Index');
   });
 });

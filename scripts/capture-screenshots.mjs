@@ -14,7 +14,6 @@ const targets = [
   { name: 'audits.png', url: 'http://127.0.0.1:3000/audits', waitMs: 2000 },
   { name: 'citations.png', url: 'http://127.0.0.1:3000/citations', waitMs: 2000 },
   { name: 'reports.png', url: 'http://127.0.0.1:3000/reports', waitMs: 2000 },
-  { name: 'consultant.png', url: 'http://127.0.0.1:3000/consultant', waitMs: 2000 },
   { name: 'onboarding.png', url: 'http://127.0.0.1:3000/onboarding', waitMs: 1500 },
   { name: 'login.png', url: 'http://127.0.0.1:3000/login', waitMs: 1500 },
 ];

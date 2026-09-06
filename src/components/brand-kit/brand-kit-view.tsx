@@ -876,7 +876,7 @@ export function BrandKitView({ project }: BrandKitViewProps) {
 
         <CardFooter className="flex items-center justify-between border-t border-slate-200/80 bg-slate-50/40 p-5">
           <span className="text-xs text-slate-500 font-sans">
-            Changes propagate immediately across all AI audit engines and Content Studio generators.
+            Changes propagate immediately across all AI audit engines and content generators.
           </span>
           <Button
             type="submit"

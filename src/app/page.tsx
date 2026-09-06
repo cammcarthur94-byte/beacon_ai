@@ -11,7 +11,6 @@ import {
   Zap,
   TrendingUp,
   Globe,
-  Bot,
   Search,
   CheckCircle2,
   Lock,
@@ -130,7 +129,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* 4 Feature Cards with Fluid Hover Lift */}
+          {/* 3 Feature Cards with Fluid Hover Lift */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
             {/* Card 1: Multi-Engine Visibility */}
             <div className="group rounded-2xl border border-slate-200 bg-slate-50/50 p-6 sm:p-8 hover:bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
@@ -197,25 +196,6 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Card 4: Beacon Sentinel (AI Co-Worker) */}
-            <div className="group rounded-2xl border border-slate-200 bg-slate-50/50 p-6 sm:p-8 hover:bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="h-12 w-12 rounded-xl bg-amber-100/70 border border-amber-200 flex items-center justify-center text-amber-700 shadow-2xs group-hover:scale-105 transition-transform">
-                  <Bot className="h-6 w-6" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                  Beacon Assistant (AI Marketing Helper)
-                </h3>
-                <p className="text-sm text-slate-600 leading-relaxed font-normal">
-                  Receive instant alerts the moment a competitor gets recommended over you.
-                  Beacon Assistant explains why and creates ready-to-use articles and outreach emails to win customers back.
-                </p>
-              </div>
-              <div className="pt-6 border-t border-slate-200/70 mt-6 flex items-center justify-between text-xs font-semibold text-amber-800">
-                <span>One-click content generation</span>
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
           </div>
         </div>
       </section>
