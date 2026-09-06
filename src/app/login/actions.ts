@@ -9,6 +9,35 @@ export interface AuthActionResult {
   success?: string;
 }
 
+const DEFAULT_DEMO_PROJECT = {
+  id: 'demo-project-lululemon',
+  name: 'Lululemon',
+  domain: 'lululemon.com',
+  tier: 'enterprise' as const,
+  audit_limit: 100,
+  brand_kit: {
+    industry: 'Premium Athleisure & Athletic Apparel',
+    industry_taxonomy: {
+      sector: 'Apparel & Fashion',
+      category: 'Athleisure & Sporting Goods',
+    },
+    target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, gym-goers, and fitness lifestyle consumers',
+    core_offerings: 'Align Pant (Nulu fabric), Define Jacket, Wunder Train tights, ABC Joggers, Everywhere Belt Bag & technical athleisure',
+    competitors: [
+      { name: 'Alo Yoga', domain: 'aloyoga.com' },
+      { name: 'Vuori', domain: 'vuoriclothing.com' },
+      { name: 'Athleta', domain: 'athleta.gap.com' },
+    ],
+    tone_of_voice: 'Empowering, Mindful, Elevated, Performance-Driven',
+    messaging_pillars: [
+      'Innovation & Material Superiority',
+      'Data-Driven Fit & Athletic Performance',
+      'Community & Holistic Wellness',
+    ],
+  },
+  created_at: new Date().toISOString(),
+};
+
 export async function signInWithEmail(
   prevState: AuthActionResult | null,
   formData: FormData
@@ -25,27 +54,31 @@ export async function signInWithEmail(
 
   // Fallback for local development if Supabase cloud isn't connected yet
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    if (process.env.NODE_ENV === 'development' || process.env.ALLOW_FALLBACK_AUTH === 'true') {
-      const cookieStore = await cookies();
-      const userPayload = JSON.stringify({ email, id: 'demo-user-id' });
-      cookieStore.set('beacon_demo_user', userPayload, {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
-      cookieStore.set('beacon_auth_user', userPayload, {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
+    const cookieStore = await cookies();
+    const userPayload = JSON.stringify({
+      email,
+      fullName: email.split('@')[0],
+      id: 'user-' + Buffer.from(email).toString('hex').slice(0, 10),
+    });
+    cookieStore.set('beacon_demo_user', userPayload, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    cookieStore.set('beacon_auth_user', userPayload, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
 
-      // Check if active project cookie exists
-      const activeProject = cookieStore.get('beacon_active_project');
-      if (!activeProject) {
-        redirect('/onboarding');
-      } else {
-        redirect('/dashboard');
-      }
+    // Ensure active project exists so dashboard loads smoothly
+    const activeProject = cookieStore.get('beacon_active_project');
+    if (!activeProject) {
+      cookieStore.set('beacon_active_project', JSON.stringify(DEFAULT_DEMO_PROJECT), {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
     }
-    return { error: 'Authentication service is not configured.' };
+
+    redirect('/dashboard');
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -96,23 +129,25 @@ export async function signUpWithEmail(
 
   // Fallback for local development
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    if (process.env.NODE_ENV === 'development' || process.env.ALLOW_FALLBACK_AUTH === 'true') {
-      const cookieStore = await cookies();
-      const userPayload = JSON.stringify({ email, fullName: fullName || email.split('@')[0], id: 'user-' + Date.now() });
-      cookieStore.set('beacon_demo_user', userPayload, {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
-      cookieStore.set('beacon_auth_user', userPayload, {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
-      // Purge any stale active project and mock prompts so user starts with a clean slate
-      cookieStore.delete('beacon_active_project');
-      cookieStore.delete('beacon_demo_prompts');
-      redirect('/onboarding');
-    }
-    return { error: 'Authentication service is not configured.' };
+    const cookieStore = await cookies();
+    const userPayload = JSON.stringify({
+      email,
+      fullName: fullName || email.split('@')[0],
+      id: 'user-' + Date.now(),
+    });
+    cookieStore.set('beacon_demo_user', userPayload, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    cookieStore.set('beacon_auth_user', userPayload, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    // Purge any stale active project and mock prompts so user starts with a clean slate
+    cookieStore.delete('beacon_active_project');
+    cookieStore.delete('beacon_demo_prompts');
+    redirect('/onboarding');
   }
 
   const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -146,16 +181,24 @@ export async function signInWithGoogle() {
   const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-    if (process.env.NODE_ENV === 'development') {
-      const cookieStore = await cookies();
-      cookieStore.set(
-        'beacon_demo_user',
-        JSON.stringify({ email: 'demo.founder@company.ai', fullName: 'Demo Founder', id: 'demo-user-id' }),
-        { path: '/', maxAge: 60 * 60 * 24 * 7 }
-      );
-      redirect('/onboarding');
+    const cookieStore = await cookies();
+    const userPayload = JSON.stringify({
+      email: 'demo.founder@company.ai',
+      fullName: 'Demo Founder',
+      id: 'demo-user-id',
+    });
+    cookieStore.set('beacon_demo_user', userPayload, { path: '/', maxAge: 60 * 60 * 24 * 7 });
+    cookieStore.set('beacon_auth_user', userPayload, { path: '/', maxAge: 60 * 60 * 24 * 7 });
+
+    const activeProject = cookieStore.get('beacon_active_project');
+    if (!activeProject) {
+      cookieStore.set('beacon_active_project', JSON.stringify(DEFAULT_DEMO_PROJECT), {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
     }
-    redirect(`/login?error=${encodeURIComponent('Authentication service is not configured.')}`);
+
+    redirect('/dashboard');
   }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -175,7 +218,21 @@ export async function signInWithGoogle() {
 }
 
 export async function signInAsDemo() {
-  redirect('/onboarding');
+  const cookieStore = await cookies();
+  cookieStore.set('beacon_active_project', JSON.stringify(DEFAULT_DEMO_PROJECT), {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  const demoUser = JSON.stringify({
+    email: 'demo@lululemon.com',
+    fullName: 'Lululemon Brand Director',
+    id: 'demo-user-id',
+  });
+  cookieStore.set('beacon_demo_user', demoUser, { path: '/', maxAge: 60 * 60 * 24 * 7 });
+  cookieStore.set('beacon_auth_user', demoUser, { path: '/', maxAge: 60 * 60 * 24 * 7 });
+
+  redirect('/dashboard');
 }
 
 export async function signOut() {
@@ -195,3 +252,4 @@ export async function signOut() {
 
   redirect('/login');
 }
+

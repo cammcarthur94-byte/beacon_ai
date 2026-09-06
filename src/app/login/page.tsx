@@ -10,6 +10,7 @@ interface LoginPageProps {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const mode = params.mode === 'signup' ? 'signup' : 'signin';
+  const urlError = typeof params.error === 'string' ? params.error : undefined;
 
   return (
     <div className="min-h-screen w-full grid lg:grid-cols-12 bg-white text-zinc-900">
@@ -147,7 +148,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <span className="font-semibold text-zinc-900 tracking-tight text-lg">Beacon</span>
           </div>
 
-          <LoginForm initialMode={mode} />
+          <LoginForm initialMode={mode} initialError={urlError} />
         </div>
       </div>
     </div>

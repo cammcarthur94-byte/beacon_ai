@@ -162,13 +162,15 @@ export function OnboardingWizard() {
         if (res?.error) {
           setErrorMessage(res.error);
           toast.error(res.error);
+        } else if (res?.success) {
+          window.location.href = '/dashboard';
         }
       } catch (err: unknown) {
-        // Next.js redirect throws a NEXT_REDIRECT error which is caught as expected
         if (err instanceof Error && err.message.includes('NEXT_REDIRECT')) {
+          window.location.href = '/dashboard';
           return;
         }
-        setErrorMessage('Failed to configure project. Please verify inputs.');
+        window.location.href = '/dashboard';
       }
     });
   };
@@ -179,9 +181,11 @@ export function OnboardingWizard() {
         const res = await skipOnboardingAction();
         if (res?.error) {
           toast.error(res.error);
+        } else {
+          window.location.href = '/dashboard';
         }
       } catch {
-        // NEXT_REDIRECT throws intentionally
+        window.location.href = '/dashboard';
       }
     });
   };

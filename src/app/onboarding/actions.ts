@@ -93,7 +93,7 @@ export async function createProjectWithBrandKit(
       maxAge: 60 * 60 * 24 * 7,
     });
 
-    redirect('/dashboard');
+    return { success: true };
   }
 
   const {
@@ -134,7 +134,7 @@ export async function createProjectWithBrandKit(
     { path: '/', maxAge: 60 * 60 * 24 * 7 }
   );
 
-  redirect('/dashboard');
+  return { success: true };
 }
 
 export async function skipOnboardingAction(): Promise<OnboardingFormState> {
@@ -168,7 +168,7 @@ export async function skipOnboardingAction(): Promise<OnboardingFormState> {
       maxAge: 60 * 60 * 24 * 7,
     });
 
-    redirect('/dashboard');
+    return { success: true };
   }
 
   const {
@@ -208,5 +208,5 @@ export async function skipOnboardingAction(): Promise<OnboardingFormState> {
     { path: '/', maxAge: 60 * 60 * 24 * 7 }
   );
 
-  redirect('/dashboard');
+  return { success: true };
 }

@@ -6,10 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { signInWithEmail, signUpWithEmail, signInWithGoogle, type AuthActionResult } from './actions';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { signInWithEmail, signUpWithEmail, signInWithGoogle, signInAsDemo, type AuthActionResult } from './actions';
+import { Loader2, ArrowRight, Sparkles } from 'lucide-react';
 
-export function LoginForm({ initialMode = 'signin' }: { initialMode?: 'signin' | 'signup' }) {
+export function LoginForm({
+  initialMode = 'signin',
+  initialError,
+}: {
+  initialMode?: 'signin' | 'signup';
+  initialError?: string;
+}) {
   const [tab, setTab] = React.useState<string>(initialMode);
   const [signInState, signInFormAction, isSignInPending] = useActionState<AuthActionResult | null, FormData>(
     signInWithEmail,
@@ -22,6 +28,12 @@ export function LoginForm({ initialMode = 'signin' }: { initialMode?: 'signin' |
 
   return (
     <div className="w-full max-w-md space-y-6">
+      {initialError && (
+        <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs leading-relaxed">
+          {initialError}
+        </div>
+      )}
+
       <div className="space-y-2 text-center sm:text-left">
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">
           {tab === 'signin' ? 'Welcome back to Beacon' : 'Start tracking AI visibility'}
@@ -38,7 +50,7 @@ export function LoginForm({ initialMode = 'signin' }: { initialMode?: 'signin' |
         <Button
           type="submit"
           variant="outline"
-          className="w-full h-10 border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-800 font-normal justify-center gap-3 transition-colors shadow-2xs"
+          className="w-full h-10 border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-800 font-normal justify-center gap-3 transition-colors shadow-2xs cursor-pointer"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24">
             <path
@@ -59,6 +71,24 @@ export function LoginForm({ initialMode = 'signin' }: { initialMode?: 'signin' |
             />
           </svg>
           <span>Continue with Google</span>
+        </Button>
+      </form>
+
+      {/* Instant Demo Workspace Access */}
+      <form action={signInAsDemo}>
+        <Button
+          type="submit"
+          className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-medium justify-between px-4 transition-all duration-200 shadow-2xs group hover:shadow-sm cursor-pointer"
+        >
+          <div className="flex items-center gap-2 text-xs">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+            </span>
+            <Sparkles className="h-4 w-4" />
+            <span>Enter Live Demo Workspace (Instant Access)</span>
+          </div>
+          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
         </Button>
       </form>
 
