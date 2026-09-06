@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { useState, useMemo } from 'react';
+import { Filter, RotateCcw } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { SummaryCards, type DashboardSummaryMetrics } from './summary-cards';
 import { SovTrendChart, type MultiLineSovDataPoint, type CompetitorMeta } from './sov-trend-chart';
 import { CitationSourcesChart, type CitationDomainItem } from './citation-sources-chart';
@@ -24,6 +26,15 @@ interface DashboardClientViewProps {
   brandName: string;
 }
 
+function matchesEngineId(runEngine: string, targetEngineId: string): boolean {
+  const normRun = runEngine.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const normTarget = targetEngineId.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (normTarget === 'copilot') {
+    return normRun === 'copilot';
+  }
+  return normRun.includes(normTarget) || normTarget.includes(normRun);
+}
+
 export function DashboardClientView({
   initialSummaryMetrics,
   fullSovTrendData,
@@ -34,18 +45,18 @@ export function DashboardClientView({
   competitors,
   brandName,
 }: DashboardClientViewProps) {
-  // Cross-Filter States from Charts
-  const ALL_ENGINE_IDS = [
-    'chatgpt',
-    'gemini',
-    'claude',
-    'perplexity',
-    'google_ai_overview',
-    // 'google_ai_mode',
-  ];
-  const [selectedEngines, setSelectedEngines] = useState<string[]>(ALL_ENGINE_IDS);
+  // All 7 AI engines dynamically derived from initial benchmark scores
+  const allEngineIds = useMemo(
+    () => initialEngineScores.map((e) => e.engineId),
+    [initialEngineScores]
+  );
+
+  // Cross-Filter States
+  const [selectedEngines, setSelectedEngines] = useState<string[]>(() =>
+    initialEngineScores.map((e) => e.engineId)
+  );
   const [selectedSentimentCategory, setSelectedSentimentCategory] = useState<'all' | 'positive' | 'neutral' | 'negative'>('all');
-  const [selectedCompetitors, setSelectedCompetitors] = useState<string[]>(competitors.map((c) => c.id));
+  const [selectedCompetitors, setSelectedCompetitors] = useState<string[]>(() => competitors.map((c) => c.id));
   const [selectedCitationDomain, setSelectedCitationDomain] = useState<string | null>(null);
 
   // Telemetry Table Inline Filter State
@@ -53,16 +64,26 @@ export function DashboardClientView({
   const [tableStatusFilter, setTableStatusFilter] = useState<'all' | 'mentioned' | 'missing'>('all');
   const [tableCitationFilter, setTableCitationFilter] = useState<'all' | 'has_citations' | 'high_citations'>('all');
 
-  // Engine toggling from EngineComparisonChart
+  // Engine toggling from EngineComparisonChart (single-click isolates, re-click restores all)
   const handleToggleEngine = (engineId: string) => {
     setSelectedEngines((prev) => {
+      if (prev.length === allEngineIds.length) {
+        return [engineId];
+      }
+      if (prev.length === 1 && prev.includes(engineId)) {
+        return allEngineIds;
+      }
       if (prev.includes(engineId)) {
-        if (prev.length === 1) return ALL_ENGINE_IDS; // reset to all if clicking the only active
-        return prev.filter((id) => id !== engineId);
+        const next = prev.filter((id) => id !== engineId);
+        return next.length === 0 ? allEngineIds : next;
       } else {
         return [...prev, engineId];
       }
     });
+  };
+
+  const handleResetEngines = () => {
+    setSelectedEngines(allEngineIds);
   };
 
   // Competitor toggling from SovTrendChart legend
@@ -78,18 +99,22 @@ export function DashboardClientView({
     setTableCitationFilter('all');
     setSelectedCitationDomain(null);
     setSelectedSentimentCategory('all');
-    setSelectedEngines(ALL_ENGINE_IDS);
+    setSelectedEngines(allEngineIds);
+  };
+
+  const handleResetAllCrossFilters = () => {
+    handleResetTableFilters();
   };
 
   // Dynamically Filter Telemetry Runs based on active chart clicks and table inputs
   const filteredRuns = useMemo(() => {
     return initialRuns.filter((run) => {
       // 1. Engine Filter
-      const runEngineKey = run.engine.toLowerCase();
-      const matchesEngine =
+      const isEngineSelected =
         selectedEngines.length === 0 ||
-        selectedEngines.some((eng) => runEngineKey.includes(eng));
-      if (!matchesEngine) return false;
+        selectedEngines.length === allEngineIds.length ||
+        selectedEngines.some((engId) => matchesEngineId(run.engine, engId));
+      if (!isEngineSelected) return false;
 
       // 2. Sentiment Donut Category Filter
       if (selectedSentimentCategory !== 'all') {
@@ -127,6 +152,7 @@ export function DashboardClientView({
   }, [
     initialRuns,
     selectedEngines,
+    allEngineIds.length,
     selectedSentimentCategory,
     selectedCitationDomain,
     tableSearchQuery,
@@ -137,7 +163,7 @@ export function DashboardClientView({
   // Dynamically Filter Summary Metrics based on filtered slice & benchmark datasets
   const dynamicSummaryMetrics = useMemo(() => {
     // 1. Top Performing Engine dynamically derived from benchmark scores
-    const activeEngines = selectedEngines.length > 0
+    const activeEngines = selectedEngines.length > 0 && selectedEngines.length < allEngineIds.length
       ? initialEngineScores.filter((e) => selectedEngines.includes(e.engineId))
       : initialEngineScores;
     const topEngineData = (activeEngines.length > 0 ? activeEngines : initialEngineScores).reduce(
@@ -148,7 +174,7 @@ export function DashboardClientView({
     // 2. Net Sentiment calculation aligned with distribution breakdown
     const positiveSlice = initialSentimentSlices.find((s) => s.category === 'positive')?.value ?? 68;
     const negativeSlice = initialSentimentSlices.find((s) => s.category === 'negative')?.value ?? 8;
-    const baselineNetSentiment = positiveSlice - negativeSlice; // Standard formula: 68% - 8% = +60
+    const baselineNetSentiment = positiveSlice - negativeSlice;
 
     const isFiltered = filteredRuns.length !== initialRuns.length || selectedSentimentCategory !== 'all';
     let netSentiment = baselineNetSentiment;
@@ -169,8 +195,8 @@ export function DashboardClientView({
       netSentiment >= 20 ? 'Positive' : netSentiment <= -20 ? 'Negative' : 'Neutral';
 
     // 3. Verified Citations cumulative total and monthly delta reconciliation
-    let totalCitations = initialSummaryMetrics.totalCitations; // 164 cumulative total
-    let citationsDelta = initialSummaryMetrics.citationsDelta; // +28 this month
+    let totalCitations = initialSummaryMetrics.totalCitations;
+    let citationsDelta = initialSummaryMetrics.citationsDelta;
 
     if (selectedCitationDomain) {
       const domainItem = initialCitationDomains.find(
@@ -180,6 +206,10 @@ export function DashboardClientView({
         totalCitations = domainItem.citations;
         citationsDelta = Math.max(1, Math.round(domainItem.citations * 0.17));
       }
+    } else if (isFiltered && filteredRuns.length > 0) {
+      const runCitations = filteredRuns.reduce((acc, r) => acc + (r.citedUrlsCount || 0), 0);
+      totalCitations = runCitations;
+      citationsDelta = Math.max(1, Math.round(runCitations * 0.2));
     }
 
     // 4. Share of Voice
@@ -209,20 +239,255 @@ export function DashboardClientView({
     initialCitationDomains,
     initialSentimentSlices,
     selectedEngines,
+    allEngineIds.length,
     selectedSentimentCategory,
     selectedCitationDomain,
   ]);
 
+  // Dynamic SOV Trend scaled according to filtered Share of Voice
+  const dynamicSovTrendData = useMemo(() => {
+    const baseSov = initialSummaryMetrics.totalSov;
+    const currentSov = dynamicSummaryMetrics.totalSov;
+    if (baseSov === 0 || currentSov === baseSov) return fullSovTrendData['30d'];
+    const factor = currentSov / baseSov;
+    return fullSovTrendData['30d'].map((pt) => ({
+      ...pt,
+      brand: Math.min(100, Math.max(5, Math.round(pt.brand * factor * 10) / 10)),
+    }));
+  }, [fullSovTrendData, initialSummaryMetrics.totalSov, dynamicSummaryMetrics.totalSov]);
+
+  // Dynamic Citation Domains derived from filteredRuns
+  const dynamicCitationDomains = useMemo(() => {
+    const isFiltered =
+      selectedEngines.length < allEngineIds.length ||
+      selectedSentimentCategory !== 'all' ||
+      tableSearchQuery.trim() !== '' ||
+      tableStatusFilter !== 'all' ||
+      tableCitationFilter !== 'all';
+
+    if (!isFiltered) {
+      return initialCitationDomains;
+    }
+
+    const domainCounts: Record<string, number> = {};
+    filteredRuns.forEach((run) => {
+      run.citedUrls?.forEach((rawUrl) => {
+        try {
+          const parsed = new URL(rawUrl);
+          const host = parsed.hostname.replace(/^www\./, '');
+          domainCounts[host] = (domainCounts[host] || 0) + 1;
+        } catch {
+          const cleaned = rawUrl.replace(/^https?:\/\//, '').split('/')[0].replace(/^www\./, '');
+          if (cleaned) domainCounts[cleaned] = (domainCounts[cleaned] || 0) + 1;
+        }
+      });
+    });
+
+    const totalFilteredCitations = Object.values(domainCounts).reduce((a, b) => a + b, 0);
+    if (totalFilteredCitations === 0) {
+      return initialCitationDomains.map((d) => ({
+        ...d,
+        citations: 0,
+        percentage: 0,
+      }));
+    }
+
+    return Object.entries(domainCounts)
+      .map(([domain, count]) => {
+        const initialMatch = initialCitationDomains.find(
+          (id) => id.domain.toLowerCase() === domain.toLowerCase()
+        );
+        return {
+          domain,
+          citations: count,
+          percentage: Math.round((count / totalFilteredCitations) * 1000) / 10,
+          isBrandDomain: initialMatch?.isBrandDomain ?? false,
+        };
+      })
+      .sort((a, b) => b.citations - a.citations);
+  }, [
+    filteredRuns,
+    initialCitationDomains,
+    selectedEngines.length,
+    allEngineIds.length,
+    selectedSentimentCategory,
+    tableSearchQuery,
+    tableStatusFilter,
+    tableCitationFilter,
+  ]);
+
+  // Dynamic Engine Visibility Scores derived from filteredRuns
+  const dynamicEngineScores = useMemo(() => {
+    const isFiltered =
+      selectedSentimentCategory !== 'all' ||
+      selectedCitationDomain !== null ||
+      tableSearchQuery.trim() !== '' ||
+      tableStatusFilter !== 'all' ||
+      tableCitationFilter !== 'all';
+
+    if (!isFiltered) {
+      return initialEngineScores;
+    }
+
+    return initialEngineScores.map((scoreItem) => {
+      const matchingRuns = filteredRuns.filter((r) =>
+        matchesEngineId(r.engine, scoreItem.engineId)
+      );
+
+      if (matchingRuns.length > 0) {
+        const avgScore = Math.round(
+          matchingRuns.reduce((acc, r) => acc + r.visibilityScore, 0) / matchingRuns.length
+        );
+        return {
+          ...scoreItem,
+          brandScore: avgScore,
+        };
+      }
+
+      return scoreItem;
+    });
+  }, [
+    initialEngineScores,
+    filteredRuns,
+    selectedSentimentCategory,
+    selectedCitationDomain,
+    tableSearchQuery,
+    tableStatusFilter,
+    tableCitationFilter,
+  ]);
+
+  // Dynamic Sentiment Slices derived from filteredRuns
+  const dynamicSentimentSlices = useMemo(() => {
+    const isFiltered =
+      selectedEngines.length < allEngineIds.length ||
+      selectedCitationDomain !== null ||
+      tableSearchQuery.trim() !== '' ||
+      tableStatusFilter !== 'all' ||
+      tableCitationFilter !== 'all';
+
+    if (!isFiltered || filteredRuns.length === 0) {
+      return initialSentimentSlices;
+    }
+
+    const positiveRuns = filteredRuns.filter((r) => r.sentiment === 'positive').length;
+    const neutralRuns = filteredRuns.filter((r) => r.sentiment === 'neutral').length;
+    const negativeRuns = filteredRuns.filter((r) => r.sentiment === 'negative').length;
+    const total = filteredRuns.length;
+
+    const posPct = Math.round((positiveRuns / total) * 100);
+    const neuPct = Math.round((neutralRuns / total) * 100);
+    const negPct = Math.max(0, 100 - posPct - neuPct);
+
+    return [
+      { name: 'Positive Sentiment', category: 'positive' as const, value: posPct, color: '#10b981' },
+      { name: 'Neutral Sentiment', category: 'neutral' as const, value: neuPct, color: '#94a3b8' },
+      { name: 'Critical / Negative', category: 'negative' as const, value: negPct, color: '#475569' },
+    ];
+  }, [
+    initialSentimentSlices,
+    filteredRuns,
+    selectedEngines.length,
+    allEngineIds.length,
+    selectedCitationDomain,
+    tableSearchQuery,
+    tableStatusFilter,
+    tableCitationFilter,
+  ]);
+
+  const isEngineFiltered = selectedEngines.length < allEngineIds.length;
+  const isSentimentFiltered = selectedSentimentCategory !== 'all';
+  const isDomainFiltered = selectedCitationDomain !== null;
+  const isAnyFilterActive = isEngineFiltered || isSentimentFiltered || isDomainFiltered;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* 1. TOP SUMMARY METRIC CARDS */}
       <SummaryCards metrics={dynamicSummaryMetrics} />
 
-      {/* 2. RESTRUCTURED 2x2 CHART GRID */}
+      {/* 2. ACTIVE FILTERS BAR */}
+      {isAnyFilterActive && (
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="flex items-center gap-1.5 text-zinc-500 font-medium font-sans">
+              <Filter className="h-3.5 w-3.5 text-zinc-600" />
+              Active Filters:
+            </span>
+
+            {/* Engine filter pill */}
+            {isEngineFiltered && (
+              <Badge
+                variant="outline"
+                className="bg-white border-zinc-200 text-zinc-800 font-sans font-normal text-xs py-0.5 px-2.5 gap-1.5 rounded-full shadow-2xs flex items-center"
+              >
+                <span>
+                  {selectedEngines.length === 1
+                    ? `Engine: ${initialEngineScores.find((e) => e.engineId === selectedEngines[0])?.engine || selectedEngines[0]}`
+                    : `${selectedEngines.length} Engines`}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleResetEngines}
+                  className="text-zinc-400 hover:text-zinc-700 cursor-pointer text-[13px] leading-none ml-0.5"
+                  aria-label="Clear engine filter"
+                >
+                  ✕
+                </button>
+              </Badge>
+            )}
+
+            {/* Sentiment filter pill */}
+            {isSentimentFiltered && (
+              <Badge
+                variant="outline"
+                className="bg-white border-zinc-200 text-zinc-800 font-sans font-normal text-xs py-0.5 px-2.5 gap-1.5 rounded-full shadow-2xs flex items-center capitalize"
+              >
+                <span>Tone: {selectedSentimentCategory === 'negative' ? 'Critical' : selectedSentimentCategory}</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedSentimentCategory('all')}
+                  className="text-zinc-400 hover:text-zinc-700 cursor-pointer text-[13px] leading-none ml-0.5"
+                  aria-label="Clear sentiment filter"
+                >
+                  ✕
+                </button>
+              </Badge>
+            )}
+
+            {/* Citation domain filter pill */}
+            {isDomainFiltered && (
+              <Badge
+                variant="outline"
+                className="bg-white border-zinc-200 text-zinc-800 font-sans font-normal text-xs py-0.5 px-2.5 gap-1.5 rounded-full shadow-2xs flex items-center"
+              >
+                <span>Domain: {selectedCitationDomain}</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCitationDomain(null)}
+                  className="text-zinc-400 hover:text-zinc-700 cursor-pointer text-[13px] leading-none ml-0.5"
+                  aria-label="Clear domain filter"
+                >
+                  ✕
+                </button>
+              </Badge>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleResetAllCrossFilters}
+            className="flex items-center gap-1.5 text-xs font-sans text-zinc-500 hover:text-zinc-900 transition-colors cursor-pointer"
+          >
+            <RotateCcw className="h-3 w-3" />
+            <span>Reset All Filters</span>
+          </button>
+        </div>
+      )}
+
+      {/* 3. RESTRUCTURED 2x2 CHART GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         {/* Card 1: Multi-Line Share of Voice Trend Graph */}
         <SovTrendChart
-          data={fullSovTrendData['30d']}
+          data={dynamicSovTrendData}
           brandName={brandName}
           competitors={competitors}
           visibleCompetitors={selectedCompetitors}
@@ -232,7 +497,7 @@ export function DashboardClientView({
 
         {/* Card 2: Top Cited Authority Domains */}
         <CitationSourcesChart
-          data={initialCitationDomains}
+          data={dynamicCitationDomains}
           selectedDomain={selectedCitationDomain}
           onSelectDomain={setSelectedCitationDomain}
           brandName={brandName}
@@ -240,15 +505,16 @@ export function DashboardClientView({
 
         {/* Card 3: Engine Visibility Benchmark */}
         <EngineComparisonChart
-          data={initialEngineScores}
+          data={dynamicEngineScores}
           brandName={brandName}
           selectedEngines={selectedEngines}
           onToggleEngine={handleToggleEngine}
+          onResetEngines={handleResetEngines}
         />
 
         {/* Card 4: Brand Sentiment Distribution Donut */}
         <SentimentDonutChart
-          data={initialSentimentSlices}
+          data={dynamicSentimentSlices}
           selectedCategory={selectedSentimentCategory}
           onSelectCategory={setSelectedSentimentCategory}
           netScore={dynamicSummaryMetrics.sentimentScore}
@@ -256,7 +522,7 @@ export function DashboardClientView({
         />
       </div>
 
-      {/* 3. INTERACTIVE TELEMETRY TABLE */}
+      {/* 4. INTERACTIVE TELEMETRY TABLE */}
       <RecentActivityTable
         runs={filteredRuns}
         filterOptions={{

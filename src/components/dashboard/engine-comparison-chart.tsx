@@ -36,6 +36,7 @@ interface EngineComparisonChartProps {
   brandName: string;
   selectedEngines?: string[];
   onToggleEngine?: (engineId: string) => void;
+  onResetEngines?: () => void;
 }
 
 interface TooltipPayloadItem {
@@ -81,6 +82,7 @@ export function EngineComparisonChart({
   brandName,
   selectedEngines = [],
   onToggleEngine,
+  onResetEngines,
 }: EngineComparisonChartProps) {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const isAnyFiltered = selectedEngines.length > 0 && selectedEngines.length < data.length;
@@ -94,7 +96,29 @@ export function EngineComparisonChart({
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <CartesianGrid {...chartGridProps} />
-          <XAxis dataKey="engine" {...chartXAxisProps} />
+          <XAxis
+            dataKey="engine"
+            {...chartXAxisProps}
+            interval={0}
+            tick={({ x, y, payload }) => {
+              const raw = String(payload?.value || '');
+              const clean = raw
+                .replace('Microsoft ', '')
+                .replace('Google AI Overview', 'Google AI');
+              return (
+                <text
+                  x={x}
+                  y={Number(y) + 12}
+                  textAnchor="middle"
+                  fill="var(--chart-axis)"
+                  fontSize={10.5}
+                  fontFamily="'Google Sans', 'Open Sans', sans-serif"
+                >
+                  {clean}
+                </text>
+              );
+            }}
+          />
           <YAxis
             {...chartYAxisProps}
             domain={[0, 100]}
@@ -149,11 +173,22 @@ export function EngineComparisonChart({
   );
 
   const badgeElement = isAnyFiltered ? (
-    <Badge variant="outline" className="font-mono text-xs border-zinc-200 text-zinc-700 bg-zinc-50 rounded-full">
-      {selectedEngines.length} Filtered
-    </Badge>
+    <div className="flex items-center gap-1.5">
+      <Badge variant="outline" className="font-sans text-xs border-zinc-200 text-zinc-700 bg-zinc-50 rounded-full">
+        {selectedEngines.length} Filtered
+      </Badge>
+      {onResetEngines && (
+        <button
+          type="button"
+          onClick={onResetEngines}
+          className="text-xs font-sans text-emerald-600 hover:text-emerald-700 underline cursor-pointer"
+        >
+          Reset Filter
+        </button>
+      )}
+    </div>
   ) : (
-    <Badge variant="outline" className="font-mono text-xs border-zinc-200 text-zinc-600 bg-zinc-50 rounded-full">
+    <Badge variant="outline" className="font-sans text-xs border-zinc-200 text-zinc-600 bg-zinc-50 rounded-full">
       {data.length} Platforms
     </Badge>
   );

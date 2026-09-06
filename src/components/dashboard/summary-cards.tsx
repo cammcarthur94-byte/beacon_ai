@@ -35,11 +35,11 @@ export function SummaryCards({
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* 1. Recommendation Rate */}
+      {/* 1. Share of Voice */}
       <Card className="border-zinc-200 bg-white shadow-xs relative overflow-hidden group hover:border-zinc-300 transition-colors">
         <CardContent className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-zinc-500 font-sans font-medium">
-            <span>Recommendation Rate</span>
+            <span>Share of Voice</span>
             <Sparkles className="h-4 w-4 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
           </div>
           <div className="flex items-baseline justify-between pt-1">
