@@ -34,7 +34,6 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
-  ArrowRight,
   ShieldCheck,
   Zap,
   Filter,
@@ -50,6 +49,40 @@ import type {
   CompetitorFeatureItem,
   CompetitorMappingData,
 } from '@/app/api/competitor-mapping/route';
+
+function renderHighlightedDescription(text: string) {
+  const highlightTerms = [
+    '48% of AI engine recommendations',
+    'travel trousers',
+    'objective technical spec breakdown',
+    'celebrity-endorsed athleisure',
+    '3.4x',
+    'free lifetime alterations',
+    'Meta Pant',
+    'ABC Pant',
+    'Scuba',
+    'Define',
+    'lifestyle everyday apparel',
+  ];
+
+  const regex = new RegExp(
+    `(${highlightTerms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
+    'gi'
+  );
+  const parts = text.split(regex);
+
+  return parts.map((part, i) => {
+    const isHighlight = highlightTerms.some((t) => t.toLowerCase() === part.toLowerCase());
+    if (isHighlight) {
+      return (
+        <strong key={i} className="font-semibold text-slate-900">
+          {part}
+        </strong>
+      );
+    }
+    return part;
+  });
+}
 
 export function CompetitorMappingClient() {
   const [data, setData] = useState<CompetitorMappingData | null>(null);
@@ -144,40 +177,37 @@ export function CompetitorMappingClient() {
   return (
     <div className="space-y-6 font-sans pb-16">
       {/* ── 1. STREAMLINED PAGE HEADER & PRIMARY ACTION ──────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-6">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              PRODUCT INTELLIGENCE
-            </span>
-          </div>
+      <div className="border-b border-slate-200/80 pb-6 space-y-1">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
+            PRODUCT INTELLIGENCE
+          </span>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-sans">
             Competitor Product &amp; Feature Comparison
           </h1>
-          <p className="text-sm text-slate-600 max-w-3xl">
-            Monitor rival product catalogs, feature claims, and pricing tiers to see where AI models favor competing brands over yours.
-          </p>
-        </div>
-
-        {/* Consolidated action buttons */}
-        <div className="flex items-center gap-2.5 shrink-0">
           <Button
+            variant="outline"
             size="sm"
             onClick={handleRunCrawl}
             disabled={crawling}
-            className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            className="h-8.5 text-xs font-medium text-slate-700 border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-900 shadow-2xs shrink-0 cursor-pointer self-start sm:self-auto"
           >
-            <RefreshCw className={cn('h-3.5 w-3.5 mr-1.5 text-white', crawling && 'animate-spin')} />
+            <RefreshCw className={cn('h-3.5 w-3.5 mr-1.5 text-slate-500', crawling && 'animate-spin')} />
             {crawling ? 'Updating Competitor Data...' : 'Refresh Competitor Data'}
           </Button>
         </div>
+        <p className="text-sm text-slate-600 max-w-3xl pt-0.5 leading-relaxed">
+          Monitor rival product catalogs, feature claims, and pricing tiers to see where AI models favor competing brands over yours.
+        </p>
       </div>
 
       {/* ── 2. KPI OVERVIEW CARDS ────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Tracked Competitors */}
         <Card className="border border-slate-200/90 shadow-2xs rounded-xl bg-white hover:shadow-xs transition-shadow">
-          <CardContent className="p-5">
+          <CardContent className="px-5 py-6">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
                 Tracked Competitors
@@ -194,7 +224,7 @@ export function CompetitorMappingClient() {
                 Key Rivals
               </span>
             </div>
-            <div className="mt-2 text-xs text-slate-500 flex items-center gap-1.5 flex-wrap">
+            <div className="mt-3 text-xs text-slate-500 flex items-center gap-1.5 flex-wrap">
               {data?.competitors?.map((c, i) => (
                 <span key={c.name} className="inline-flex items-center gap-1">
                   {i > 0 && <span className="text-slate-300 mr-1">•</span>}
@@ -212,7 +242,7 @@ export function CompetitorMappingClient() {
 
         {/* Card 2: Parity Score */}
         <Card className="border border-slate-200/90 shadow-2xs rounded-xl bg-white hover:shadow-xs transition-shadow">
-          <CardContent className="p-5">
+          <CardContent className="px-5 py-6">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
                 Competitive Match Score
@@ -229,7 +259,7 @@ export function CompetitorMappingClient() {
                 Strong Foundation
               </span>
             </div>
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-3 text-xs text-slate-500">
               Core athletic performance specs lead peer group
             </p>
           </CardContent>
@@ -237,7 +267,7 @@ export function CompetitorMappingClient() {
 
         {/* Card 3: High Risk Gaps */}
         <Card className="border border-slate-200/90 shadow-2xs rounded-xl bg-white hover:shadow-xs transition-shadow">
-          <CardContent className="p-5">
+          <CardContent className="px-5 py-6">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
                 Missing Product Features
@@ -247,14 +277,14 @@ export function CompetitorMappingClient() {
               </div>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-bold tracking-tight text-amber-600">
+              <span className="text-3xl font-bold tracking-tight text-slate-900">
                 {data?.summary.highRiskGapsCount ?? 2}
               </span>
-              <span className="text-xs font-medium text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+              <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
                 Needs Attention
               </span>
             </div>
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-3 text-xs text-slate-500">
               Areas where competitors get recommended more often
             </p>
           </CardContent>
@@ -262,7 +292,7 @@ export function CompetitorMappingClient() {
 
         {/* Card 4: AI Citation Disparity */}
         <Card className="border border-slate-200/90 shadow-2xs rounded-xl bg-white hover:shadow-xs transition-shadow">
-          <CardContent className="p-5">
+          <CardContent className="px-5 py-6">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
                 Recommendation Advantage
@@ -272,11 +302,16 @@ export function CompetitorMappingClient() {
               </div>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl font-bold tracking-tight text-purple-700">
-                {data?.summary.aiCitationDisparity || '+14% Advantage'}
+              <span className="text-3xl font-bold tracking-tight text-slate-900">
+                {data?.summary.aiCitationDisparity
+                  ? (data.summary.aiCitationDisparity.split(' ')[0] || '+14%')
+                  : '+14%'}
+              </span>
+              <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+                Overall Advantage
               </span>
             </div>
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-3 text-xs text-slate-500">
               Last updated: {lastSyncText}
             </p>
           </CardContent>
@@ -327,46 +362,27 @@ export function CompetitorMappingClient() {
             {data?.recommendations?.map((rec) => (
               <div
                 key={rec.id}
-                className="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
+                className="bg-white border border-slate-200/90 rounded-xl p-4 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-start space-y-2.5"
               >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      {rec.category}
-                    </span>
-                    <Badge
-                      className={cn(
-                        'text-[10px] font-semibold px-2 py-0.5',
-                        rec.impact === 'Critical'
-                          ? 'bg-rose-50 text-rose-700 border-rose-200'
-                          : 'bg-amber-50 text-amber-700 border-amber-200'
-                      )}
-                    >
-                      {rec.impact} Priority
-                    </Badge>
-                  </div>
-                  <h3 className="text-xs font-bold text-slate-900 leading-snug">{rec.title}</h3>
-                  <p className="text-[11px] text-slate-600 leading-relaxed line-clamp-2">
-                    {rec.description}
-                  </p>
-                </div>
-
-                <div className="pt-2 border-t border-slate-100">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      const matchingFeat =
-                        data?.features?.find((f) => f.category === rec.category) ||
-                        data?.features?.[0];
-                      if (matchingFeat) setSearchQuery(matchingFeat.featureName);
-                    }}
-                    className="w-full text-xs font-semibold h-7.5 text-emerald-700 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all justify-between px-2.5 cursor-pointer"
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    {rec.category}
+                  </span>
+                  <Badge
+                    className={cn(
+                      'text-[10px] font-semibold px-2 py-0.5 border shadow-2xs',
+                      rec.impact === 'Critical'
+                        ? 'bg-rose-50 text-rose-700 border-rose-200/80'
+                        : 'bg-amber-50 text-amber-700 border-amber-200/80'
+                    )}
                   >
-                    <span className="truncate">{rec.actionLabel}</span>
-                    <ArrowRight className="h-3 w-3 shrink-0 ml-1" />
-                  </Button>
+                    {rec.impact} Priority
+                  </Badge>
                 </div>
+                <h3 className="text-xs font-bold text-slate-900 leading-snug">{rec.title}</h3>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  {renderHighlightedDescription(rec.description)}
+                </p>
               </div>
             ))}
           </div>
@@ -374,8 +390,9 @@ export function CompetitorMappingClient() {
       </div>
 
       {/* ── 4. UNIFIED FILTER BAR & SEARCH TOOLBAR ───────────────── */}
-      <div className="bg-white border border-slate-200 rounded-xl p-3.5 sm:p-4 shadow-2xs space-y-3">
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="space-y-3 mb-6">
+        {/* Unified gray-backed toolbar container */}
+        <div className="bg-slate-50 border border-slate-200/90 rounded-xl p-2.5 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
           {/* Search bar */}
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
@@ -384,12 +401,12 @@ export function CompetitorMappingClient() {
               placeholder="Search features, specifications, fabrics..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-8.5 text-xs bg-slate-50/70 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white font-sans"
+              className="pl-9 h-8.5 text-xs bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white font-sans"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -397,14 +414,14 @@ export function CompetitorMappingClient() {
           </div>
 
           {/* Controls: Parity Dropdown & Clear Filters */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
                   className={cn(
-                    'h-8.5 text-xs font-medium border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-sans',
+                    'h-8.5 text-xs font-medium border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-sans shadow-2xs',
                     selectedStatus !== 'all' && 'border-emerald-500 text-emerald-700 bg-emerald-50/50 ring-1 ring-emerald-500 font-semibold'
                   )}
                 >
@@ -460,14 +477,14 @@ export function CompetitorMappingClient() {
               </Button>
             )}
 
-            <span className="text-xs text-slate-400 pl-1">
+            <span className="text-xs text-slate-400 pl-1 shrink-0">
               ({filteredFeatures.length} matching)
             </span>
           </div>
         </div>
 
         {/* Category Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-slate-100 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
           <span className="text-xs font-semibold text-slate-400 mr-1 flex items-center shrink-0">
             <Layers className="h-3.5 w-3.5 mr-1 text-slate-400" />
             Category:
@@ -479,7 +496,7 @@ export function CompetitorMappingClient() {
               'px-2.5 py-1 text-xs font-medium rounded-full transition-all border shrink-0 cursor-pointer',
               selectedCategory === 'all'
                 ? 'bg-slate-900 text-white border-slate-900 shadow-2xs font-semibold'
-                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             )}
           >
             All Categories ({data?.features?.length || 0})
@@ -495,7 +512,7 @@ export function CompetitorMappingClient() {
                   'px-2.5 py-1 text-xs font-medium rounded-full transition-all border shrink-0 cursor-pointer',
                   isSelected
                     ? 'bg-purple-50 text-purple-800 border-purple-600 ring-1 ring-purple-600 font-semibold shadow-2xs'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                 )}
               >
                 {cat}

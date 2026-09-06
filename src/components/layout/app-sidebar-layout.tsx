@@ -24,7 +24,6 @@ import {
   Target,
   Trophy,
   Sliders,
-  Shield,
   Building2,
   Sparkles,
 } from 'lucide-react';
@@ -315,11 +314,8 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
                 {userRole}
               </Badge>
             </div>
-            <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-              <span className="truncate">{project.domain}</span>
-              <span className="flex items-center gap-1 text-emerald-600 font-sans font-medium text-[10px]">
-                <Shield className="h-2.5 w-2.5" /> Isolated
-              </span>
+            <div className="text-[10px] text-slate-400 font-mono">
+              <span className="truncate block">{project.domain}</span>
             </div>
           </div>
 
