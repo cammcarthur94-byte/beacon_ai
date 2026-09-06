@@ -5,6 +5,11 @@ import { AppSidebarLayout } from '@/components/layout/app-sidebar-layout';
 import { CompetitorMappingClient } from '@/components/competitor-mapping/competitor-mapping-client';
 import type { BrandKit } from '@/types/database.types';
 
+export const metadata = {
+  title: 'Competitor Comparison | Beacon',
+  description: 'Monitor rival product catalogs, feature claims, and pricing tiers to see where AI models favor competing brands over yours.',
+};
+
 export default async function CompetitorMappingPage() {
   const cookieStore = await cookies();
   const supabase = await createClient();

@@ -185,7 +185,7 @@ export function CompetitorMappingClient() {
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-sans">
-            Competitor Product &amp; Feature Comparison
+            Competitor Comparison
           </h1>
           <Button
             variant="outline"
