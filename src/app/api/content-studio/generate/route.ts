@@ -240,7 +240,7 @@ Keep your analysis concise, structured, and factual. Hold all conclusions in exp
     }
 
     // =========================================================================
-    // STEP 2: CONTENT CREATION (CLAUDE SONNET 4 / GEMINI FLASH BACKUP)
+    // STEP 2: CONTENT CREATION (CLAUDE HAIKU 4.5 / GEMINI FLASH BACKUP)
     // =========================================================================
     let angles: GeneratedContentAngle[] = [];
     const hasAnthropicKey = Boolean(process.env.ANTHROPIC_API_KEY);
@@ -302,13 +302,12 @@ Return ONLY a valid JSON array of exactly 3 objects. Every object MUST include n
   }
 ]`;
 
-    // Try Claude Sonnet 4 if Anthropic is configured
+    // Try Claude Haiku 4.5 if Anthropic is configured
     if (hasAnthropicKey) {
       const copywriterCandidates = [
-        'claude-sonnet-4-20250514',
-        'claude-3-7-sonnet-20250219',
-        'claude-3-5-sonnet-latest',
-        'claude-3-5-sonnet-20241022',
+        'claude-haiku-4-5',
+        'claude-haiku-4-5-20251001',
+        'claude-3-5-haiku-latest',
       ];
       for (const modelId of copywriterCandidates) {
         if (angles.length >= 3) break;
@@ -329,7 +328,7 @@ Return ONLY a valid JSON array of exactly 3 objects. Every object MUST include n
             break;
           }
         } catch (err: any) {
-          console.warn(`Claude Sonnet generation (${modelId}) failed:`, err);
+          console.warn(`Claude Haiku 4.5 generation (${modelId}) failed:`, err);
           if (err?.statusCode === 404 || err?.message?.includes('not_found') || err?.data?.type === 'not_found_error') {
             break; // Fast failover to Gemini
           }

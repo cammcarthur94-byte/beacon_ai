@@ -198,7 +198,7 @@ Synthesize an actionable executive audit report adhering to the requested JSON s
         { engine: 'Microsoft Copilot', score: 86 },
         { engine: 'Copilot Search', score: 90 },
         { engine: 'Gemini 1.5', score: 82 },
-        { engine: 'Claude 3.5', score: 74 },
+        { engine: 'Claude Haiku 4.5', score: 74 },
         { engine: 'Perplexity', score: 96 },
       ],
     };

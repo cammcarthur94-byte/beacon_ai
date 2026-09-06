@@ -6,7 +6,7 @@ import { openai } from '@ai-sdk/openai';
  * Centralized Model Registry for Beacon AI
  *
  * Feature Assignments:
- * 1. Content Creation (Meta descriptions, FAQ blocks, optimization briefs): Claude Sonnet 5
+ * 1. Content Creation (Meta descriptions, FAQ blocks, optimization briefs): Claude Haiku 4.5
  * 2. Competitor Product Mapping (Parsing crawler text & feature disparities): Claude Haiku 4.5
  * 3. Prompt Creation ("Generate Prompt with AI"): Gemini 3.8 Flash OR OpenAI GPT-4o-mini
  * 4. Search Grounding & SERP Cross-Checking: Gemini 2.5 Pro
@@ -46,11 +46,11 @@ export const BEACON_MODELS = {
     fallbackIds: ['gemini-1.5-pro', 'gemini-3.1-flash-lite'] as const,
   },
   CONTENT_STUDIO_COPYWRITER: {
-    id: 'claude-sonnet-4-20250514',
+    id: 'claude-haiku-4-5',
     provider: 'anthropic',
-    displayName: 'Claude Sonnet 4',
+    displayName: 'Claude Haiku 4.5',
     role: 'Senior Brand Copywriter & Multi-Angle Synthesis',
-    fallbackIds: ['claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022'] as const,
+    fallbackIds: ['claude-haiku-4-5-20251001', 'claude-3-5-haiku-latest'] as const,
   },
 } as const;
 
@@ -90,7 +90,7 @@ export function getSourceResearchModel() {
 }
 
 /**
- * Resolves Claude Sonnet 4 for senior brand copywriting, tone tuning, and multi-angle content synthesis.
+ * Resolves Claude Haiku 4.5 for senior brand copywriting, tone tuning, and multi-angle content synthesis.
  */
 export function getSeniorCopywriterModel() {
   return anthropic(BEACON_MODELS.CONTENT_STUDIO_COPYWRITER.id);

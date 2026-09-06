@@ -307,10 +307,16 @@ async function pingEngine(
       });
       rawOutput = response.text;
     } else if (lowerEngine === 'claude' && process.env.ANTHROPIC_API_KEY) {
+      let claudeModel;
+      try {
+        claudeModel = anthropic(BEACON_MODELS.COMPETITOR_MAPPING.id);
+      } catch {
+        claudeModel = anthropic('claude-haiku-4-5');
+      }
       const response = await generateText({
-        model: anthropic('claude-3-5-sonnet-latest'),
+        model: claudeModel,
         system:
-          'You are Claude, an AI assistant analyzing technology platforms and providing direct, objective category evaluations.',
+          'You are Claude Haiku 4.5, an AI assistant analyzing technology platforms and providing direct, objective category evaluations.',
         prompt: queryText,
       });
       rawOutput = response.text;

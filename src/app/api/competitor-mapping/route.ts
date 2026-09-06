@@ -299,7 +299,7 @@ export async function POST(request: NextRequest) {
         try {
           haikuModel = anthropic(BEACON_MODELS.COMPETITOR_MAPPING.id);
         } catch {
-          haikuModel = anthropic('claude-3-5-haiku-latest');
+          haikuModel = anthropic('claude-haiku-4-5');
         }
 
         // Live parse of crawler catalog text & disparity matrices using Claude Haiku 4.5

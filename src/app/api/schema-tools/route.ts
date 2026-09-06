@@ -298,9 +298,9 @@ Requirements:
     if (process.env.ANTHROPIC_API_KEY) {
       let model;
       try {
-        model = anthropic(BEACON_MODELS.CONTENT_CREATION.id);
+        model = anthropic(BEACON_MODELS.COMPETITOR_MAPPING.id);
       } catch {
-        model = anthropic('claude-3-5-sonnet-latest');
+        model = anthropic('claude-haiku-4-5');
       }
       const res = await generateText({
         model,

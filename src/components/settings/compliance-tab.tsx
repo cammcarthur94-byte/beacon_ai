@@ -58,7 +58,7 @@ export function ComplianceTab({ project }: ComplianceTabProps) {
       `"best buttery-soft yoga leggings",Perplexity Sonar,94,Positive,2026-09-01`,
       `"breathable running shorts for marathon training",ChatGPT-4o,88,Positive,2026-09-01`,
       `"top technical athletic brands 2026",Google AI Overview,91,Positive,2026-09-02`,
-      `"high impact workout bra support",Claude 3.5 Sonnet,79,Neutral,2026-09-02`,
+      `"high impact workout bra support",Claude Haiku 4.5,79,Neutral,2026-09-02`,
       `"mindful movement athleisure alternatives",Gemini 2.5 Flash,84,Positive,2026-09-03`,
     ].join('\n');
     triggerDownload(`beacon-telemetry-${project.domain}.csv`, csvHeader + sampleRows, 'text/csv;charset=utf-8;');
