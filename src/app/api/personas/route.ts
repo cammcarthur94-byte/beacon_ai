@@ -179,7 +179,11 @@ export async function POST(req: NextRequest) {
           .select('*')
           .single();
 
-        if (!error && data) {
+        if (error) {
+          console.error('Supabase update persona error:', error);
+          return NextResponse.json({ error: `Database error: ${error.message}` }, { status: 500 });
+        }
+        if (data) {
           return NextResponse.json({ persona: data });
         }
       } else {
@@ -204,7 +208,11 @@ export async function POST(req: NextRequest) {
           .select('*')
           .single();
 
-        if (!error && data) {
+        if (error) {
+          console.error('Supabase insert persona error:', error);
+          return NextResponse.json({ error: `Database error: ${error.message}` }, { status: 500 });
+        }
+        if (data) {
           return NextResponse.json({ persona: data });
         }
       }
