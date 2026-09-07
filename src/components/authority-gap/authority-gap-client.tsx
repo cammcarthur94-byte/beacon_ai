@@ -46,7 +46,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { DomainFavicon } from '@/components/citations/domain-favicon';
-import { QuickContentStudioDrawer } from './quick-content-studio-drawer';
 import { cn } from '@/lib/utils';
 import type { AuthorityGapItem } from '@/app/api/authority-gap/route';
 
@@ -71,9 +70,6 @@ export function AuthorityGapClient() {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [minDa, setMinDa] = useState<number>(0);
   const [selectedCompetitor, setSelectedCompetitor] = useState<string>('all');
-
-  // Drawer state
-  const [activeDrawerGap, setActiveDrawerGap] = useState<AuthorityGapItem | null>(null);
 
   // Fetch initial gap data
   const fetchGaps = async () => {
@@ -461,7 +457,7 @@ export function AuthorityGapClient() {
             </p>
           </div>
           <div className="text-xs text-slate-400">
-            Click &quot;Draft Pitch&quot; to generate targeted outreach for any gap
+            Prioritized by AI recommendation influence
           </div>
         </div>
 
@@ -484,18 +480,15 @@ export function AuthorityGapClient() {
                 <TableHead className="w-[120px] text-xs font-semibold text-slate-600 text-center">
                   Opportunity
                 </TableHead>
-                <TableHead className="min-w-[280px] text-xs font-semibold text-slate-600">
+                <TableHead className="min-w-[280px] text-xs font-semibold text-slate-600 pr-6">
                   Editorial Context & Target Topic
-                </TableHead>
-                <TableHead className="w-[170px] text-xs font-semibold text-slate-600 text-right pr-6">
-                  Action
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-slate-100">
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-48 text-center text-slate-400 text-xs">
+                  <TableCell colSpan={6} className="h-48 text-center text-slate-400 text-xs">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <RefreshCw className="h-5 w-5 animate-spin text-emerald-600" />
                       <span>Scanning AI search answers for competitor opportunities...</span>
@@ -504,7 +497,7 @@ export function AuthorityGapClient() {
                 </TableRow>
               ) : filteredGaps.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-48 text-center text-slate-500 text-xs">
+                  <TableCell colSpan={6} className="h-48 text-center text-slate-500 text-xs">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <ShieldCheck className="h-8 w-8 text-slate-300" />
                       <p className="font-semibold text-slate-700">No matching authority gaps found</p>
@@ -633,18 +626,6 @@ export function AuthorityGapClient() {
                           </span>
                         </div>
                       </TableCell>
-
-                      {/* Action */}
-                      <TableCell className="text-right pr-6 py-4">
-                        <Button
-                          size="sm"
-                          onClick={() => setActiveDrawerGap(item)}
-                          className="h-8 px-3 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-semibold shadow-none transition-all group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 cursor-pointer"
-                        >
-                          <Sparkles className="h-3 w-3 mr-1.5" />
-                          Draft Pitch
-                        </Button>
-                      </TableCell>
                     </TableRow>
                   );
                 })
@@ -653,14 +634,6 @@ export function AuthorityGapClient() {
           </Table>
         </div>
       </div>
-
-      {/* Quick Content Studio Right Slide-Over Drawer */}
-      <QuickContentStudioDrawer
-        gap={activeDrawerGap}
-        brandName={data?.brandName || 'Our Brand'}
-        isOpen={!!activeDrawerGap}
-        onClose={() => setActiveDrawerGap(null)}
-      />
     </div>
   );
 }

@@ -134,12 +134,6 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
       active: pathname.startsWith('/authority-gap'),
       badge: 'New',
     },
-    {
-      title: 'Competitor Comparison',
-      href: '/competitor-mapping',
-      icon: Target,
-      active: pathname.startsWith('/competitor-mapping'),
-    },
   ];
 
 
