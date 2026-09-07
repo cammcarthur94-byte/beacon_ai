@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 import type { Persona } from '@/types/database.types';
 import {
   getLocalPersonas,
@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
 
     const systemPrompt = parts.join('\n');
 
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
     const personaId = existingId || 'persona-' + Math.random().toString(36).substring(2, 9);
@@ -244,7 +244,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
     if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
