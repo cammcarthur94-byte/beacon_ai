@@ -57,6 +57,34 @@ function CustomVelocityTooltip({ active, payload, label }: any) {
 
 export function CitationVelocityChart({ data }: CitationVelocityChartProps) {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  if (!data || data.length === 0) {
+    return (
+      <Card className="flex flex-col justify-between shadow-2xs border-slate-200">
+        <CardHeader className="pb-3 border-b border-slate-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-base font-bold text-slate-900 font-sans tracking-tight">
+                Citation Velocity
+              </CardTitle>
+              <Badge variant="outline" className="text-xs bg-slate-50 text-slate-600 border-slate-200 font-sans">
+                Weekly Citations
+              </Badge>
+            </div>
+          </div>
+          <CardDescription className="text-xs text-slate-500 font-sans">
+            Volume of net-new citations detected over weekly audit intervals
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="h-[240px] flex flex-col items-center justify-center text-center p-6 text-slate-400 text-xs font-sans">
+          <BarChart3 className="h-8 w-8 mb-2 text-slate-300" />
+          <p className="font-semibold text-slate-700">No velocity data yet</p>
+          <p className="text-slate-400 mt-1 max-w-xs">Run scheduled prompt audits over time to monitor citation acceleration and indexing momentum.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const totalInPeriod = data.reduce((acc, curr) => acc + curr.newCitations, 0);
 
   const renderVelocityBars = (heightClass = 'h-[240px]') => (

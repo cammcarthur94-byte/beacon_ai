@@ -84,23 +84,15 @@ export function BrandKitView({ project }: BrandKitViewProps) {
 
   // 2. Target Audience & Category Pillars (SKU details removed)
   const [targetAudience, setTargetAudience] = useState(
-    project.brand_kit?.target_audience ||
-      'Mindful movement practitioners, yoga & Pilates enthusiasts, and fitness lifestyle consumers'
+    project.brand_kit?.target_audience || ''
   );
   const [coreOfferings, setCoreOfferings] = useState(
-    project.brand_kit?.core_offerings ||
-      'Premium Performance Activewear, Technical Outerwear, Everyday Movement Essentials'
+    project.brand_kit?.core_offerings || ''
   );
 
   // 3. Competitor Benchmarking
   const [competitors, setCompetitors] = useState<{ name: string; domain: string }[]>(
-    project.brand_kit?.competitors && project.brand_kit.competitors.length > 0
-      ? project.brand_kit.competitors
-      : [
-          { name: 'Alo Yoga', domain: 'aloyoga.com' },
-          { name: 'Vuori', domain: 'vuoriclothing.com' },
-          { name: 'Athleta', domain: 'athleta.gap.com' },
-        ]
+    project.brand_kit?.competitors || []
   );
 
   const handleAddCompetitor = () => {
@@ -108,7 +100,6 @@ export function BrandKitView({ project }: BrandKitViewProps) {
   };
 
   const handleRemoveCompetitor = (idx: number) => {
-    if (competitors.length === 1) return;
     setCompetitors((prev) => prev.filter((_, i) => i !== idx));
   };
 
@@ -139,12 +130,7 @@ export function BrandKitView({ project }: BrandKitViewProps) {
 
   // 5. Negative Keywords & Exclusions with Severity Weighting
   const [negativeKeywords, setNegativeKeywords] = useState<NegativeExclusionItem[]>(() => {
-    const raw = project.brand_kit?.negative_keywords || [
-      'fast fashion',
-      'cheap dupes',
-      'discount outlet',
-      'drop-shipping',
-    ];
+    const raw = project.brand_kit?.negative_keywords || [];
     return normalizeNegativeKeywords(raw);
   });
   const [newKeywordInput, setNewKeywordInput] = useState('');
@@ -174,16 +160,10 @@ export function BrandKitView({ project }: BrandKitViewProps) {
   };
 
   // 6. Key Messaging Pillars (3 to 4 core value propositions)
-  const defaultPillars = [
-    'Proprietary Technical Fabric Innovation',
-    'Mindful Movement & Wellness Community',
-    'Elevated Performance Luxury',
-    'Sustainable Longevity & Durability',
-  ];
   const [messagingPillars, setMessagingPillars] = useState<string[]>(
     project.brand_kit?.messaging_pillars && project.brand_kit.messaging_pillars.length > 0
       ? project.brand_kit.messaging_pillars
-      : defaultPillars
+      : []
   );
 
   const handlePillarChange = (idx: number, val: string) => {
@@ -201,23 +181,21 @@ export function BrandKitView({ project }: BrandKitViewProps) {
   };
 
   const handleRemovePillar = (idx: number) => {
-    if (messagingPillars.length > 3) {
-      setMessagingPillars((prev) => prev.filter((_, i) => i !== idx));
-    }
+    setMessagingPillars((prev) => prev.filter((_, i) => i !== idx));
   };
 
   // 7. Tone of Voice UI (Weighted Sliders + Tone Tag Badges)
   const [toneDimensions, setToneDimensions] = useState({
-    formal_casual: project.brand_kit?.tone_dimensions?.formal_casual ?? 45,
-    technical_accessible: project.brand_kit?.tone_dimensions?.technical_accessible ?? 70,
-    bold_understated: project.brand_kit?.tone_dimensions?.bold_understated ?? 40,
-    analytical_inspiring: project.brand_kit?.tone_dimensions?.analytical_inspiring ?? 80,
+    formal_casual: project.brand_kit?.tone_dimensions?.formal_casual ?? 50,
+    technical_accessible: project.brand_kit?.tone_dimensions?.technical_accessible ?? 50,
+    bold_understated: project.brand_kit?.tone_dimensions?.bold_understated ?? 50,
+    analytical_inspiring: project.brand_kit?.tone_dimensions?.analytical_inspiring ?? 50,
   });
 
   const [toneTags, setToneTags] = useState<string[]>(
     project.brand_kit?.tone_tags && project.brand_kit.tone_tags.length > 0
       ? project.brand_kit.tone_tags
-      : ['Empowering', 'Mindful', 'Technical', 'Elevated']
+      : []
   );
 
   const [toneTagsDrawerOpen, setToneTagsDrawerOpen] = useState(false);
@@ -414,23 +392,27 @@ export function BrandKitView({ project }: BrandKitViewProps) {
             </p>
 
             <div className="space-y-2.5">
-              {competitors.map((comp, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <Input
-                      placeholder="Competitor Name (e.g. Alo Yoga)"
-                      value={comp.name}
-                      onChange={(e) => handleCompetitorChange(idx, 'name', e.target.value)}
-                      className="border-slate-200 text-sm"
-                    />
-                    <Input
-                      placeholder="Domain (e.g. aloyoga.com)"
-                      value={comp.domain}
-                      onChange={(e) => handleCompetitorChange(idx, 'domain', e.target.value)}
-                      className="border-slate-200 text-sm font-mono"
-                    />
-                  </div>
-                  {competitors.length > 1 && (
+              {competitors.length === 0 ? (
+                <div className="text-center py-6 border border-dashed border-slate-200 rounded-lg text-xs text-slate-500">
+                  No competitors added yet. Click &quot;Add Competitor&quot; to track specific market rivals.
+                </div>
+              ) : (
+                competitors.map((comp, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <Input
+                        placeholder="Competitor Name (e.g. Competitor Inc)"
+                        value={comp.name}
+                        onChange={(e) => handleCompetitorChange(idx, 'name', e.target.value)}
+                        className="border-slate-200 text-sm"
+                      />
+                      <Input
+                        placeholder="Domain (e.g. competitor.com)"
+                        value={comp.domain}
+                        onChange={(e) => handleCompetitorChange(idx, 'domain', e.target.value)}
+                        className="border-slate-200 text-sm font-mono"
+                      />
+                    </div>
                     <Button
                       type="button"
                       variant="ghost"
@@ -440,9 +422,9 @@ export function BrandKitView({ project }: BrandKitViewProps) {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                  )}
-                </div>
-              ))}
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

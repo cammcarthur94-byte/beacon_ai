@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import type { BrandKit, SearchIntent, BrandAssociation } from '@/types/database.types';
-import { getPromptById, generateContextualAuditRuns } from '@/lib/demo-prompts';
+import { getPromptById } from '@/lib/demo-prompts';
 
 const auditReportSchema = z.object({
   executiveSummary: z.string().describe('Concise high-level executive summary of brand positioning across answer engines.'),
@@ -90,28 +90,8 @@ export async function generateAuditReportAction(
       }
     }
 
-    // 2. Fallback check for demo cookies / centralized prompt helper
     if (!rawAuditOutputs) {
-      let activeProject: any = null;
-      const activeProjectCookie = cookieStore.get('beacon_active_project');
-      if (activeProjectCookie?.value) {
-        try {
-          activeProject = JSON.parse(activeProjectCookie.value);
-          brandName = activeProject.name || brandName;
-          domain = activeProject.domain || domain;
-          brandKit = activeProject.brand_kit || brandKit;
-        } catch {}
-      }
-
-      const promptItem = getPromptById(promptId, cookieStore, activeProject);
-      queryText = promptItem.query_text || queryText;
-      if (promptItem.search_intent) searchIntent = promptItem.search_intent;
-      if (promptItem.brand_association) brandAssociation = promptItem.brand_association;
-
-      const mockRuns = generateContextualAuditRuns(promptItem, activeProject);
-      rawAuditOutputs = mockRuns
-        .map((r) => `[${r.engine.toUpperCase()} - Score: ${r.visibilityScore}%]: ${r.rawText}`)
-        .join('\n\n');
+      return { error: 'No live AI audit outputs recorded for this prompt yet. Please run an audit scan first.' };
     }
 
     const systemPrompt = `You are a world-class Generative Engine Optimization (GEO) & Answer Engine Optimization (AEO) expert strategist.

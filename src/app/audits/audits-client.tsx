@@ -1059,6 +1059,7 @@ export function AuditsClientView({ initialPrompts, project }: AuditsClientViewPr
         open={isAiModalOpen}
         onOpenChange={setIsAiModalOpen}
         brandName={brandName}
+        projectId={project?.id}
         tier={project?.tier || 'starter'}
         existingCount={prompts.length}
         auditLimit={auditLimit}

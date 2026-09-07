@@ -237,10 +237,12 @@ export function AuthorityGapClient() {
             </div>
             <div className="mt-3">
               <span className="text-xl font-bold tracking-tight text-slate-900 block truncate">
-                {data?.summary.topCompetitorAdvantage?.split(' (')[0] || 'Alo Yoga'}
+                {data?.summary.topCompetitorAdvantage && data.summary.totalGaps > 0
+                  ? data.summary.topCompetitorAdvantage.split(' (')[0]
+                  : 'None'}
               </span>
               <span className="text-xs text-amber-700 font-medium bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 inline-block mt-1">
-                Dominates 5 target roundups
+                {data?.summary.totalGaps ? `${data.summary.totalGaps} target roundups` : 'No gaps detected'}
               </span>
             </div>
             <p className="mt-2 text-xs text-slate-500">
@@ -262,7 +264,7 @@ export function AuthorityGapClient() {
             </div>
             <div className="mt-3 flex items-baseline gap-2">
               <span className="text-3xl font-bold tracking-tight text-purple-700">
-                {data?.summary.estimatedSovOpportunity ? data.summary.estimatedSovOpportunity.replace('SOV', 'Growth') : '+18.4% Growth'}
+                {data?.summary.estimatedSovOpportunity ? data.summary.estimatedSovOpportunity.replace('SOV', 'Growth') : '0% Growth'}
               </span>
             </div>
             <p className="mt-2 text-xs text-slate-500">
@@ -356,11 +358,7 @@ export function AuthorityGapClient() {
                 >
                   All Competitors
                 </DropdownMenuItem>
-                {(data?.competitors || [
-                  { name: 'Alo Yoga', domain: 'aloyoga.com' },
-                  { name: 'Vuori', domain: 'vuoriclothing.com' },
-                  { name: 'Athleta', domain: 'athleta.gap.com' },
-                ]).map((c) => (
+                {(data?.competitors || []).map((c) => (
                   <DropdownMenuItem
                     key={c.name}
                     onClick={() => setSelectedCompetitor(c.name)}

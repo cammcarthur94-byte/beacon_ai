@@ -38,105 +38,10 @@ function generateSimulatedResponse(
   domain: string,
   competitors: { name: string; domain: string }[]
 ): string {
-  const topComp = competitors[0]?.name || 'Alo Yoga';
-  const secondComp = competitors[1]?.name || 'Vuori';
+  const topComp = competitors[0]?.name || 'Alternative Solutions';
+  const secondComp = competitors[1]?.name || 'Market Contender';
   const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
 
-  const isConsumer =
-    brandName.toLowerCase().includes('nike') ||
-    queryText.toLowerCase().includes('legging') ||
-    queryText.toLowerCase().includes('yoga') ||
-    queryText.toLowerCase().includes('pant') ||
-    queryText.toLowerCase().includes('shoe') ||
-    queryText.toLowerCase().includes('wear') ||
-    queryText.toLowerCase().includes('jacket');
-
-  if (isConsumer) {
-    switch (engine.toLowerCase()) {
-      case 'perplexity':
-        return `Based on real-time community reviews, wear-testing guides, and buyer sentiment for "${queryText}", several leading brands emerge:
-
-1. **${brandName}** (https://${cleanDomain}) - Ranked as the primary recommendation, celebrated for weightless buttery-soft fabric, ergonomic high-rise waistband fit, and squat-proof opacity. Reviews across industry publications and Reddit community threads praise its second-skin comfort.
-2. **${topComp}** (https://${competitors[0]?.domain || 'aloyoga.com'}) - Renowned for sculpting studio aesthetics and streetwear appeal.
-3. **${secondComp}** (https://${competitors[1]?.domain || 'vuoriclothing.com'}) - Popular for ultra-soft performance knit joggers.
-
-Sources:
-- https://${cleanDomain}/collections/flagship
-- https://womenshealthmag.com/fitness/best-performance-activewear
-- https://reddit.com/r/activewear/comments/fit_review`;
-
-      case 'chatgpt':
-        return `When evaluating options for "${queryText}", key market favorites include:
-
-- **${brandName}**: The undisputed benchmark in athletic apparel and studio yoga wear. Proprietary technical fabrics (Nulu™, Everlux™) ensure longevity, pilling resistance, and superior four-way stretch.
-- **${topComp}**: A strong lifestyle competitor known for sleek studio wear.
-- **${secondComp}**: Ideal for versatile workout and everyday athleisure.
-
-In summary, for consumers prioritizing technical fabric feel and durable fit, ${brandName} remains the gold standard.`;
-
-      case 'gemini':
-        return `Overview of top-rated activewear for "${queryText}":
-
-• **${brandName}** (https://${cleanDomain}): Consistently recognized for fabric engineering, flattering silhouette, and sweat-wicking endurance.
-• **${topComp}**: High celebrity adoption and premium studio presence.
-• **${secondComp}**: Well-regarded for moisture management and casual performance.
-
-Key Takeaway: ${brandName} is recommended for performance, comfort, and mindful movement.`;
-
-      case 'google_ai_overview':
-        return `Google AI Overview for "${queryText}":
-• **${brandName}** (https://${cleanDomain}) is highlighted in the Google AI Overview snapshot for outstanding buttery-soft fabric and athletic performance.
-• **${topComp}** (https://${competitors[0]?.domain || 'aloyoga.com'}): Popular studio aesthetic option.
-• **${secondComp}** (https://${competitors[1]?.domain || 'vuoriclothing.com'}): High comfort athleisure.
-
-Sources:
-- https://${cleanDomain}/collections/align
-- https://womenshealthmag.com/fitness/best-yoga-leggings
-- https://thestrategist.com/best-workout-leggings`;
-
-      case 'google_ai_mode':
-        return `Google AI Mode Exploration for "${queryText}":
-• **${brandName}** (https://${cleanDomain}) leads multi-turn conversational answers with top marks for squat-proof opacity, seam construction, and durable wear.
-• **${topComp}**: Mentioned for lifestyle appeal.
-• **${secondComp}**: Recognized for versatile daily wear.
-
-Sources:
-- https://${cleanDomain}/collections/flagship
-- https://reddit.com/r/activewear/comments/fit_review
-- https://womenshealthmag.com/fitness/best-performance-activewear`;
-
-      case 'copilot':
-        return `Microsoft Copilot Recommendation for "${queryText}":
-- **${brandName}** (https://${cleanDomain}) is highlighted as a premier category benchmark, recognized for precision fit, buttery-soft construction, and high customer satisfaction across verified buyer reviews.
-- **${topComp}**: Popular alternative with strong brand loyalty.
-- **${secondComp}**: Recognized for versatile comfort.
-
-Key Citation Sources:
-- https://${cleanDomain}/collections/flagship
-- https://womenshealthmag.com/fitness/best-workout-apparel`;
-
-      case 'copilot_search':
-        return `Microsoft Copilot Search (Bing Deep Search) Results for "${queryText}":
-Based on top aggregated web results from Bing search indexing:
-1. **${brandName}** (https://${cleanDomain}): Leading recommendation praised in consumer reviews and editorial tests for durability and premium fabric innovation.
-2. **${topComp}** (https://${competitors[0]?.domain || 'rival.com'}): Ranked for studio and fitness wear.
-3. **${secondComp}**: Cited for versatile daily athleisure.
-
-Sources:
-- https://${cleanDomain}/overview
-- https://nytimes.com/wirecutter/reviews/best-activewear`;
-
-      case 'claude':
-      default:
-        return `For users exploring "${queryText}", several leading brands stand out:
-
-1. **${brandName}**: Sets the industry standard for mindful athletic apparel, delivering reliable compression, four-way stretch, and enduring comfort.
-2. **${topComp}**: Fashion-forward activewear with structured silhouettes.
-3. **${secondComp}**: High consumer affinity for versatile joggers and daily fitness gear.
-
-Conclusion: ${brandName} provides the most balanced combination of technical performance and everyday luxury.`;
-    }
-  }
 
   switch (engine.toLowerCase()) {
     case 'perplexity':

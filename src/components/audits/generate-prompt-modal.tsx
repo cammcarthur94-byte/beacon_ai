@@ -35,7 +35,7 @@ import {
   type BatchPromptInput,
 } from '@/app/audits/actions';
 import { EngineIcon, getEngineMeta } from '@/components/ui/engine-badge';
-import type { SearchIntent, BrandAssociation, AuditFrequency } from '@/types/database.types';
+import type { SearchIntent, BrandAssociation, AuditFrequency, Persona } from '@/types/database.types';
 
 interface GeneratePromptModalProps {
   open: boolean;
@@ -45,6 +45,7 @@ interface GeneratePromptModalProps {
   tier?: string;
   existingCount?: number;
   auditLimit?: number;
+  projectId?: string;
 }
 
 const CATEGORIES = [
@@ -78,11 +79,63 @@ export function GeneratePromptModal({
   tier = 'starter',
   existingCount = 0,
   auditLimit,
+  projectId,
 }: GeneratePromptModalProps) {
-  const [category, setCategory] = useState('comparisons');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['comparisons']);
+
+  const toggleCategory = (catId: string) => {
+    setSelectedCategories((prev) => {
+      if (prev.includes(catId)) {
+        if (prev.length === 1) {
+          toast.info('At least one prompt category must remain selected.');
+          return prev;
+        }
+        return prev.filter((id) => id !== catId);
+      } else {
+        return [...prev, catId];
+      }
+    });
+  };
+
+  const toggleAllCategories = () => {
+    if (selectedCategories.length === CATEGORIES.length) {
+      setSelectedCategories(['comparisons']);
+    } else {
+      setSelectedCategories(CATEGORIES.map((c) => c.id));
+    }
+  };
+
   const [searchIntent, setSearchIntent] = useState<SearchIntent | 'all'>('all');
   const [brandAssociation, setBrandAssociation] = useState<BrandAssociation | 'both'>('both');
   const [selectedEngines, setSelectedEngines] = useState<string[]>(DEFAULT_ENGINES);
+  const [personas, setPersonas] = useState<Persona[]>([]);
+  const [selectedPersonaId, setSelectedPersonaId] = useState<string>('all');
+  const [isLoadingPersonas, setIsLoadingPersonas] = useState(false);
+
+  // Fetch personas whenever modal opens or projectId changes
+  const fetchPersonas = React.useCallback(async () => {
+    setIsLoadingPersonas(true);
+    try {
+      const url = projectId ? `/api/personas?projectId=${encodeURIComponent(projectId)}` : '/api/personas';
+      const r = await fetch(url);
+      const d = await r.json();
+      if (Array.isArray(d?.personas)) {
+        setPersonas(d.personas);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsLoadingPersonas(false);
+    }
+  }, [projectId]);
+
+  React.useEffect(() => {
+    if (open) {
+      fetchPersonas();
+    }
+  }, [open, fetchPersonas]);
+
+  const activePersona = selectedPersonaId !== 'all' ? personas.find((p) => p.id === selectedPersonaId) : null;
 
   // Price level & quota calculations
   const rawTier = (tier || 'starter').toLowerCase();
@@ -123,10 +176,12 @@ export function GeneratePromptModal({
       try {
         const countToFetch = Math.min(Math.max(1, promptCount), remainingSlots);
         const res = await generateAiPrompts({
-          category,
+          categories: selectedCategories,
+          category: selectedCategories[0] || 'comparisons',
           searchIntent,
           brandAssociation,
           count: countToFetch,
+          personaId: selectedPersonaId !== 'all' ? selectedPersonaId : undefined,
         });
 
         if (res.error) {
@@ -265,36 +320,153 @@ export function GeneratePromptModal({
         <div className="p-6 overflow-y-auto space-y-6 flex-1">
           {/* Configuration Form Controls */}
           <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
-            {/* Category Selector */}
+            {/* Category Selector (Multi-Select) */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                1. Prompt Category Focus
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>1. Prompt Categories</span>
+                  <Badge variant="outline" className="text-[10px] font-medium py-0 px-1.5 text-emerald-700 border-emerald-200 bg-emerald-50">
+                    {selectedCategories.length} Selected
+                  </Badge>
+                </label>
+                <button
+                  type="button"
+                  onClick={toggleAllCategories}
+                  className="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium hover:underline cursor-pointer"
+                >
+                  {selectedCategories.length === CATEGORIES.length ? 'Reset to Default' : 'Select All Categories'}
+                </button>
+              </div>
+
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {CATEGORIES.map((c) => {
                   const Icon = c.icon;
-                  const isSelected = category === c.id;
+                  const isSelected = selectedCategories.includes(c.id);
                   return (
                     <button
                       key={c.id}
                       type="button"
-                      onClick={() => setCategory(c.id)}
+                      onClick={() => toggleCategory(c.id)}
                       className={cn(
-                        'flex flex-col text-left p-3 rounded-lg border text-xs transition-all cursor-pointer',
+                        'flex flex-col text-left p-3 rounded-lg border text-xs transition-all cursor-pointer relative',
                         isSelected
                           ? 'border-emerald-500 bg-emerald-50/70 text-emerald-950 font-semibold shadow-2xs ring-1 ring-emerald-500'
                           : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300'
                       )}
                     >
-                      <div className="flex items-center gap-1.5">
-                        <Icon className={cn('h-3.5 w-3.5', isSelected ? 'text-emerald-600' : 'text-slate-500')} />
-                        <span className="font-semibold truncate">{c.label}</span>
+                      <div className="flex items-center justify-between gap-1.5 w-full">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Icon className={cn('h-3.5 w-3.5 shrink-0', isSelected ? 'text-emerald-600' : 'text-slate-500')} />
+                          <span className="font-semibold truncate">{c.label}</span>
+                        </div>
+                        <div
+                          className={cn(
+                            'h-4 w-4 rounded border flex items-center justify-center transition-colors shrink-0',
+                            isSelected
+                              ? 'bg-emerald-600 border-emerald-600 text-white'
+                              : 'border-slate-300 bg-white'
+                          )}
+                        >
+                          {isSelected && <Check className="h-2.5 w-2.5 stroke-[3]" />}
+                        </div>
                       </div>
                       <span className="text-[11px] text-slate-500 font-normal mt-1 truncate">{c.desc}</span>
                     </button>
                   );
                 })}
               </div>
+              <p className="text-[11px] text-slate-400 font-normal">
+                Choose one or more categories to blend diverse question formats (e.g. Comparisons + Buying Guides).
+              </p>
+            </div>
+
+            {/* Target Customer Persona */}
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>2. Buyer Persona Perspective</span>
+                  {personas.length > 0 && (
+                    <Badge variant="outline" className="text-[10px] font-medium py-0 px-1.5 text-emerald-700 border-emerald-200 bg-emerald-50">
+                      {personas.length} Saved
+                    </Badge>
+                  )}
+                  {isLoadingPersonas && (
+                    <Loader2 className="h-3 w-3 animate-spin text-slate-400" />
+                  )}
+                </label>
+                <Link
+                  href="/personas"
+                  className="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium hover:underline flex items-center gap-1"
+                >
+                  Manage Personas &rarr;
+                </Link>
+              </div>
+
+              <select
+                value={selectedPersonaId}
+                onChange={(e) => setSelectedPersonaId(e.target.value)}
+                className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer shadow-2xs"
+              >
+                <option value="all">Default (General Category Shopper - Unsegmented)</option>
+                {personas.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name_title || (p.role_title ? `${p.name} — ${p.role_title}` : p.name)}
+                  </option>
+                ))}
+              </select>
+
+              {/* Persona Context Card when persona selected */}
+              {activePersona && (
+                <div className="p-3 rounded-lg border border-emerald-200/90 bg-emerald-50/50 space-y-2 text-xs animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-emerald-900 flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Active Persona: {activePersona.name_title || activePersona.name}
+                    </span>
+                    {activePersona.age_demographics && (
+                      <span className="text-[10px] text-emerald-800 font-medium bg-emerald-100/70 px-2 py-0.5 rounded">
+                        {activePersona.age_demographics}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-700 pt-1 border-t border-emerald-100">
+                    {activePersona.pain_points && (
+                      <div className="space-y-0.5">
+                        <span className="font-semibold text-slate-900 block text-[10px] uppercase tracking-wider text-rose-700">
+                          Target Pain Points
+                        </span>
+                        <p className="line-clamp-2 leading-relaxed text-slate-700 bg-white/80 p-1.5 rounded border border-emerald-100/80">
+                          {activePersona.pain_points}
+                        </p>
+                      </div>
+                    )}
+                    {activePersona.goals && (
+                      <div className="space-y-0.5">
+                        <span className="font-semibold text-slate-900 block text-[10px] uppercase tracking-wider text-emerald-700">
+                          Core Goals
+                        </span>
+                        <p className="line-clamp-2 leading-relaxed text-slate-700 bg-white/80 p-1.5 rounded border border-emerald-100/80">
+                          {activePersona.goals}
+                        </p>
+                      </div>
+                    )}
+                    {activePersona.buying_objections && (
+                      <div className="space-y-0.5 sm:col-span-2">
+                        <span className="font-semibold text-slate-900 block text-[10px] uppercase tracking-wider text-amber-700">
+                          Buying Objections & Hesitations
+                        </span>
+                        <p className="line-clamp-2 leading-relaxed text-slate-700 bg-white/80 p-1.5 rounded border border-emerald-100/80">
+                          {activePersona.buying_objections}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-emerald-700 font-medium italic">
+                    ✓ AI will generate search queries specifically tailored to this buyer&apos;s pain points, hesitations, and evaluation criteria.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Intent & Association Preferences */}
@@ -302,7 +474,7 @@ export function GeneratePromptModal({
               {/* Intent */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                  2. Search Intent Preference
+                  3. Search Intent Preference
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {INTENTS.map((i) => (
@@ -326,7 +498,7 @@ export function GeneratePromptModal({
               {/* Association */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                  3. Brand Association
+                  4. Brand Association
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {ASSOCIATIONS.map((a) => (
@@ -563,6 +735,13 @@ export function GeneratePromptModal({
                             >
                               {p.brand_association}
                             </span>
+
+                            {/* Category Badge */}
+                            {p.category && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-md border bg-slate-100 text-slate-700 border-slate-200 capitalize shadow-2xs">
+                                {CATEGORIES.find((cat) => cat.id === p.category)?.label || p.category}
+                              </span>
+                            )}
 
                             {/* Rationale description */}
                             {p.rationale && (

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { AppSidebarLayout } from '@/components/layout/app-sidebar-layout';
 import { LeaderboardClient } from '@/components/leaderboard/leaderboard-client';
 import type { BrandKit } from '@/types/database.types';
+import { parseActiveProjectCookie, isLegacyMockProject } from '@/lib/project-utils';
 
 export const metadata = {
   title: 'Market Share Leaderboard | Beacon',
@@ -31,7 +32,7 @@ export default async function LeaderboardPage() {
         .limit(1)
         .single();
 
-      if (dbProject) {
+      if (dbProject && !isLegacyMockProject(dbProject)) {
         project = dbProject as any;
       }
     }
@@ -40,11 +41,7 @@ export default async function LeaderboardPage() {
   if (!project) {
     const projectCookie = cookieStore.get('beacon_active_project');
     if (projectCookie?.value) {
-      try {
-        project = JSON.parse(projectCookie.value);
-      } catch {
-        project = null;
-      }
+      project = parseActiveProjectCookie(projectCookie.value);
     }
   }
 

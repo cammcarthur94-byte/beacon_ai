@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { HeartHandshake } from 'lucide-react';
 import {
@@ -69,6 +70,32 @@ export function SentimentDonutChart(props: SentimentDonutChartProps) {
     netScore = 87,
   } = props;
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  const hasData = data && data.length > 0 && data.some((d) => d.value > 0);
+  if (!hasData) {
+    return (
+      <Card className="flex flex-col justify-between shadow-2xs border-zinc-200">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold text-zinc-900">
+              Sentiment Distribution
+            </CardTitle>
+            <Badge variant="outline" className="text-xs bg-zinc-50 text-zinc-600 border-zinc-200 font-sans">
+              Response Tone
+            </Badge>
+          </div>
+          <CardDescription className="text-xs text-zinc-500">
+            AI tone analysis across recommendation responses
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="h-[250px] flex flex-col items-center justify-center text-center p-6 text-zinc-400 text-sm">
+          <HeartHandshake className="h-8 w-8 mb-2 text-zinc-300" />
+          <p className="font-medium text-zinc-600">No sentiment data yet</p>
+          <p className="text-xs text-zinc-400 mt-1 max-w-xs">Audit prompts to analyze positive, neutral, and critical sentiment across engines.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Reference image color palette:
   // Green (#84C373) for Positive, Sky Blue (#4FA3E3) for Neutral, Warm Orange (#EE8A30) for Critical

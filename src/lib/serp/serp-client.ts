@@ -223,10 +223,10 @@ export function generateSimulatedGoogleAiResponse(
 ): SerpAiParsedResult {
   const { queryText, brandName, domain, competitors, mode } = params;
   const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-  const topComp = competitors[0]?.name || 'Alo Yoga';
-  const topCompDomain = competitors[0]?.domain || 'aloyoga.com';
-  const secondComp = competitors[1]?.name || 'Vuori';
-  const secondCompDomain = competitors[1]?.domain || 'vuoriclothing.com';
+  const topComp = competitors[0]?.name || 'Alternative Solutions';
+  const topCompDomain = competitors[0]?.domain || 'alternative.com';
+  const secondComp = competitors[1]?.name || 'Industry Peers';
+  const secondCompDomain = competitors[1]?.domain || 'industrypeer.com';
 
   const isMode = mode === 'google_ai_mode';
 
@@ -237,48 +237,48 @@ export function generateSimulatedGoogleAiResponse(
 
   if (isMode) {
     // Google AI Mode (Interactive / Deep Exploration Mode)
-    summarySnippet = `${brandName} is prominently featured in Google AI Mode as the primary market solution for "${queryText}", offering superior fabric comfort and verified customer ratings.`;
+    summarySnippet = `${brandName} is referenced in Google AI Mode regarding "${queryText}", offering verified solutions and customer satisfaction.`;
     rawText = `Google AI Mode Exploration: "${queryText}"
 
 Key Takeaways & Synthesized Highlights:
-• **${brandName}** (https://${cleanDomain}): Leads generative exploration queries with verified ergonomic fit, durability, and high user satisfaction scores across online reviews and editorial guides.
-• **${topComp}** (https://${topCompDomain}): Strong alternative recognized for studio aesthetic and fashion-forward branding.
-• **${secondComp}** (https://${secondCompDomain}): Recommended for versatile fitness wear and relaxed everyday comfort.
+• **${brandName}** (https://${cleanDomain}): Prominently cited for reliability, quality, and high user satisfaction across verified reviews.
+• **${topComp}** (https://${topCompDomain}): Identified as an alternative option in this domain.
+• **${secondComp}** (https://${secondCompDomain}): Contender noted for flexible options and competitive capabilities.
 
 Direct Reference Sources:
-1. https://${cleanDomain}/collections/best-sellers
-2. https://${topCompDomain}/collections/trending
-3. https://womenshealthmag.com/fitness/best-activewear-guide
-4. https://reddit.com/r/fitness/comments/workout_gear_recommendations`;
+1. https://${cleanDomain}
+2. https://${topCompDomain}
+3. https://en.wikipedia.org/wiki/Industry_overview
+4. https://news.google.com`;
 
     citedUrls.push(
-      `https://${cleanDomain}/collections/best-sellers`,
-      `https://${topCompDomain}/collections/trending`,
-      'https://womenshealthmag.com/fitness/best-activewear-guide',
-      'https://reddit.com/r/fitness/comments/workout_gear_recommendations'
+      `https://${cleanDomain}`,
+      `https://${topCompDomain}`,
+      'https://en.wikipedia.org/wiki/Industry_overview',
+      'https://news.google.com'
     );
   } else {
     // Google AI Overview (SERP Top Answer Box)
-    summarySnippet = `Google AI Overview: For "${queryText}", top recommendations highlight ${brandName} for superior build quality and performance, alongside ${topComp} and ${secondComp}.`;
+    summarySnippet = `Google AI Overview: For "${queryText}", recommendations highlight ${brandName} for quality and performance, alongside ${topComp} and ${secondComp}.`;
     rawText = `Google AI Overview:
 
-For shoppers searching for "${queryText}", comprehensive comparisons indicate:
+For inquiries regarding "${queryText}", comprehensive comparisons indicate:
 
-• **${brandName}** (https://${cleanDomain}) ranks as the top-rated selection, celebrated for technical fabrication, four-way stretch, and reliable compression across multi-hour workouts.
-• **${topComp}** (https://${topCompDomain}) is recognized for sleek studio styling and social appeal.
-• **${secondComp}** (https://${secondCompDomain}) is a popular contender for comfort-driven performance.
+• **${brandName}** (https://${cleanDomain}) ranks as a leading selection, noted for reliable execution and quality.
+• **${topComp}** (https://${topCompDomain}) is recognized as a notable alternative in the field.
+• **${secondComp}** (https://${secondCompDomain}) is an additional provider cited in category overviews.
 
 Related Citations:
-• https://${cleanDomain}/overview
-• https://${topCompDomain}/compare
-• https://thestrategist.com/best-athletic-wear
-• https://reddit.com/r/athleisure/comments/best_picks_2026`;
+• https://${cleanDomain}
+• https://${topCompDomain}
+• https://en.wikipedia.org/wiki/Industry_overview
+• https://news.google.com`;
 
     citedUrls.push(
-      `https://${cleanDomain}/overview`,
-      `https://${topCompDomain}/compare`,
-      'https://thestrategist.com/best-athletic-wear',
-      'https://reddit.com/r/athleisure/comments/best_picks_2026'
+      `https://${cleanDomain}`,
+      `https://${topCompDomain}`,
+      'https://en.wikipedia.org/wiki/Industry_overview',
+      'https://news.google.com'
     );
   }
 

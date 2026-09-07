@@ -144,7 +144,7 @@ export async function skipOnboardingAction(): Promise<OnboardingFormState> {
     industry: 'Software & Technology',
     target_audience: 'Enterprise Buyers and Decision Makers',
     core_offerings: 'B2B Software & Cloud Intelligence',
-    competitors: [{ name: 'Competitor A', domain: 'competitor.com' }],
+    competitors: [],
     tone_of_voice: 'Authoritative',
   };
 

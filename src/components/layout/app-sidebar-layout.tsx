@@ -26,6 +26,8 @@ import {
   Sliders,
   Building2,
   Sparkles,
+  Bot,
+  Users,
 } from 'lucide-react';
 import type { TeamMemberRole, RolePermissionsConfig } from '@/types/database.types';
 import { getRoleBadgeColor, hasPermission } from '@/lib/auth/permissions';
@@ -132,6 +134,13 @@ export function AppSidebarLayout({ project, children }: AppSidebarLayoutProps) {
       href: '/authority-gap',
       icon: TrendingUp,
       active: pathname.startsWith('/authority-gap'),
+      badge: 'New',
+    },
+    {
+      title: 'Buyer Personas',
+      href: '/agentic-suite',
+      icon: Users,
+      active: pathname.startsWith('/agentic-suite'),
       badge: 'New',
     },
   ];

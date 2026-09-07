@@ -1,11 +1,12 @@
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { AppSidebarLayout } from '@/components/layout/app-sidebar-layout';
 import { AuditResultsClient } from '@/components/audits/audit-results-client';
 import type { BrandKit, SearchIntent, BrandAssociation } from '@/types/database.types';
 import type { AuditRunDetail } from '@/components/audits/raw-output-viewer';
 import { getPromptById, generateContextualAuditRuns, type DemoPromptItem } from '@/lib/demo-prompts';
+import { parseActiveProjectCookie, isLegacyMockProject } from '@/lib/project-utils';
 
 interface PromptResultsPageProps {
   params: Promise<{ promptId: string }>;
@@ -53,7 +54,9 @@ export default async function PromptResultsPage({ params }: PromptResultsPagePro
 
       if (promptData) {
         prompt = promptData as any;
-        project = promptData.projects as any;
+        if (promptData.projects && !isLegacyMockProject(promptData.projects)) {
+          project = promptData.projects as any;
+        }
 
         const { data: results } = await supabase
           .from('results')
@@ -84,11 +87,7 @@ export default async function PromptResultsPage({ params }: PromptResultsPagePro
   if (!project) {
     const projectCookie = cookieStore.get('beacon_active_project');
     if (projectCookie?.value) {
-      try {
-        project = JSON.parse(projectCookie.value);
-      } catch {
-        project = null;
-      }
+      project = parseActiveProjectCookie(projectCookie.value);
     }
   }
 
@@ -113,40 +112,22 @@ export default async function PromptResultsPage({ params }: PromptResultsPagePro
     prompt = getPromptById(promptId, cookieStore, project);
   }
 
-  const competitorA = project.brand_kit?.competitors?.[0]?.name || (isConsumer ? 'Alo Yoga' : 'Legacy Competitor');
-  const competitorB = project.brand_kit?.competitors?.[1]?.name || (isConsumer ? 'Vuori' : 'Alternative Incumbent');
-
-  // Fallback simulated multi-model runs if none in DB
-  if (runs.length === 0) {
-    runs = generateContextualAuditRuns(prompt, project);
+  if (!prompt) {
+    notFound();
   }
 
-  // Detect all competitors: profile competitors + any competitor appearing in AI results or query
+  if (runs.length === 0) {
+    if ((prompt as any)?.runs?.length > 0) {
+      runs = (prompt as any).runs;
+    } else {
+      runs = generateContextualAuditRuns(prompt, project);
+    }
+  }
+
+  // Detect competitors: profile competitors + any competitor appearing in real AI results
   const competitorsSet = new Set<string>();
   (project.brand_kit?.competitors || []).forEach((c) => {
     if (c.name && c.name.trim()) competitorsSet.add(c.name.trim());
-  });
-
-  if (competitorsSet.size === 0) {
-    competitorsSet.add(competitorA);
-    competitorsSet.add(competitorB);
-  }
-
-  // Scan AI result text & citations for unlisted competitors
-  const allResultsText = [
-    prompt?.query_text || '',
-    ...runs.map((r) => `${r.rawText || ''} ${(r.citedUrls || []).join(' ')}`),
-  ].join(' ').toLowerCase();
-
-  const CANDIDATES = isConsumer
-    ? ['Alo Yoga', 'Vuori', 'Athleta', 'Nike', 'Beyond Yoga', 'Gymshark', 'Sweaty Betty']
-    : ['Legacy Incumbent', 'Alternative Leader', 'Market Challenger', 'Salesforce', 'HubSpot', 'Gartner'];
-
-  CANDIDATES.forEach((cand) => {
-    if (cand.toLowerCase() === brandName.toLowerCase()) return;
-    if (allResultsText.includes(cand.toLowerCase())) {
-      competitorsSet.add(cand);
-    }
   });
 
   const competitors = Array.from(competitorsSet);

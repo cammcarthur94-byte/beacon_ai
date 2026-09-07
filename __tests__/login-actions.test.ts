@@ -3,10 +3,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Mock next/headers
 const mockSetCookie = vi.fn();
 const mockGetCookie = vi.fn();
+const mockDeleteCookie = vi.fn();
 vi.mock('next/headers', () => ({
   cookies: async () => ({
     set: mockSetCookie,
     get: mockGetCookie,
+    delete: mockDeleteCookie,
   }),
 }));
 

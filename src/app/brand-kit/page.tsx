@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { AppSidebarLayout } from '@/components/layout/app-sidebar-layout';
 import { BrandKitView } from '@/components/brand-kit/brand-kit-view';
 import type { BrandKit } from '@/types/database.types';
+import { parseActiveProjectCookie, isLegacyMockProject } from '@/lib/project-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,7 +36,7 @@ export default async function BrandKitPage() {
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if (projects && projects.length > 0) {
+      if (projects && projects.length > 0 && !isLegacyMockProject(projects[0])) {
         project = projects[0] as any;
       }
     }
@@ -45,11 +46,7 @@ export default async function BrandKitPage() {
   if (!project) {
     const projectCookie = cookieStore.get('beacon_active_project');
     if (projectCookie?.value) {
-      try {
-        project = JSON.parse(projectCookie.value);
-      } catch {
-        project = null;
-      }
+      project = parseActiveProjectCookie(projectCookie.value) as any;
     }
   }
 

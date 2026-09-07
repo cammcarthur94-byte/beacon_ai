@@ -94,69 +94,7 @@ export function getDomainSentiment(row: DomainCitationRow): 'positive' | 'neutra
 
 export function getDomainPrompts(row: DomainCitationRow): PromptCitationStat[] {
   if (row.prompts && row.prompts.length > 0) return row.prompts;
-
-  const engines =
-    row.engines && row.engines.length > 0
-      ? row.engines
-      : ['chatgpt', 'perplexity', 'gemini'];
-
-  const pool: Array<Omit<PromptCitationStat, 'citationCount' | 'lastAudited'>> = [
-    {
-      id: 'prompt-seed-1',
-      query_text: 'Best buttery-soft yoga leggings for Pilates and studio workouts in 2026',
-      visibilityScore: 94,
-      status: 'recommended',
-      engines: engines.slice(0, 3),
-      search_intent: 'commercial',
-      brand_association: 'unbranded',
-    },
-    {
-      id: 'prompt-seed-2',
-      query_text: 'Align vs Alo Yoga Airbrush: durability, pilling, and squat test review',
-      visibilityScore: 89,
-      status: 'recommended',
-      engines: engines.slice(0, 2),
-      search_intent: 'commercial',
-      brand_association: 'branded',
-    },
-    {
-      id: 'prompt-seed-3',
-      query_text: "Best men's commuter pants and workout joggers: ABC vs Vuori Meta",
-      visibilityScore: 86,
-      status: 'recommended',
-      engines: engines.slice(0, 2),
-      search_intent: 'commercial',
-      brand_association: 'branded',
-    },
-    {
-      id: 'prompt-seed-4',
-      query_text: 'Where to buy authentic Align leggings and Everywhere Belt Bags online',
-      visibilityScore: 92,
-      status: 'recommended',
-      engines: engines.slice(0, 2),
-      search_intent: 'transactional',
-      brand_association: 'branded',
-    },
-    {
-      id: 'prompt-seed-5',
-      query_text: 'Top moisture-wicking athletic wear brands for hot yoga and HIIT training',
-      visibilityScore: 81,
-      status: 'recommended',
-      engines: engines.slice(0, 2),
-      search_intent: 'informational',
-      brand_association: 'unbranded',
-    },
-  ];
-
-  const count = row.promptsCount ?? Math.max(1, Math.min(5, Math.ceil(row.totalMentions / 6)));
-  return pool.slice(0, count).map((p, idx) => ({
-    ...p,
-    citationCount: Math.max(1, Math.round(row.totalMentions / count) + (idx === 0 ? row.totalMentions % count : 0)),
-    lastAudited: new Date(new Date(row.lastCitedAt).getTime() - idx * 86400000).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-    }),
-  }));
+  return [];
 }
 
 interface CitationsLedgerTableProps {

@@ -89,7 +89,7 @@ export function AuditResultsClient({
     .filter((r) => r.visibilityScore < 70)
     .map((r) => r.engine);
 
-  const competitorsList = project.competitors || ['Alo Yoga', 'Vuori'];
+  const competitorsList = project.competitors || [];
 
   // Handle live instant audit re-run
   const handleRunAudit = () => {

@@ -10,6 +10,7 @@ import { Radio, LogOut, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { SettingsView } from '@/components/settings/settings-view';
 import type { BrandKit } from '@/types/database.types';
+import { parseActiveProjectCookie, isLegacyMockProject } from '@/lib/project-utils';
 
 interface SettingsPageProps {
   searchParams: Promise<{ tab?: string }>;
@@ -45,7 +46,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if (projects && projects.length > 0) {
+      if (projects && projects.length > 0 && !isLegacyMockProject(projects[0])) {
         project = projects[0] as any;
 
         const { count } = await supabase
@@ -65,11 +66,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   if (!project) {
     const projectCookie = cookieStore.get('beacon_active_project');
     if (projectCookie?.value) {
-      try {
-        project = JSON.parse(projectCookie.value);
-      } catch {
-        project = null;
-      }
+      project = parseActiveProjectCookie(projectCookie.value) as any;
     }
   }
 

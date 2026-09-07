@@ -13,14 +13,18 @@ import type { AuditFrequency, BrandKit, SearchIntent, BrandAssociation } from '@
 import { extractDomain, categorizeSource } from '@/lib/citations/categorizer';
 import { checkTierAccess, isTierEligibleForGoogleAi } from '@/lib/billing/tier-access';
 import { getTierAuditLimit, normalizeTier } from '@/lib/billing/tier-utils';
-import { getDemoPrompts } from '@/lib/demo-prompts';
+import { getDemoPrompts, generateContextualAuditRuns } from '@/lib/demo-prompts';
+import { findLocalPersonaById } from '@/lib/personas-store';
+import { parseActiveProjectCookie } from '@/lib/project-utils';
 
 function getActiveProjectFromCookie(cookieStore: any) {
   const projectCookie = cookieStore.get('beacon_active_project')?.value;
   if (projectCookie) {
-    try {
-      return JSON.parse(projectCookie);
-    } catch {}
+    const project = parseActiveProjectCookie(projectCookie);
+    if (!project) {
+      cookieStore.delete('beacon_active_project');
+    }
+    return project;
   }
   return null;
 }
@@ -128,10 +132,10 @@ export async function createPromptAudit(formData: FormData) {
       search_intent: searchIntent,
       brand_association: brandAssociation,
       is_active: true,
-      last_run_at: new Date().toISOString(),
+      last_run_at: null,
       next_run_at: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
       created_at: new Date().toISOString(),
-      latest_score: 84,
+      latest_score: null,
     };
 
     promptsList.unshift(newPrompt);
@@ -430,12 +434,64 @@ export async function triggerInstantRun(promptId: string) {
     if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
       const project = getActiveProjectFromCookie(cookieStore);
       const list = getDemoPrompts(cookieStore, project);
+      const targetPrompt = list.find((p: any) => p.id === promptId);
+
+      let runs: any[] = [];
+      let finalScore = 85;
+
+      if (targetPrompt) {
+        const rawEngines = (targetPrompt.target_engines || ['gemini', 'claude']) as string[];
+        const enginesToRun = rawEngines.filter((e) => e === 'gemini' || e === 'claude');
+        const finalEngines = enginesToRun.length > 0 ? enginesToRun : ['gemini', 'claude'];
+
+        try {
+          const evaluations = await executeMultiEngineAudit({
+            queryText: targetPrompt.query_text,
+            brandName: project?.name || 'My Brand',
+            domain: project?.domain || 'brand.com',
+            competitors: project?.brand_kit?.competitors || [],
+            targetEngines: finalEngines,
+          });
+
+          runs = evaluations.map((ev, idx) => ({
+            id: `run-${Date.now()}-${idx}`,
+            engine: ev.engine,
+            visibilityScore: ev.visibilityScore,
+            brandMentioned: ev.brandMentioned,
+            rankingPosition: ev.rankingPosition,
+            sentiment: ev.sentiment,
+            sentimentScore: ev.sentimentScore,
+            rawText: ev.rawText,
+            citedUrls: ev.citedUrls || [],
+            createdAt: new Date().toISOString(),
+          }));
+
+          if (evaluations.length > 0) {
+            finalScore = Math.round(
+              evaluations.reduce((acc, e) => acc + e.visibilityScore, 0) / evaluations.length
+            );
+          }
+        } catch (auditErr) {
+          console.error('Error executing demo multi-engine audit:', auditErr);
+        }
+
+        if (runs.length === 0) {
+          runs = generateContextualAuditRuns(targetPrompt, project);
+          if (runs.length > 0) {
+            finalScore = Math.round(
+              runs.reduce((acc, e) => acc + e.visibilityScore, 0) / runs.length
+            );
+          }
+        }
+      }
+
       const updated = list.map((p: any) =>
         p.id === promptId
           ? {
               ...p,
               last_run_at: new Date().toISOString(),
-              latest_score: Math.min(99, Math.max(70, (p.latest_score || 85) + (Math.floor(Math.random() * 7) - 3))),
+              latest_score: runs.length > 0 ? finalScore : (p.latest_score || 85),
+              runs: runs.length > 0 ? runs : (p.runs?.length ? p.runs : generateContextualAuditRuns(p, project)),
             }
           : p
       );
@@ -555,9 +611,11 @@ const TIER_PROMPT_LIMITS: Record<string, number> = {
 
 export async function generateAiPrompts(params: {
   category?: string;
+  categories?: string[];
   searchIntent?: SearchIntent | 'all';
   brandAssociation?: BrandAssociation | 'both';
   count?: number;
+  personaId?: string;
 }): Promise<{ prompts: GeneratedPromptSuggestion[]; error?: string }> {
   const cookieStore = await cookies();
   const supabase = await createClient();
@@ -627,9 +685,63 @@ export async function generateAiPrompts(params: {
   const requestedCount = params.count && params.count > 0 ? params.count : 5;
   const count = Math.min(requestedCount, remainingSlots);
 
-  const category = params.category || 'comparisons';
+  // Support both single category and multi-category arrays
+  const rawCategories =
+    params.categories && params.categories.length > 0
+      ? params.categories
+      : [params.category || 'comparisons'];
+  const categories = rawCategories.filter(Boolean);
+  if (categories.length === 0) categories.push('comparisons');
+  const categoryLabel = categories.join(', ');
+  const schemaCategory = categories.length > 1 ? categories.join('" | "') : categories[0];
   const intent = params.searchIntent || 'all';
   const association = params.brandAssociation || 'both';
+
+  // Resolve buyer persona perspective if specified
+  let personaInstruction = '';
+  let resolvedPersona: any = null;
+
+  if (params.personaId) {
+    if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
+      try {
+        const { data: pData } = await supabase
+          .from('personas')
+          .select('id, name, role_title, name_title, system_prompt, tone_traits, age_demographics, background, goals, pain_points, information_sources, buying_objections')
+          .eq('id', params.personaId)
+          .maybeSingle();
+        if (pData) resolvedPersona = pData;
+      } catch (pErr) {
+        console.warn('Persona query skipped for prompt generation:', pErr);
+      }
+    }
+
+    if (!resolvedPersona) {
+      resolvedPersona = findLocalPersonaById(params.personaId, projectId);
+    }
+
+    if (resolvedPersona) {
+      const personaDisplayName =
+        resolvedPersona.name_title ||
+        (resolvedPersona.role_title ? `${resolvedPersona.name} — ${resolvedPersona.role_title}` : resolvedPersona.name);
+
+      personaInstruction = `\n======================================================
+TARGET BUYER PERSONA PROFILE:
+- Name/Title: ${personaDisplayName}
+${resolvedPersona.age_demographics ? `- Age & Demographics: ${resolvedPersona.age_demographics}` : ''}
+${resolvedPersona.background ? `- Background: ${resolvedPersona.background}` : ''}
+${resolvedPersona.goals ? `- Core Goals: ${resolvedPersona.goals}` : ''}
+${resolvedPersona.pain_points ? `- Critical Pain Points: ${resolvedPersona.pain_points}` : ''}
+${resolvedPersona.information_sources ? `- Information Sources: ${resolvedPersona.information_sources}` : ''}
+${resolvedPersona.buying_objections ? `- Buying Objections & Hesitations: ${resolvedPersona.buying_objections}` : ''}
+======================================================
+MANDATORY PERSONA REQUIREMENTS:
+Every single search query generated MUST be asked directly from this buyer persona's point of view:
+1. Pain Points: Directly weave their specific frustrations and challenges ("${resolvedPersona.pain_points || 'their main friction points'}") into conversational queries.
+2. Goals: Incorporate what they are trying to achieve ("${resolvedPersona.goals || 'their desired outcome'}").
+3. Buying Objections: Formulate queries that probe their specific hesitations and perceived risks ("${resolvedPersona.buying_objections || 'price, durability, complexity'}").
+4. Authenticity: Word the prompts in the realistic phrasing of someone with this background and demographic profile.`;
+    }
+  }
 
   // 1. Primary AI Prompt Generation (Gemini 3.1 Flash with Preview fallback)
   const hasGoogleKey = Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY);
@@ -641,15 +753,17 @@ export async function generateAiPrompts(params: {
         const model = google(candidate);
         const systemPrompt = `You are Beacon's Generative Engine Optimization (GEO) strategist.
 Generate ${count} high-impact, realistic search query prompts that prospective buyers ask conversational search engines (ChatGPT, Perplexity, Gemini, Claude).
+${resolvedPersona ? `CRITICAL REQUIREMENT: The user selected buyer persona "${resolvedPersona.name_title || resolvedPersona.name}". Every single search query MUST be formulated directly from this persona's point of view, explicitly addressing their pain points, buying objections, and goals.` : ''}
+${categories.length > 1 ? `IMPORTANT: Distribute the queries across these chosen categories: ${categoryLabel}.` : ''}
 Respond strictly with a valid JSON array of objects with the following schema:
 [
   {
     "query_text": "Exact buyer search prompt in conversational natural language",
-    "category": "${category}",
+    "category": "${schemaCategory}",
     "search_intent": "commercial" | "transactional" | "informational" | "navigational",
     "brand_association": "branded" | "unbranded",
     "recommended_frequency": "daily" | "weekly",
-    "rationale": "1-sentence why tracking this query yields high business intelligence"
+    "rationale": "1-sentence explaining how this addresses the persona's pain points, objections, or goals"
   }
 ]`;
 
@@ -658,14 +772,14 @@ Brand: ${brandName} (${domain})
 Industry: ${brandKit.industry || 'Consumer Retail'}
 Core Offerings: ${brandKit.core_offerings || 'Key products'}
 Target Audience: ${brandKit.target_audience || 'Prospective customers'}
-Competitors: ${brandKit.competitors?.map((c) => c.name).join(', ') || 'Key market rivals'}
+Competitors: ${brandKit.competitors?.map((c) => c.name).join(', ') || 'Key market rivals'}${personaInstruction}
 
 Parameters:
-- Category Focus: ${category}
+- Categories Focus: ${categoryLabel} (distribute the ${count} prompts across these chosen categories)
 - Search Intent Preference: ${intent === 'all' ? 'Diverse mix of commercial, transactional, informational' : intent}
 - Brand Association Preference: ${association === 'both' ? 'Mix of branded and unbranded queries' : association}
 
-Generate exactly ${count} realistic buyer queries. Output strictly a JSON array without markdown formatting or code fences.`;
+Generate exactly ${count} realistic buyer queries${resolvedPersona ? ` specifically from this buyer persona perspective addressing their pain points and objections` : ''}. Output strictly a JSON array without markdown formatting or code fences.`;
 
         const result = await generateText({
           model,
@@ -682,7 +796,7 @@ Generate exactly ${count} realistic buyer queries. Output strictly a JSON array 
           const validated: GeneratedPromptSuggestion[] = parsed.slice(0, count).map((item, idx) => ({
             id: `gen-${Date.now()}-${idx}`,
             query_text: item.query_text,
-            category: item.category || category,
+            category: item.category && categories.includes(item.category) ? item.category : categories[idx % categories.length],
             search_intent: (['commercial', 'transactional', 'informational', 'navigational'].includes(item.search_intent)
               ? item.search_intent
               : 'commercial') as SearchIntent,
@@ -700,43 +814,43 @@ Generate exactly ${count} realistic buyer queries. Output strictly a JSON array 
 
   // 2. Dynamic Domain Intelligence Synthesis (graceful zero-downtime fallback tailored to brand & count)
   const compList = (brandKit.competitors || []).map((c) => c.name);
-  const comp1 = compList[0] || 'Alo Yoga';
-  const comp2 = compList[1] || 'Vuori';
-  const comp3 = compList[2] || 'Athleta';
+  const comp1 = compList[0] || 'market alternatives';
+  const comp2 = compList[1] || 'alternative solutions';
+  const comp3 = compList[2] || 'competing brands';
 
-  const rawOfferings = (brandKit.core_offerings || 'athletic wear, leggings, joggers, workout apparel')
+  const rawOfferings = (brandKit.core_offerings || (brandKit.industry ? `${brandKit.industry} solutions` : 'products and services'))
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
-  const item1 = rawOfferings[0] || 'athletic wear';
-  const item2 = rawOfferings[1] || 'workout apparel';
-  const item3 = rawOfferings[2] || 'everyday activewear';
+  const item1 = rawOfferings[0] || 'solutions';
+  const item2 = rawOfferings[1] || 'offerings';
+  const item3 = rawOfferings[2] || 'products';
 
   const categoryTemplates: Record<string, Array<(b: string, i1: string, i2: string, c1: string, c2: string) => { text: string; intent: SearchIntent; assoc: BrandAssociation; freq: AuditFrequency; rationale: string }>> = {
     comparisons: [
       (b, i1, _, c1) => ({
-        text: `${b} ${i1} vs ${c1}: which has better durability and fit in 2026?`,
+        text: `${b} ${i1} vs ${c1}: which has better quality, reliability, and value in 2026?`,
         intent: 'commercial',
         assoc: 'branded',
         freq: 'daily',
         rationale: `Captures high-intent consideration searches evaluating ${b} directly against primary competitor ${c1}.`,
       }),
       (b, _, i2, __, c2) => ({
-        text: `Is ${b} or ${c2} better for high-intensity training and daily wear?`,
+        text: `Is ${b} or ${c2} better for everyday use and high-performance requirements?`,
         intent: 'commercial',
         assoc: 'branded',
         freq: 'daily',
         rationale: `Monitors brand preference and side-by-side performance sentiment against ${c2}.`,
       }),
       (b, i1, ___, c1, c2) => ({
-        text: `${b} vs ${c1} vs ${c2}: ultimate side-by-side comparison for ${i1}`,
+        text: `${b} vs ${c1} vs ${c2}: comprehensive side-by-side evaluation for ${i1}`,
         intent: 'commercial',
         assoc: 'branded',
         freq: 'weekly',
-        rationale: `Tracks multi-brand roundup recommendations where buyers decide between the top three market options.`,
+        rationale: `Tracks multi-brand roundup recommendations where buyers decide between leading market options.`,
       }),
       (b, _, i2, c1) => ({
-        text: `${c1} alternative with similar fabric quality: how does ${b} ${i2} rank?`,
+        text: `${c1} alternative with comparable quality: how does ${b} ${i2} rank?`,
         intent: 'commercial',
         assoc: 'branded',
         freq: 'weekly',
@@ -745,28 +859,28 @@ Generate exactly ${count} realistic buyer queries. Output strictly a JSON array 
     ],
     discovery: [
       (_, i1, i2) => ({
-        text: `Best premium ${i1} and ${i2} brands recommended by fitness trainers in 2026`,
+        text: `Best ${i1} and ${i2} recommended by industry specialists in 2026`,
         intent: 'informational',
         assoc: 'unbranded',
         freq: 'daily',
         rationale: `Measures organic discovery presence when consumers ask conversational AI for top category recommendations without brand prompts.`,
       }),
       (_, i1) => ({
-        text: `What are the highest-rated luxury ${i1} brands that don't pill or lose shape?`,
+        text: `What are the highest-rated ${i1} options that deliver long-term durability and satisfaction?`,
         intent: 'commercial',
         assoc: 'unbranded',
         freq: 'daily',
         rationale: `Identifies whether AI engines cite your brand when durability and quality are key search factors.`,
       }),
       (b, _, i2) => ({
-        text: `Top emerging athletic apparel trends: where does ${b} rank among modern ${i2}?`,
+        text: `Emerging industry trends: where does ${b} rank among modern ${i2}?`,
         intent: 'informational',
         assoc: 'branded',
         freq: 'weekly',
         rationale: `Tracks brand thought leadership and category dominance in generative trend overviews.`,
       }),
       (_, i1) => ({
-        text: `Best breathable ${i1} for hot weather workouts and marathon training`,
+        text: `Top considerations when choosing premium ${i1} for demanding requirements`,
         intent: 'informational',
         assoc: 'unbranded',
         freq: 'daily',
@@ -775,28 +889,28 @@ Generate exactly ${count} realistic buyer queries. Output strictly a JSON array 
     ],
     buying_guides: [
       (b, _, i2) => ({
-        text: `Where to buy authentic ${b} ${i2} online with fastest shipping and easiest return policy`,
+        text: `Where to purchase ${b} ${i2} online with the best support, warranty, and return policy`,
         intent: 'transactional',
         assoc: 'branded',
         freq: 'daily',
         rationale: `Monitors direct purchase intent and verifies that AI engines cite verified authorized retail channels.`,
       }),
       (b, i1) => ({
-        text: `Is ${b} ${i1} worth the price tag in 2026? Customer reviews and cost-per-wear breakdown`,
+        text: `Is ${b} ${i1} worth the price tag in 2026? Customer reviews and cost-to-value breakdown`,
         intent: 'commercial',
         assoc: 'branded',
         freq: 'weekly',
         rationale: `Assesses buyer conversion stage questions where price sensitivity and value justification dominate.`,
       }),
       (b, i1) => ({
-        text: `Current discounts, member sales, and promo codes for ${b} ${i1}`,
+        text: `Current discounts, packages, and pricing options for ${b} ${i1}`,
         intent: 'transactional',
         assoc: 'branded',
         freq: 'daily',
-        rationale: `Ensures AI answer engines don't hallucinate invalid discount codes that hurt margin or trust.`,
+        rationale: `Ensures AI answer engines don't hallucinate invalid pricing or discount codes that hurt margin or trust.`,
       }),
       (_, i1) => ({
-        text: `Complete buying guide for premium ${i1}: what materials and specs to look for before buying`,
+        text: `Complete buying guide for ${i1}: key specifications and criteria to verify before purchasing`,
         intent: 'informational',
         assoc: 'unbranded',
         freq: 'weekly',
@@ -805,28 +919,28 @@ Generate exactly ${count} realistic buyer queries. Output strictly a JSON array 
     ],
     features: [
       (b, i1, _, c1) => ({
-        text: `${b} ${i1} sizing guide: do they run true to size, large, or small compared to ${c1}?`,
+        text: `${b} ${i1} specifications and feature review: how does it compare to ${c1}?`,
         intent: 'informational',
         assoc: 'branded',
         freq: 'weekly',
-        rationale: `High-frequency pre-checkout query where inaccurate sizing advice leads to customer drop-off or returns.`,
+        rationale: `High-frequency pre-checkout query where product specifications determine decision making.`,
       }),
       (b, _, i2) => ({
-        text: `How does the proprietary fabric technology of ${b} ${i2} handle sweat and moisture wicking?`,
+        text: `How does the proprietary technology of ${b} ${i2} perform under real-world conditions?`,
         intent: 'informational',
         assoc: 'branded',
         freq: 'weekly',
         rationale: `Evaluates whether AI engines correctly recite your technical product specifications and IP.`,
       }),
       (b, i1) => ({
-        text: `${b} ${i1} long-term durability test: how do they hold up after 50 washes?`,
+        text: `${b} ${i1} long-term durability and reliability test: customer reviews and feedback`,
         intent: 'commercial',
         assoc: 'branded',
         freq: 'weekly',
         rationale: `Gauges long-term product perception and post-purchase customer satisfaction sentiment.`,
       }),
       (b, _, i2, __, c2) => ({
-        text: `Pockets, waistband compression, and comfort test: ${b} ${i2} vs ${c2}`,
+        text: `Usability, build quality, and comfort review: ${b} ${i2} vs ${c2}`,
         intent: 'commercial',
         assoc: 'branded',
         freq: 'weekly',
@@ -835,28 +949,28 @@ Generate exactly ${count} realistic buyer queries. Output strictly a JSON array 
     ],
     alternatives: [
       (b, i1) => ({
-        text: `Top premium alternatives to ${b} for high-performance ${i1}`,
+        text: `Top alternatives to ${b} for high-performance ${i1}`,
         intent: 'commercial',
         assoc: 'branded',
         freq: 'weekly',
         rationale: `Alerts immediately when competitors displace ${b} in conquesting lists.`,
       }),
       (b, _, i2, c1) => ({
-        text: `Brands similar to ${b} with more accessible price points or better availability like ${c1}`,
+        text: `Options similar to ${b} with accessible pricing or specialized features like ${c1}`,
         intent: 'commercial',
         assoc: 'branded',
         freq: 'daily',
         rationale: `Monitors price-conquesting vulnerability where competitors bid against your brand recognition.`,
       }),
       (b, i1, __, ___, c2) => ({
-        text: `If I love ${b} ${i1}, will I like ${c2}? Fit and feel comparison`,
+        text: `If I currently use ${b} ${i1}, should I consider ${c2}? Feature and pricing comparison`,
         intent: 'commercial',
         assoc: 'branded',
         freq: 'weekly',
         rationale: `Tracks competitor brand crossover and customer deflection trends.`,
       }),
       (b, i1) => ({
-        text: `Independent brands disrupting ${b} in technical ${i1} in 2026`,
+        text: `Innovative brands competing with ${b} in ${i1} in 2026`,
         intent: 'informational',
         assoc: 'branded',
         freq: 'weekly',
@@ -865,10 +979,91 @@ Generate exactly ${count} realistic buyer queries. Output strictly a JSON array 
     ],
   };
 
-  const selectedCategoryList = categoryTemplates[category] || categoryTemplates.comparisons;
-  const allCategoryLists = Object.values(categoryTemplates).flat();
+  if (resolvedPersona) {
+    const pName =
+      resolvedPersona.name_title ||
+      (resolvedPersona.role_title ? `${resolvedPersona.name} — ${resolvedPersona.role_title}` : resolvedPersona.name);
+    const pPain = resolvedPersona.pain_points || 'inconsistent quality and high pricing';
+    const pGoals = resolvedPersona.goals || 'reliable performance and long-term durability';
+    const pObj = resolvedPersona.buying_objections || 'steep cost and uncertain reliability';
+    const pDemographics = resolvedPersona.age_demographics || 'savvy buyers';
 
-  const pool = [...selectedCategoryList, ...allCategoryLists];
+    const cleanPain = pPain.split(/[.,;\n]/)[0].trim() || pPain.slice(0, 50);
+    const cleanGoals = pGoals.split(/[.,;\n]/)[0].trim() || pGoals.slice(0, 50);
+    const cleanObj = pObj.split(/[.,;\n]/)[0].trim() || pObj.slice(0, 50);
+
+    const personaGenerators: Array<() => {
+      text: string;
+      intent: SearchIntent;
+      assoc: BrandAssociation;
+      freq: AuditFrequency;
+      rationale: string;
+    }> = [
+      () => ({
+        text: `${brandName} vs ${comp1}: which actually solves ${cleanPain}?`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'daily',
+        rationale: `Directly targets ${pName}'s core pain point ("${cleanPain}") comparing ${brandName} with ${comp1}.`,
+      }),
+      () => ({
+        text: `Is ${brandName} worth it if my primary concern is ${cleanObj}?`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'daily',
+        rationale: `Probes ${pName}'s primary buying objection ("${cleanObj}") during AI engine evaluations.`,
+      }),
+      () => ({
+        text: `Best ${item1} for ${pDemographics} looking to achieve ${cleanGoals}`,
+        intent: 'informational',
+        assoc: 'unbranded',
+        freq: 'weekly',
+        rationale: `Captures high-intent discovery queries from ${pName} seeking ${cleanGoals}.`,
+      }),
+      () => ({
+        text: `${brandName} customer reviews: how well does it address ${cleanPain} compared to ${comp2}?`,
+        intent: 'commercial',
+        assoc: 'branded',
+        freq: 'daily',
+        rationale: `Evaluates real user sentiment regarding ${pName}'s specific friction points.`,
+      }),
+      () => ({
+        text: `Why ${pDemographics} choose ${brandName} over ${comp1} for ${cleanGoals}`,
+        intent: 'transactional',
+        assoc: 'branded',
+        freq: 'weekly',
+        rationale: `Measures conversion-stage credibility signals overcoming ${cleanObj} for this persona.`,
+      }),
+    ];
+
+    const personaGenerated: GeneratedPromptSuggestion[] = [];
+    for (let idx = 0; idx < count; idx++) {
+      const gen = personaGenerators[idx % personaGenerators.length];
+      const data = gen();
+      const finalIntent = intent !== 'all' ? intent : data.intent;
+      const finalAssoc = association !== 'both' ? association : data.assoc;
+
+      personaGenerated.push({
+        id: `synth-persona-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 6)}`,
+        query_text: data.text,
+        category: categories[idx % categories.length],
+        search_intent: finalIntent,
+        brand_association: finalAssoc,
+        recommended_frequency: data.freq,
+        rationale: data.rationale,
+      });
+    }
+
+    return { prompts: personaGenerated };
+  }
+
+  // Gather templates from all selected categories
+  const selectedCategoryTemplates = categories.flatMap(
+    (cat) => categoryTemplates[cat] || []
+  );
+  const pool = selectedCategoryTemplates.length > 0
+    ? selectedCategoryTemplates
+    : Object.values(categoryTemplates).flat();
   const generatedList: GeneratedPromptSuggestion[] = [];
 
   for (let idx = 0; idx < count; idx++) {
@@ -883,11 +1078,12 @@ Generate exactly ${count} realistic buyer queries. Output strictly a JSON array 
     // Apply preference overrides if specified
     const finalIntent = intent !== 'all' ? intent : data.intent;
     const finalAssoc = association !== 'both' ? association : data.assoc;
+    const assignedCategory = categories[idx % categories.length];
 
     generatedList.push({
       id: `synth-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 6)}`,
       query_text: data.text,
-      category,
+      category: assignedCategory,
       search_intent: finalIntent,
       brand_association: finalAssoc,
       recommended_frequency: data.freq,
@@ -950,12 +1146,12 @@ export async function batchCreatePromptAudits(prompts: BatchPromptInput[]) {
       search_intent: item.searchIntent,
       brand_association: item.brandAssociation,
       is_active: true,
-      last_run_at: new Date().toISOString(),
+      last_run_at: null,
       next_run_at: new Date(
         Date.now() + (item.frequency === 'daily' ? 1000 * 60 * 60 * 24 : 1000 * 60 * 60 * 168)
       ).toISOString(),
       created_at: new Date().toISOString(),
-      latest_score: Math.floor(Math.random() * 14) + 82,
+      latest_score: null,
     }));
 
     promptsList = [...newItems, ...promptsList];
@@ -1014,7 +1210,7 @@ export async function batchCreatePromptAudits(prompts: BatchPromptInput[]) {
     search_intent: item.searchIntent,
     brand_association: item.brandAssociation,
     is_active: true,
-    last_run_at: new Date().toISOString(),
+    last_run_at: null,
     next_run_at: new Date(
       Date.now() + (item.frequency === 'daily' ? 1000 * 60 * 60 * 24 : 1000 * 60 * 60 * 168)
     ).toISOString(),

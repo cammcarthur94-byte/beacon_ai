@@ -13,6 +13,7 @@ import {
   LabelList,
 } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Link2, Globe } from 'lucide-react';
 import {
@@ -113,6 +114,31 @@ export function CitationSourcesChart({
   brandName,
 }: CitationSourcesChartProps) {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  if (!data || data.length === 0) {
+    return (
+      <Card className="flex flex-col justify-between shadow-2xs border-zinc-200">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold text-zinc-900">
+              Top Cited Websites
+            </CardTitle>
+            <Badge variant="outline" className="text-xs bg-zinc-50 text-zinc-600 border-zinc-200 font-sans">
+              Authority Domains
+            </Badge>
+          </div>
+          <CardDescription className="text-xs text-zinc-500">
+            Key web sources AI engines reference when generating answers
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="h-[255px] flex flex-col items-center justify-center text-center p-6 text-zinc-400 text-sm">
+          <Globe className="h-8 w-8 mb-2 text-zinc-300" />
+          <p className="font-medium text-zinc-600">No citations indexed yet</p>
+          <p className="text-xs text-zinc-400 mt-1 max-w-xs">Run audits to discover which external authority domains AI models cite for your brand.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const handleBarClick = (entry: CitationDomainItem) => {
     if (selectedDomain === entry.domain) {

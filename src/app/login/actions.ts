@@ -3,40 +3,13 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { parseActiveProjectCookie } from '@/lib/project-utils';
+import { saveLocalPersona } from '@/lib/personas-store';
 
 export interface AuthActionResult {
   error?: string;
   success?: string;
 }
-
-const DEFAULT_DEMO_PROJECT = {
-  id: 'demo-project-lululemon',
-  name: 'Lululemon',
-  domain: 'lululemon.com',
-  tier: 'enterprise' as const,
-  audit_limit: 100,
-  brand_kit: {
-    industry: 'Premium Athleisure & Athletic Apparel',
-    industry_taxonomy: {
-      sector: 'Apparel & Fashion',
-      category: 'Athleisure & Sporting Goods',
-    },
-    target_audience: 'Mindful movement practitioners, yoga & Pilates enthusiasts, runners, gym-goers, and fitness lifestyle consumers',
-    core_offerings: 'Align Pant (Nulu fabric), Define Jacket, Wunder Train tights, ABC Joggers, Everywhere Belt Bag & technical athleisure',
-    competitors: [
-      { name: 'Alo Yoga', domain: 'aloyoga.com' },
-      { name: 'Vuori', domain: 'vuoriclothing.com' },
-      { name: 'Athleta', domain: 'athleta.gap.com' },
-    ],
-    tone_of_voice: 'Empowering, Mindful, Elevated, Performance-Driven',
-    messaging_pillars: [
-      'Innovation & Material Superiority',
-      'Data-Driven Fit & Athletic Performance',
-      'Community & Holistic Wellness',
-    ],
-  },
-  created_at: new Date().toISOString(),
-};
 
 export async function signInWithEmail(
   prevState: AuthActionResult | null,
@@ -54,28 +27,295 @@ export async function signInWithEmail(
 
   // Fallback for local development if Supabase cloud isn't connected yet
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+    if (process.env.NODE_ENV === 'production') {
+      return { error: 'Authentication service is not configured.' };
+    }
     const cookieStore = await cookies();
-    const userPayload = JSON.stringify({
+    const demoUserPayload = JSON.stringify({
+      email,
+      id: 'demo-user-id',
+    });
+    const authUserPayload = JSON.stringify({
       email,
       fullName: email.split('@')[0],
-      id: 'user-' + Buffer.from(email).toString('hex').slice(0, 10),
+      id: 'demo-user-id',
     });
-    cookieStore.set('beacon_demo_user', userPayload, {
+    cookieStore.set('beacon_demo_user', demoUserPayload, {
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
     });
-    cookieStore.set('beacon_auth_user', userPayload, {
+    cookieStore.set('beacon_auth_user', authUserPayload, {
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
     });
 
-    // Ensure active project exists so dashboard loads smoothly
-    const activeProject = cookieStore.get('beacon_active_project');
-    if (!activeProject) {
-      cookieStore.set('beacon_active_project', JSON.stringify(DEFAULT_DEMO_PROJECT), {
+    const norm = (email || '').toLowerCase().trim();
+
+    // Auto-restore Gymshark workspace
+    if (norm.includes('gymshark')) {
+      const gymsharkProject = {
+        id: 'project-gymshark-dtc',
+        name: 'Gymshark',
+        domain: 'gymshark.com',
+        tier: 'starter',
+        brand_kit: {
+          industry: 'DTC Athletic Apparel & Fitness Wear',
+          target_audience:
+            'Fitness enthusiasts, weightlifters, and gym-goers seeking functional, high-durability performance activewear and lifting gear.',
+          core_offerings:
+            'Seamless gym leggings, oversized lifting hoodies, sweat-wicking t-shirts, sports bras, and functional workout accessories.',
+          tone_of_voice: 'Authoritative & Direct',
+          competitors: [
+            { name: 'Lululemon', domain: 'lululemon.com' },
+            { name: 'Nike Training', domain: 'nike.com' },
+            { name: 'Alo Yoga', domain: 'aloyoga.com' },
+          ],
+        },
+      };
+      cookieStore.set('beacon_active_project', JSON.stringify(gymsharkProject), {
         path: '/',
         maxAge: 60 * 60 * 24 * 7,
       });
+
+      const gymsharkPrompts = [
+        {
+          id: 'prompt-gymshark-1',
+          project_id: 'project-gymshark-dtc',
+          query_text: 'Is Gymshark seamless legging quality worth the price compared to Lululemon Align?',
+          frequency: 'daily',
+          target_engines: ['gemini', 'claude'],
+          search_intent: 'commercial',
+          brand_association: 'branded',
+          is_active: true,
+          last_run_at: new Date().toISOString(),
+          next_run_at: new Date(Date.now() + 86400000).toISOString(),
+          latest_score: 88,
+        },
+        {
+          id: 'prompt-gymshark-2',
+          project_id: 'project-gymshark-dtc',
+          query_text: "What are the best sweat-wicking t-shirts for heavy lifting sessions that won't show sweat marks?",
+          frequency: 'daily',
+          target_engines: ['gemini', 'claude'],
+          search_intent: 'informational',
+          brand_association: 'unbranded',
+          is_active: true,
+          last_run_at: new Date().toISOString(),
+          next_run_at: new Date(Date.now() + 86400000).toISOString(),
+          latest_score: 84,
+        },
+        {
+          id: 'prompt-gymshark-3',
+          project_id: 'project-gymshark-dtc',
+          query_text: 'Buy Gymshark oversized lifting hoodie for men - best colorways for fall?',
+          frequency: 'daily',
+          target_engines: ['gemini', 'claude'],
+          search_intent: 'transactional',
+          brand_association: 'branded',
+          is_active: true,
+          last_run_at: new Date().toISOString(),
+          next_run_at: new Date(Date.now() + 86400000).toISOString(),
+          latest_score: 91,
+        },
+        {
+          id: 'prompt-gymshark-4',
+          project_id: 'project-gymshark-dtc',
+          query_text: 'How do Gymshark sizes compare to Nike for lifting gear?',
+          frequency: 'weekly',
+          target_engines: ['gemini', 'claude'],
+          search_intent: 'commercial',
+          brand_association: 'branded',
+          is_active: true,
+          last_run_at: new Date().toISOString(),
+          next_run_at: new Date(Date.now() + 604800000).toISOString(),
+          latest_score: 86,
+        },
+        {
+          id: 'prompt-gymshark-5',
+          project_id: 'project-gymshark-dtc',
+          query_text: 'What gym wear brands offer the most durable performance leggings for squats?',
+          frequency: 'daily',
+          target_engines: ['gemini', 'claude'],
+          search_intent: 'informational',
+          brand_association: 'unbranded',
+          is_active: true,
+          last_run_at: new Date().toISOString(),
+          next_run_at: new Date(Date.now() + 86400000).toISOString(),
+          latest_score: 89,
+        },
+      ];
+      cookieStore.set('beacon_demo_prompts', JSON.stringify(gymsharkPrompts), {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      saveLocalPersona(
+        {
+          id: 'persona-alex-chen',
+          project_id: 'project-gymshark-dtc',
+          name: 'Alex Chen',
+          role_title: 'Dedicated Gym Lifter',
+          name_title: 'Alex Chen, Dedicated Gym Lifter',
+          age_demographics: '24-32 years old, trains 5-6 days/week, functional fitness & powerlifting',
+          background:
+            'Dedicated gym athlete who values workout performance, aesthetic fit, and high durability fabric.',
+          goals:
+            'Find squat-proof seamless gym leggings and sweat-wicking shirts that maintain shape and comfort through heavy workouts.',
+          pain_points:
+            'Waistbands slipping down during squats, thin fabric turning sheer, chafing seams, and fast fabric pilling.',
+          information_sources:
+            'Fitness YouTube reviews, Reddit r/gym, TikTok athletic wear roundups, AI search engines.',
+          buying_objections:
+            'Skeptical of durability compared to premium luxury brands like Lululemon, concerned about sizing consistency across drops.',
+          created_at: new Date().toISOString(),
+          system_prompt: '',
+          tone_traits: [],
+          is_system: false,
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        } as any,
+        'project-gymshark-dtc'
+      );
+
+      redirect('/dashboard');
+    }
+
+    // Auto-restore Datadog workspace
+    if (norm.includes('datadog')) {
+      const datadogProject = {
+        id: 'project-datadog-saas',
+        name: 'Datadog',
+        domain: 'datadoghq.com',
+        tier: 'starter',
+        brand_kit: {
+          industry: 'Cloud Observability & APM SaaS',
+          target_audience:
+            'DevOps leads, Site Reliability Engineers (SREs), platform engineering teams, and CTOs managing scalable multi-cloud infrastructure.',
+          core_offerings:
+            'Unified cloud infrastructure monitoring, APM distributed tracing, log management, Cloud SIEM, and synthetic monitoring for microservices.',
+          tone_of_voice: 'Technical & Precise',
+          competitors: [
+            { name: 'Dynatrace', domain: 'dynatrace.com' },
+            { name: 'New Relic', domain: 'newrelic.com' },
+            { name: 'Splunk', domain: 'splunk.com' },
+          ],
+        },
+      };
+      cookieStore.set('beacon_active_project', JSON.stringify(datadogProject), {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      const datadogPrompts = [
+        {
+          id: 'prompt-datadog-1',
+          project_id: 'project-datadog-saas',
+          query_text:
+            'Datadog vs New Relic vs Dynatrace for monitoring microservices in a multi-cloud environment',
+          frequency: 'daily',
+          target_engines: ['gemini', 'claude'],
+          search_intent: 'commercial',
+          brand_association: 'branded',
+          is_active: true,
+          last_run_at: new Date().toISOString(),
+          next_run_at: new Date(Date.now() + 86400000).toISOString(),
+          latest_score: 92,
+        },
+        {
+          id: 'prompt-datadog-2',
+          project_id: 'project-datadog-saas',
+          query_text: 'How do I calculate the total cost of ownership for Datadog log management at scale?',
+          frequency: 'daily',
+          target_engines: ['gemini', 'claude'],
+          search_intent: 'informational',
+          brand_association: 'branded',
+          is_active: true,
+          last_run_at: new Date().toISOString(),
+          next_run_at: new Date(Date.now() + 86400000).toISOString(),
+          latest_score: 87,
+        },
+        {
+          id: 'prompt-datadog-3',
+          project_id: 'project-datadog-saas',
+          query_text: 'What are the best observability platforms for Kubernetes-native environments?',
+          frequency: 'daily',
+          target_engines: ['gemini', 'claude'],
+          search_intent: 'commercial',
+          brand_association: 'unbranded',
+          is_active: true,
+          last_run_at: new Date().toISOString(),
+          next_run_at: new Date(Date.now() + 86400000).toISOString(),
+          latest_score: 90,
+        },
+        {
+          id: 'prompt-datadog-4',
+          project_id: 'project-datadog-saas',
+          query_text: 'How to implement Datadog synthetic monitoring for complex user journeys',
+          frequency: 'weekly',
+          target_engines: ['gemini', 'claude'],
+          search_intent: 'transactional',
+          brand_association: 'branded',
+          is_active: true,
+          last_run_at: new Date().toISOString(),
+          next_run_at: new Date(Date.now() + 604800000).toISOString(),
+          latest_score: 88,
+        },
+        {
+          id: 'prompt-datadog-5',
+          project_id: 'project-datadog-saas',
+          query_text: 'Can I replace my SIEM and APM tools with a single unified observability platform?',
+          frequency: 'daily',
+          target_engines: ['gemini', 'claude'],
+          search_intent: 'informational',
+          brand_association: 'unbranded',
+          is_active: true,
+          last_run_at: new Date().toISOString(),
+          next_run_at: new Date(Date.now() + 86400000).toISOString(),
+          latest_score: 85,
+        },
+      ];
+      cookieStore.set('beacon_demo_prompts', JSON.stringify(datadogPrompts), {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      saveLocalPersona(
+        {
+          id: 'persona-sarah-jenkins',
+          project_id: 'project-datadog-saas',
+          name: 'Sarah Jenkins',
+          role_title: 'Director of Platform Engineering',
+          name_title: 'Sarah Jenkins, Director of Platform Engineering',
+          age_demographics: '35-48 years old, 15+ years experience, leads SRE and Cloud Platform teams',
+          background:
+            'Oversees 24/7 reliability of high-throughput Kubernetes microservices, manages cloud observability budget across AWS and GCP.',
+          goals:
+            'Consolidate disparate monitoring silos into one single pane of glass, lower incident MTTR below 2 minutes, and gain distributed tracing.',
+          pain_points:
+            'Severe alert fatigue across engineering teams, bill shock from custom metric overages and log volume spikes during traffic surges.',
+          information_sources:
+            'Hacker News, CNCF community, Gartner APM Magic Quadrant, SRE peer roundtables, AI search engines.',
+          buying_objections:
+            'Fear of opaque consumption pricing models scaling exponentially, vendor lock-in, and agent daemon resource overhead on production nodes.',
+          created_at: new Date().toISOString(),
+          system_prompt: '',
+          tone_traits: [],
+          is_system: false,
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        } as any,
+        'project-datadog-saas'
+      );
+
+      redirect('/dashboard');
+    }
+
+    // Default fallback: check active project cookie
+    const activeProject = cookieStore.get('beacon_active_project');
+    const parsed = parseActiveProjectCookie(activeProject?.value);
+    if (!parsed) {
+      cookieStore.delete('beacon_active_project');
+      redirect('/onboarding');
     }
 
     redirect('/dashboard');
@@ -129,11 +369,14 @@ export async function signUpWithEmail(
 
   // Fallback for local development
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+    if (process.env.NODE_ENV === 'production') {
+      return { error: 'Authentication service is not configured.' };
+    }
     const cookieStore = await cookies();
     const userPayload = JSON.stringify({
       email,
       fullName: fullName || email.split('@')[0],
-      id: 'user-' + Date.now(),
+      id: 'demo-user-id',
     });
     cookieStore.set('beacon_demo_user', userPayload, {
       path: '/',
@@ -181,6 +424,9 @@ export async function signInWithGoogle() {
   const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+    if (process.env.NODE_ENV === 'production') {
+      redirect(`/login?error=${encodeURIComponent('Authentication service is not configured.')}`);
+    }
     const cookieStore = await cookies();
     const userPayload = JSON.stringify({
       email: 'demo.founder@company.ai',
@@ -190,12 +436,11 @@ export async function signInWithGoogle() {
     cookieStore.set('beacon_demo_user', userPayload, { path: '/', maxAge: 60 * 60 * 24 * 7 });
     cookieStore.set('beacon_auth_user', userPayload, { path: '/', maxAge: 60 * 60 * 24 * 7 });
 
-    const activeProject = cookieStore.get('beacon_active_project');
-    if (!activeProject) {
-      cookieStore.set('beacon_active_project', JSON.stringify(DEFAULT_DEMO_PROJECT), {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
+      const activeProject = cookieStore.get('beacon_active_project');
+    const parsed = parseActiveProjectCookie(activeProject?.value);
+    if (!parsed) {
+      cookieStore.delete('beacon_active_project');
+      redirect('/onboarding');
     }
 
     redirect('/dashboard');
@@ -219,18 +464,21 @@ export async function signInWithGoogle() {
 
 export async function signInAsDemo() {
   const cookieStore = await cookies();
-  cookieStore.set('beacon_active_project', JSON.stringify(DEFAULT_DEMO_PROJECT), {
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  });
 
   const demoUser = JSON.stringify({
-    email: 'demo@lululemon.com',
-    fullName: 'Lululemon Brand Director',
-    id: 'demo-user-id',
+    email: 'workspace.director@brand.com',
+    fullName: 'Brand Director',
+    id: 'user-' + Date.now(),
   });
   cookieStore.set('beacon_demo_user', demoUser, { path: '/', maxAge: 60 * 60 * 24 * 7 });
   cookieStore.set('beacon_auth_user', demoUser, { path: '/', maxAge: 60 * 60 * 24 * 7 });
+
+  const activeProject = cookieStore.get('beacon_active_project');
+  const parsed = parseActiveProjectCookie(activeProject?.value);
+  if (!parsed) {
+    cookieStore.delete('beacon_active_project');
+    redirect('/onboarding');
+  }
 
   redirect('/dashboard');
 }

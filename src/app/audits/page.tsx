@@ -8,6 +8,7 @@ import { Search, Clock, Cpu, TrendingUp } from 'lucide-react';
 import { AuditsClientView, type AuditPromptItem } from './audits-client';
 import type { BrandKit } from '@/types/database.types';
 import { getDemoPrompts } from '@/lib/demo-prompts';
+import { parseActiveProjectCookie, isLegacyMockProject } from '@/lib/project-utils';
 
 export default async function AuditsPage() {
   const cookieStore = await cookies();
@@ -31,7 +32,7 @@ export default async function AuditsPage() {
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if (projects && projects.length > 0) {
+      if (projects && projects.length > 0 && !isLegacyMockProject(projects[0])) {
         project = projects[0] as any;
 
         const { data: dbPrompts } = await supabase
@@ -51,11 +52,7 @@ export default async function AuditsPage() {
   if (!project) {
     const projectCookie = cookieStore.get('beacon_active_project');
     if (projectCookie?.value) {
-      try {
-        project = JSON.parse(projectCookie.value);
-      } catch {
-        project = null;
-      }
+      project = parseActiveProjectCookie(projectCookie.value);
     }
   }
 

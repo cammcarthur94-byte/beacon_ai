@@ -169,14 +169,14 @@ export function DashboardClientView({
     const activeEngines = selectedEngines.length > 0 && selectedEngines.length < allEngineIds.length
       ? initialEngineScores.filter((e) => selectedEngines.includes(e.engineId))
       : initialEngineScores;
-    const topEngineData = (activeEngines.length > 0 ? activeEngines : initialEngineScores).reduce(
-      (prev, curr) => (curr.brandScore > prev.brandScore ? curr : prev),
-      initialEngineScores[0]
-    );
+    const enginesToConsider = activeEngines.length > 0 ? activeEngines : initialEngineScores;
+    const topEngineData = enginesToConsider.length > 0
+      ? enginesToConsider.reduce((prev, curr) => (curr.brandScore > prev.brandScore ? curr : prev), enginesToConsider[0])
+      : null;
 
     // 2. Net Sentiment calculation aligned with distribution breakdown
-    const positiveSlice = initialSentimentSlices.find((s) => s.category === 'positive')?.value ?? 68;
-    const negativeSlice = initialSentimentSlices.find((s) => s.category === 'negative')?.value ?? 8;
+    const positiveSlice = initialSentimentSlices.find((s) => s.category === 'positive')?.value ?? 0;
+    const negativeSlice = initialSentimentSlices.find((s) => s.category === 'negative')?.value ?? 0;
     const baselineNetSentiment = positiveSlice - negativeSlice;
 
     const isFiltered = filteredRuns.length !== initialRuns.length || selectedSentimentCategory !== 'all';
@@ -229,9 +229,9 @@ export function DashboardClientView({
       totalCitations,
       citationsDelta,
       topEngine: {
-        name: topEngineData.engine,
-        score: topEngineData.brandScore,
-        winRate: topEngineData.brandScore,
+        name: topEngineData?.engine || 'None',
+        score: topEngineData?.brandScore || 0,
+        winRate: topEngineData?.brandScore || 0,
       },
     };
   }, [
@@ -251,9 +251,10 @@ export function DashboardClientView({
   const dynamicSovTrendData = useMemo(() => {
     const baseSov = initialSummaryMetrics.totalSov;
     const currentSov = dynamicSummaryMetrics.totalSov;
-    if (baseSov === 0 || currentSov === baseSov) return fullSovTrendData['30d'];
+    const baseData = fullSovTrendData['30d'] || [];
+    if (baseSov === 0 || currentSov === baseSov || baseData.length === 0) return baseData;
     const factor = currentSov / baseSov;
-    return fullSovTrendData['30d'].map((pt) => ({
+    return baseData.map((pt) => ({
       ...pt,
       brand: Math.min(100, Math.max(5, Math.round(pt.brand * factor * 10) / 10)),
     }));

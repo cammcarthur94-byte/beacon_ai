@@ -75,6 +75,7 @@ export function TabsTrigger({
   return (
     <button
       type="button"
+      data-value={value}
       disabled={disabled}
       onClick={() => context.onValueChange(value)}
       className={cn(

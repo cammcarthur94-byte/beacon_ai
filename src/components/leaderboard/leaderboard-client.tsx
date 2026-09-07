@@ -156,13 +156,13 @@ export function LeaderboardClient() {
                 #{data?.metrics.brandRank ?? 1}
               </span>
               <span className="text-sm font-semibold text-emerald-700">
-                {data?.metrics.brandSovShare ?? 37.4}% Share
+                {data?.metrics.brandSovShare ?? 0}% Share
               </span>
             </div>
             <div className="flex items-center gap-1.5 mt-2 text-xs">
               <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
               <span className="font-semibold text-emerald-700">
-                +{data?.metrics.brandSovDeltaWeekly ?? 4.2}%
+                {(data?.metrics.brandSovDeltaWeekly ?? 0) >= 0 ? `+${data?.metrics.brandSovDeltaWeekly ?? 0}` : `${data?.metrics.brandSovDeltaWeekly ?? 0}`}%
               </span>
               <span className="text-slate-400">vs prior period</span>
             </div>
@@ -182,7 +182,7 @@ export function LeaderboardClient() {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-2">
-              Leads with <span className="font-semibold text-slate-800">{data?.metrics.marketLeaderShare ?? 37.4}%</span> total organic AI search recommendations.
+              Leads with <span className="font-semibold text-slate-800">{data?.metrics.marketLeaderShare ?? 0}%</span> total organic AI search recommendations.
             </p>
           </CardContent>
         </Card>
@@ -196,11 +196,11 @@ export function LeaderboardClient() {
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold text-slate-900 font-sans">
-                {data?.metrics.totalIndustryCitations ? data.metrics.totalIndustryCitations.toLocaleString() : '3,795'}
+                {data?.metrics.totalIndustryCitations ? data.metrics.totalIndustryCitations.toLocaleString() : '0'}
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-2">
-              Across <span className="font-semibold text-slate-800">{data?.metrics.activeTrackedPrompts ?? 38}</span> target searches &amp; 5 AI tools.
+              Across <span className="font-semibold text-slate-800">{data?.metrics.activeTrackedPrompts ?? 0}</span> target searches &amp; 5 AI tools.
             </p>
           </CardContent>
         </Card>
@@ -214,12 +214,14 @@ export function LeaderboardClient() {
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold text-emerald-700 font-sans">
-                +9.1%
+                {(data?.metrics.brandSovDeltaWeekly ?? 0) >= 0 ? `+${data?.metrics.brandSovDeltaWeekly ?? 0}` : `${data?.metrics.brandSovDeltaWeekly ?? 0}`}%
               </span>
               <span className="text-xs font-mono text-slate-400">30D DELTA</span>
             </div>
             <p className="text-xs text-slate-500 mt-2">
-              Citations expanding most rapidly in <span className="font-semibold text-slate-800">Google AI Overviews</span>.
+              {data?.metrics.totalIndustryCitations && data.metrics.totalIndustryCitations > 0
+                ? 'Citations expanding across indexed AI answer engines.'
+                : 'No citation momentum recorded yet.'}
             </p>
           </CardContent>
         </Card>
@@ -302,7 +304,7 @@ export function LeaderboardClient() {
             </CardDescription>
           </div>
           <Badge variant="outline" className="border-slate-200 bg-white text-slate-600 font-mono text-[11px]">
-            {filteredLeaderboard.length} Competitors Tracked
+            {filteredLeaderboard.filter((e) => !e.isCurrentBrand).length} Competitors Tracked
           </Badge>
         </CardHeader>
 
@@ -320,7 +322,18 @@ export function LeaderboardClient() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredLeaderboard.map((entry) => {
+              {filteredLeaderboard.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-48 text-center text-slate-500 text-xs font-sans">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Trophy className="h-8 w-8 text-slate-300" />
+                      <p className="font-semibold text-slate-700">No leaderboard entries recorded</p>
+                      <p className="text-slate-400">Run audit prompts to calculate your brand's AI recommendation share versus competitors.</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredLeaderboard.map((entry) => {
                 const rankDelta = entry.previousRank - entry.rank;
                 return (
                   <TableRow
@@ -491,7 +504,7 @@ export function LeaderboardClient() {
                     </TableCell>
                   </TableRow>
                 );
-              })}
+              }))}
             </TableBody>
           </Table>
         </div>

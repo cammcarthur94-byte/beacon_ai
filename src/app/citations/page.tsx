@@ -8,6 +8,8 @@ import type { CitationSummaryMetrics } from '@/components/citations/citation-met
 import type { SourceDistributionDataPoint } from '@/components/citations/source-distribution-chart';
 import type { CitationVelocityDataPoint } from '@/components/citations/citation-velocity-chart';
 import type { DomainCitationRow } from '@/components/citations/citations-ledger-table';
+import { parseActiveProjectCookie, isLegacyMockProject } from '@/lib/project-utils';
+import { getDemoPrompts, generateContextualAuditRuns } from '@/lib/demo-prompts';
 
 export default async function CitationsPage() {
   const cookieStore = await cookies();
@@ -32,7 +34,7 @@ export default async function CitationsPage() {
         .limit(1)
         .single();
 
-      if (dbProject) {
+      if (dbProject && !isLegacyMockProject(dbProject)) {
         project = dbProject as any;
 
         const { data: citations } = await supabase
@@ -52,11 +54,7 @@ export default async function CitationsPage() {
   if (!project) {
     const projectCookie = cookieStore.get('beacon_active_project');
     if (projectCookie?.value) {
-      try {
-        project = JSON.parse(projectCookie.value);
-      } catch {
-        project = null;
-      }
+      project = parseActiveProjectCookie(projectCookie.value);
     }
   }
 
@@ -76,6 +74,39 @@ export default async function CitationsPage() {
     rawIndustry.includes('fitness') ||
     rawIndustry.includes('athleisure') ||
     brandName.toLowerCase().includes('nike');
+
+  // Local demo fallback: Extract citations from prompt runs
+  if (dbCitations.length === 0 && project) {
+    const demoPrompts = getDemoPrompts(cookieStore, project);
+    const extractedCitations: any[] = [];
+    demoPrompts.forEach((dp) => {
+      const pRuns = dp.runs && dp.runs.length > 0 ? dp.runs : generateContextualAuditRuns(dp, project);
+      pRuns.forEach((r) => {
+        (r.citedUrls || []).forEach((u, idx) => {
+          let domain = 'web';
+          let st: CitationSourceType = 'blog';
+          try {
+            domain = new URL(u).hostname.replace(/^www\./, '');
+          } catch {}
+          if (domain.includes('reddit') || domain.includes('trustpilot')) st = 'forum';
+          else if (domain.includes('techcrunch') || domain.includes('forbes') || domain.includes('bloomberg') || domain.includes('news')) st = 'news';
+          else if (domain.includes('docs') || domain.includes('github')) st = 'documentation';
+          else if (domain.includes('youtube') || domain.includes('twitter') || domain.includes('instagram')) st = 'social';
+
+          extractedCitations.push({
+            id: `${r.id}-cit-${idx}`,
+            project_id: project.id,
+            url: u,
+            domain,
+            source_type: st,
+            engine: r.engine,
+            created_at: r.createdAt || new Date().toISOString(),
+          });
+        });
+      });
+    });
+    dbCitations = extractedCitations;
+  }
 
   // 3. Aggregate or provide rich fallback telemetry data
   let metrics: CitationSummaryMetrics;
@@ -186,334 +217,18 @@ export default async function CitationsPage() {
       };
     });
   } else {
-    // Rich industry-authentic simulated dataset for demo
-    const MOCK_BASE_TIME = Date.now();
-    if (isConsumerRetail) {
-      metrics = {
-        totalCitations: 162,
-        citationsDelta: 28,
-        uniqueDomains: 38,
-        domainsDelta: 9,
-        topSourceType: 'news',
-        topSourcePercent: 44,
-        averageProminence: 91,
-      };
-
-      sourceDistribution = [
-        { sourceType: 'news', count: 71, percentage: 44 },
-        { sourceType: 'forum', count: 42, percentage: 26 },
-        { sourceType: 'blog', count: 26, percentage: 16 },
-        { sourceType: 'social', count: 15, percentage: 9 },
-        { sourceType: 'documentation', count: 8, percentage: 5 },
-      ];
-
-      velocity = [
-        { period: 'Aug 04 - 10', newCitations: 25, newsCitations: 11, forumCitations: 7 },
-        { period: 'Aug 11 - 17', newCitations: 36, newsCitations: 16, forumCitations: 9 },
-        { period: 'Aug 18 - 24', newCitations: 45, newsCitations: 20, forumCitations: 12 },
-        { period: 'Aug 25 - 31', newCitations: 56, newsCitations: 24, forumCitations: 14 },
-      ];
-
-      domainRows = [
-        {
-          domain: 'womenshealthmag.com',
-          sourceType: 'news',
-          totalMentions: 34,
-          recentUrl: `https://womenshealthmag.com/fitness/best-yoga-leggings-tested-and-reviewed`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 90).toISOString(),
-          engines: ['chatgpt', 'perplexity', 'gemini'],
-          allCitations: [
-            {
-              id: 'c-wh-1',
-              url: `https://womenshealthmag.com/fitness/best-yoga-leggings-tested-and-reviewed`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 90).toISOString(),
-              engine: 'Perplexity',
-            },
-            {
-              id: 'c-wh-2',
-              url: `https://womenshealthmag.com/fitness/best-leggings-comparison-guide`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 2).toISOString(),
-              engine: 'ChatGPT',
-            },
-            {
-              id: 'c-wh-3',
-              url: `https://womenshealthmag.com/fitness/top-apparel-brands`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 1).toISOString(),
-              engine: 'Copilot',
-            },
-          ],
-        },
-        {
-          domain: 'reddit.com',
-          sourceType: 'forum',
-          totalMentions: 28,
-          recentUrl: `https://reddit.com/r/activewear/comments/durability_review_2026`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 180).toISOString(),
-          engines: ['perplexity', 'chatgpt', 'copilot', 'copilot_search'],
-          allCitations: [
-            {
-              id: 'c-rd-1',
-              url: `https://reddit.com/r/activewear/comments/durability_review_2026`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 180).toISOString(),
-              engine: 'Perplexity',
-            },
-            {
-              id: 'c-rd-2',
-              url: `https://reddit.com/r/xxfitness/comments/squat_proof_leggings_recommendations`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 3).toISOString(),
-              engine: 'ChatGPT',
-            },
-            {
-              id: 'c-rd-3',
-              url: `https://reddit.com/r/reviews/comments/brand_recommendation_megathread`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 2).toISOString(),
-              engine: 'Copilot Search',
-            },
-          ],
-        },
-        {
-          domain: 'thestrategist.com',
-          sourceType: 'news',
-          totalMentions: 24,
-          recentUrl: `https://thestrategist.com/article/best-high-waisted-workout-leggings-review`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 420).toISOString(),
-          engines: ['gemini', 'chatgpt', 'claude', 'copilot'],
-          allCitations: [
-            {
-              id: 'c-st-1',
-              url: `https://thestrategist.com/article/best-high-waisted-workout-leggings-review`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 420).toISOString(),
-              engine: 'Gemini',
-            },
-          ],
-        },
-        {
-          domain: 'gq.com',
-          sourceType: 'news',
-          totalMentions: 20,
-          recentUrl: `https://gq.com/story/best-mens-athletic-pants-and-joggers-roundup`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 720).toISOString(),
-          engines: ['perplexity', 'gemini', 'copilot_search'],
-        },
-        {
-          domain: 'runnersworld.com',
-          sourceType: 'news',
-          totalMentions: 17,
-          recentUrl: `https://runnersworld.com/gear/best-sweat-wicking-running-tights`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440).toISOString(),
-          engines: ['chatgpt', 'claude', 'copilot'],
-        },
-        {
-          domain: 'youtube.com',
-          sourceType: 'social',
-          totalMentions: 15,
-          recentUrl: `https://youtube.com/watch?v=leggings-squat-test-and-wear-review`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 2).toISOString(),
-          engines: ['perplexity', 'chatgpt'],
-        },
-        {
-          domain: 'shape.com',
-          sourceType: 'news',
-          totalMentions: 12,
-          recentUrl: `https://shape.com/fitness/gear/pilates-instructors-favorite-leggings`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 3).toISOString(),
-          engines: ['claude', 'gemini'],
-        },
-        {
-          domain: 'byrdie.com',
-          sourceType: 'blog',
-          totalMentions: 10,
-          recentUrl: `https://byrdie.com/best-athleisure-brands-everyday-wear`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 4).toISOString(),
-          engines: ['perplexity', 'gemini'],
-        },
-        {
-          domain: 'retaildive.com',
-          sourceType: 'news',
-          totalMentions: 8,
-          recentUrl: `https://retaildive.com/news/athleisure-market-share-and-expansion`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 5).toISOString(),
-          engines: ['chatgpt', 'claude', 'copilot'],
-        },
-        {
-          domain: 'quora.com',
-          sourceType: 'forum',
-          totalMentions: 6,
-          recentUrl: `https://quora.com/Are-high-end-workout-leggings-worth-the-money`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 6).toISOString(),
-          engines: ['perplexity'],
-        },
-        {
-          domain: 'patents.google.com',
-          sourceType: 'documentation',
-          totalMentions: 5,
-          recentUrl: `https://patents.google.com/patent/US9234567B2/en-breathable-technical-fabric`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 7).toISOString(),
-          engines: ['perplexity', 'gemini'],
-          allCitations: [
-            {
-              id: 'c-pt-1',
-              url: `https://patents.google.com/patent/US9234567B2/en-breathable-technical-fabric`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 7).toISOString(),
-              engine: 'Perplexity',
-            },
-          ],
-        },
-        {
-          domain: 'docs.example.com',
-          sourceType: 'documentation',
-          totalMentions: 3,
-          recentUrl: `https://docs.example.com/specifications`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 8).toISOString(),
-          engines: ['chatgpt', 'copilot'],
-          allCitations: [
-            {
-              id: 'c-dev-1',
-              url: `https://docs.example.com/specifications`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 8).toISOString(),
-              engine: 'ChatGPT',
-            },
-          ],
-        },
-      ];
-    } else {
-      // Tech & SaaS profile
-      metrics = {
-        totalCitations: 148,
-        citationsDelta: 24,
-        uniqueDomains: 34,
-        domainsDelta: 8,
-        topSourceType: 'news',
-        topSourcePercent: 42,
-        averageProminence: 88,
-      };
-
-      sourceDistribution = [
-        { sourceType: 'news', count: 62, percentage: 42 },
-        { sourceType: 'forum', count: 38, percentage: 26 },
-        { sourceType: 'blog', count: 24, percentage: 16 },
-        { sourceType: 'documentation', count: 15, percentage: 10 },
-        { sourceType: 'social', count: 9, percentage: 6 },
-      ];
-
-      velocity = [
-        { period: 'Aug 04 - 10', newCitations: 22, newsCitations: 9, forumCitations: 6 },
-        { period: 'Aug 11 - 17', newCitations: 31, newsCitations: 14, forumCitations: 8 },
-        { period: 'Aug 18 - 24', newCitations: 42, newsCitations: 18, forumCitations: 11 },
-        { period: 'Aug 25 - 31', newCitations: 53, newsCitations: 21, forumCitations: 13 },
-      ];
-
-      domainRows = [
-        {
-          domain: 'techcrunch.com',
-          sourceType: 'news',
-          totalMentions: 28,
-          recentUrl: `https://techcrunch.com/2026/01/enterprise-aeo-platforms-${brandName.toLowerCase()}`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 180).toISOString(),
-          engines: ['perplexity', 'chatgpt'],
-          allCitations: [
-            {
-              id: 'c-tc-1',
-              url: `https://techcrunch.com/2026/01/enterprise-aeo-platforms-${brandName.toLowerCase()}`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 180).toISOString(),
-              engine: 'Perplexity',
-            },
-            {
-              id: 'c-tc-2',
-              url: `https://techcrunch.com/2026/02/the-future-of-generative-engine-optimization/`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 3).toISOString(),
-              engine: 'ChatGPT',
-            },
-          ],
-        },
-        {
-          domain: 'reddit.com',
-          sourceType: 'forum',
-          totalMentions: 22,
-          recentUrl: `https://reddit.com/r/SaaS/comments/best_tools_to_track_chatgpt_citations`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 340).toISOString(),
-          engines: ['perplexity', 'gemini'],
-          allCitations: [
-            {
-              id: 'c-rd-1',
-              url: `https://reddit.com/r/SaaS/comments/best_tools_to_track_chatgpt_citations`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 340).toISOString(),
-              engine: 'Perplexity',
-            },
-            {
-              id: 'c-rd-2',
-              url: `https://reddit.com/r/SEO/comments/aeo_vs_geo_rankings_in_2026`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 2).toISOString(),
-              engine: 'Gemini',
-            },
-          ],
-        },
-        {
-          domain: 'forbes.com',
-          sourceType: 'news',
-          totalMentions: 19,
-          recentUrl: `https://forbes.com/sites/technology/how-enterprises-reclaim-brand-voice-in-ai/`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 720).toISOString(),
-          engines: ['claude', 'chatgpt'],
-          allCitations: [
-            {
-              id: 'c-fb-1',
-              url: `https://forbes.com/sites/technology/how-enterprises-reclaim-brand-voice-in-ai/`,
-              createdAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 720).toISOString(),
-              engine: 'Claude',
-            },
-          ],
-        },
-        {
-          domain: 'medium.com',
-          sourceType: 'blog',
-          totalMentions: 14,
-          recentUrl: `https://medium.com/@growth_aeo/the-state-of-answer-engine-prominence-${brandName.toLowerCase()}`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440).toISOString(),
-          engines: ['perplexity', 'claude'],
-        },
-        {
-          domain: 'theverge.com',
-          sourceType: 'news',
-          totalMentions: 12,
-          recentUrl: `https://theverge.com/2026/how-search-engines-cite-authoritative-sources`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 2).toISOString(),
-          engines: ['gemini', 'perplexity'],
-        },
-        {
-          domain: 'news.ycombinator.com',
-          sourceType: 'forum',
-          totalMentions: 10,
-          recentUrl: `https://news.ycombinator.com/item?id=38914210`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 3).toISOString(),
-          engines: ['perplexity', 'chatgpt'],
-        },
-        {
-          domain: 'substack.com',
-          sourceType: 'blog',
-          totalMentions: 8,
-          recentUrl: `https://technewsletter.substack.com/p/the-shift-from-serp-to-conversational-agents`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 4).toISOString(),
-          engines: ['claude'],
-        },
-        {
-          domain: 'twitter.com',
-          sourceType: 'social',
-          totalMentions: 6,
-          recentUrl: `https://twitter.com/ai_insights/status/1749201840192`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 5).toISOString(),
-          engines: ['gemini'],
-        },
-        {
-          domain: 'quora.com',
-          sourceType: 'forum',
-          totalMentions: 5,
-          recentUrl: `https://quora.com/What-is-the-best-ai-search-software-in-2026`,
-          lastCitedAt: new Date(MOCK_BASE_TIME - 1000 * 60 * 1440 * 6).toISOString(),
-          engines: ['perplexity'],
-        },
-      ];
-    }
+    metrics = {
+      totalCitations: 0,
+      citationsDelta: 0,
+      uniqueDomains: 0,
+      domainsDelta: 0,
+      topSourceType: 'None' as any,
+      topSourcePercent: 0,
+      averageProminence: 0,
+    };
+    sourceDistribution = [];
+    velocity = [];
+    domainRows = [];
   }
 
   return (

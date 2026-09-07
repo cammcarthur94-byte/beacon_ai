@@ -76,30 +76,23 @@ export async function POST(request: NextRequest) {
 
     const fallbackProject = {
       id: 'default-workspace-project',
-      name: 'Alo Yoga',
-      domain: 'aloyoga.com',
-      tier: 'enterprise',
+      name: 'My Brand',
+      domain: 'example.com',
+      tier: 'starter',
       brand_kit: {
-        industry: 'Apparel & Athleisure',
-        target_audience: 'Mindful movement practitioners and yoga lifestyle consumers',
-        core_offerings: 'High-performance activewear, studio leggings, mindful movement gear',
-        tone_of_voice: 'Authoritative, mindful, and data-driven',
+        industry: 'Technology & Business',
+        target_audience: 'Modern teams and decision makers',
+        core_offerings: 'Innovative solutions and services',
+        tone_of_voice: 'Professional, Authoritative, and Direct',
         tone_dimensions: {
-          formal_casual: 30,
-          technical_accessible: 35,
-          bold_understated: 25,
-          analytical_inspiring: 35,
+          formal_casual: 50,
+          technical_accessible: 50,
+          bold_understated: 50,
+          analytical_inspiring: 50,
         },
-        messaging_pillars: [
-          'Closing generative search citation gaps',
-          'Empirical benchmarking over legacy marketing claims',
-          'Mindful movement ergonomics and durability',
-        ],
-        negative_keywords: ['cheap', 'miracle cure', 'guaranteed rankings', 'secret hack'],
-        competitors: [
-          { name: 'Vuori', domain: 'vuoriclothing.com' },
-          { name: 'Athleta', domain: 'athleta.gap.com' },
-        ],
+        messaging_pillars: [],
+        negative_keywords: [],
+        competitors: [],
       },
     };
 

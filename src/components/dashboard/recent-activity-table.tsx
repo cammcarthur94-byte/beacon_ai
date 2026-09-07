@@ -249,11 +249,15 @@ export function RecentActivityTable({
             <TableBody>
               {runs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-zinc-500 text-xs font-mono">
+                  <TableCell colSpan={7} className="text-center py-12 text-zinc-500 text-xs font-sans">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Filter className="h-6 w-6 text-zinc-400" />
-                      <span>No searches match your current filter criteria.</span>
-                      {hasTableFilters && (
+                      <span className="font-medium text-zinc-700">
+                        {hasTableFilters
+                          ? 'No searches match your current filter criteria.'
+                          : 'No audit searches recorded yet.'}
+                      </span>
+                      {hasTableFilters ? (
                         <button
                           type="button"
                           onClick={onResetTableFilters}
@@ -261,6 +265,10 @@ export function RecentActivityTable({
                         >
                           Clear table filters
                         </button>
+                      ) : (
+                        <span className="text-xs text-zinc-400 max-w-sm">
+                          Run prompt audits to view live engine responses, scores, and cited sources.
+                        </span>
                       )}
                     </div>
                   </TableCell>

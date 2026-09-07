@@ -93,10 +93,7 @@ export async function generateProjectReportAction(
           industry: 'Technology & Business',
           target_audience: 'Modern enterprise teams and decision makers',
           core_offerings: 'Autonomous AI Search & Brand Optimization',
-          competitors: [
-            { name: 'Competitor Alpha', domain: 'competitor-alpha.com' },
-            { name: 'Competitor Beta', domain: 'competitor-beta.com' },
-          ],
+          competitors: [],
           tone_of_voice: 'Professional, Authoritative, and Direct',
         },
       };
@@ -108,13 +105,22 @@ export async function generateProjectReportAction(
       industry: 'Technology & Business',
       target_audience: 'Modern enterprise teams and decision makers',
       core_offerings: 'Autonomous AI Search & Brand Optimization',
-      competitors: [
-        { name: 'Competitor Alpha', domain: 'competitor-alpha.com' },
-        { name: 'Competitor Beta', domain: 'competitor-beta.com' },
-      ],
+      competitors: [],
       tone_of_voice: 'Professional, Authoritative, and Direct',
     };
     const industry = brandKit.industry || 'Technology & Business';
+
+    if (dbPrompts.length === 0) {
+      const demoPromptsCookie = cookieStore.get('beacon_demo_prompts');
+      if (demoPromptsCookie?.value) {
+        try {
+          const list = JSON.parse(demoPromptsCookie.value);
+          if (Array.isArray(list)) {
+            dbPrompts = list.map((p: any) => ({ id: p.id, query_text: p.query_text }));
+          }
+        } catch {}
+      }
+    }
 
     // 3. Pre-process and consolidate data to respect LLM context size
     const engineScores: Record<string, { totalScore: number; count: number }> = {};
@@ -134,17 +140,6 @@ export async function generateProjectReportAction(
         else if (sent === 'negative') negativeCount++;
         else neutralCount++;
       });
-    } else {
-      // Default baseline counts for demo
-      engineScores['perplexity'] = { totalScore: 94, count: 1 };
-      engineScores['chatgpt'] = { totalScore: 88, count: 1 };
-      engineScores['copilot'] = { totalScore: 86, count: 1 };
-      engineScores['copilot_search'] = { totalScore: 90, count: 1 };
-      engineScores['gemini'] = { totalScore: 84, count: 1 };
-      engineScores['claude'] = { totalScore: 74, count: 1 };
-      positiveCount = 18;
-      neutralCount = 4;
-      negativeCount = 1;
     }
 
     // Citations Aggregation
@@ -153,28 +148,6 @@ export async function generateProjectReportAction(
       dbCitations.forEach((c) => {
         domainCountMap[c.domain] = (domainCountMap[c.domain] || 0) + 1;
       });
-    } else {
-      // Industry-conscious default citation domains
-      const isRetail =
-        industry.toLowerCase().includes('retail') ||
-        industry.toLowerCase().includes('commerce') ||
-        industry.toLowerCase().includes('apparel') ||
-        industry.toLowerCase().includes('athleisure') ||
-        industry.toLowerCase().includes('fitness');
-      if (isRetail) {
-        domainCountMap['womenshealthmag.com'] = 34;
-        domainCountMap['reddit.com'] = 28;
-        domainCountMap['thestrategist.com'] = 24;
-        domainCountMap['gq.com'] = 20;
-        domainCountMap['runnersworld.com'] = 17;
-        domainCountMap['shape.com'] = 12;
-      } else {
-        domainCountMap['techcrunch.com'] = 24;
-        domainCountMap['reddit.com'] = 18;
-        domainCountMap['forbes.com'] = 14;
-        domainCountMap['medium.com'] = 11;
-        domainCountMap['theverge.com'] = 7;
-      }
     }
 
     const sortedDomains = Object.entries(domainCountMap)
@@ -183,18 +156,11 @@ export async function generateProjectReportAction(
       .map(([dom, count]) => ({ domain: dom, count }));
 
     // Prompts List
-    const promptList = dbPrompts.length > 0
-      ? dbPrompts.map((p) => p.query_text)
-      : [
-          `Best ${industry} brand in 2026`,
-          `How does ${brandName} compare to ${brandKit.competitors?.[0]?.name || 'competitors'}`,
-          `Top recommended ${brandKit.core_offerings || industry}`,
-          `Where to buy authentic ${brandKit.core_offerings || industry}`,
-        ];
+    const promptList = dbPrompts.length > 0 ? dbPrompts.map((p) => p.query_text) : [];
 
     const competitorsList = brandKit.competitors && brandKit.competitors.length > 0
       ? brandKit.competitors.map((c) => c.name)
-      : ['Competitor Alpha', 'Competitor Beta'];
+      : [];
 
     // 4. Forceful Context Anchor System Prompt
     const systemPrompt = `You are generating an executive GEO audit report for ${brandName}, operating in the ${industry} vertical. All grounding anchors, competitor references, and publication gap recommendations MUST be authentic to this industry. Under no circumstances suggest B2B tech platforms like GitHub or arXiv unless the brand belongs to that vertical.
@@ -272,9 +238,9 @@ Brand Details:
               actionableStrategy: `Launch an authorized community engagement program addressing sizing, durability, fabric care, and longevity questions on consumer review boards.`,
             },
             {
-              targetType: 'Structured Technical Fabric Specification Tables (Nulu™, Everlux™, Luxtreme™)',
-              description: `Missing structured product attribute comparison tables, leading answer engines to default to competitors for fabric compression and waistband specs.`,
-              actionableStrategy: `Publish verified side-by-side spec comparison tables with schema.org/Product markup comparing compression, opacity, waistband rise, and pricing.`,
+              targetType: 'Structured Technical Attribute & Specification Tables',
+              description: `Missing structured product attribute comparison tables, leading answer engines to default to competitors for technical specifications.`,
+              actionableStrategy: `Publish verified side-by-side spec comparison tables with schema.org/Product markup comparing materials, specifications, and pricing.`,
             },
           ]
         : [

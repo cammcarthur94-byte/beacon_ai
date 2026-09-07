@@ -6,6 +6,7 @@ import {
   getAllTrackedAndDiscoveredCompetitors,
   type DiscoveredCompetitorItem,
 } from '@/lib/competitors/discovered-competitors';
+import { parseActiveProjectCookie, isLegacyMockProject } from '@/lib/project-utils';
 
 export interface CompetitorSovEntry {
   id: string;
@@ -91,12 +92,13 @@ export async function GET(request: NextRequest) {
     if (!project) {
       const projectCookie = cookieStore.get('beacon_active_project');
       if (projectCookie?.value) {
-        try {
-          project = JSON.parse(projectCookie.value);
-        } catch {
-          project = null;
+        project = parseActiveProjectCookie(projectCookie.value);
+        if (!project) {
+          cookieStore.delete('beacon_active_project');
         }
       }
+    } else if (isLegacyMockProject(project)) {
+      project = null;
     }
 
     const fallbackProject = {
@@ -109,11 +111,7 @@ export async function GET(request: NextRequest) {
         target_audience: 'Modern enterprise teams and decision makers',
         core_offerings: 'Autonomous AI Search & Brand Optimization',
         tone_of_voice: 'Professional, Authoritative, and Direct',
-        competitors: [
-          { name: 'Competitor Alpha', domain: 'competitor-alpha.com' },
-          { name: 'Competitor Beta', domain: 'competitor-beta.com' },
-          { name: 'Competitor Gamma', domain: 'competitor-gamma.com' },
-        ],
+        competitors: [],
       },
     };
 
@@ -121,20 +119,35 @@ export async function GET(request: NextRequest) {
     const brandName = activeProject.name;
     const brandDomain = activeProject.domain;
     const industry = activeProject.brand_kit?.industry || 'Technology & Business';
-    const isConsumer =
-      industry.toLowerCase().includes('retail') ||
-      industry.toLowerCase().includes('apparel') ||
-      industry.toLowerCase().includes('fitness') ||
-      industry.toLowerCase().includes('fashion');
 
     let dbCitations: any[] = [];
-    if (supabaseUrl && !supabaseUrl.includes('placeholder') && project?.id) {
+    if (supabaseUrl && !supabaseUrl.includes('placeholder') && activeProject?.id) {
       const { data } = await supabase
         .from('citations')
         .select('*')
-        .eq('project_id', project.id);
+        .eq('project_id', activeProject.id);
       if (data && data.length > 0) {
         dbCitations = data;
+      }
+    }
+
+    let activeTrackedPrompts = 0;
+    if (supabaseUrl && !supabaseUrl.includes('placeholder') && activeProject?.id) {
+      const { count } = await supabase
+        .from('prompts')
+        .select('id', { count: 'exact', head: true })
+        .eq('project_id', activeProject.id);
+      if (typeof count === 'number') {
+        activeTrackedPrompts = count;
+      }
+    }
+    if (activeTrackedPrompts === 0) {
+      const demoPromptsCookie = cookieStore.get('beacon_demo_prompts');
+      if (demoPromptsCookie?.value) {
+        try {
+          const list = JSON.parse(demoPromptsCookie.value);
+          if (Array.isArray(list)) activeTrackedPrompts = list.length;
+        } catch {}
       }
     }
 
@@ -156,7 +169,7 @@ export async function GET(request: NextRequest) {
       } catch {}
     }
 
-    // 2. Resolve all competitors: configured brand kit competitors + extra AI-discovered + organic AI rivals
+    // 2. Resolve all competitors: configured brand kit competitors + extra AI-discovered
     const resolvedCompetitors = getAllTrackedAndDiscoveredCompetitors({
       brandKit: activeProject.brand_kit,
       brandName,
@@ -164,194 +177,6 @@ export async function GET(request: NextRequest) {
       extraDiscovered,
     });
 
-    // Preset deep intelligence metrics for known competitors
-    const competitorPresets: Record<string, {
-      citations: number;
-      dominantKeywords: string[];
-      topCitedSources: string[];
-      sentimentScore: number;
-      weeklyDelta: number;
-      monthlyDelta: number;
-      engineDistribution: {
-        chatgpt: number;
-        copilot: number;
-        copilot_search: number;
-        gemini: number;
-        claude: number;
-        perplexity: number;
-        google_ai_overview: number;
-        google_ai_mode: number;
-      };
-    }> = {
-      'aloyoga.com': {
-        citations: 1180,
-        dominantKeywords: ['studio activewear', 'celebrity street style', 'airlift leggings', 'verified luxury athleisure'],
-        topCitedSources: ['popsugar.com', 'whowhatwear.com', 'elle.com', 'shape.com'],
-        sentimentScore: 0.72,
-        weeklyDelta: -1.8,
-        monthlyDelta: +2.4,
-        engineDistribution: { chatgpt: 340, copilot: 320, copilot_search: 330, gemini: 310, claude: 240, perplexity: 180, google_ai_overview: 75, google_ai_mode: 35 },
-      },
-      'vuoriclothing.com': {
-        citations: 740,
-        dominantKeywords: ['everyday casual comfort', 'kore short performance', 'meta pant commuter', 'dreamknit softness'],
-        topCitedSources: ['gq.com', 'gearpatrol.com', 'menshealth.com', 'wsj.com/buyside'],
-        sentimentScore: 0.79,
-        weeklyDelta: +2.1,
-        monthlyDelta: +5.6,
-        engineDistribution: { chatgpt: 210, copilot: 205, copilot_search: 200, gemini: 200, claude: 150, perplexity: 110, google_ai_overview: 45, google_ai_mode: 25 },
-      },
-      'athleta.gap.com': {
-        citations: 455,
-        dominantKeywords: ['size inclusive collection', 'powervita fabric weave', 'sustainable yoga wear', 'durability test'],
-        topCitedSources: ['health.com', 'self.com', 'forbes.com/vetted', 'realsimple.com'],
-        sentimentScore: 0.68,
-        weeklyDelta: -0.9,
-        monthlyDelta: -3.2,
-        engineDistribution: { chatgpt: 102, copilot: 120, copilot_search: 110, gemini: 142, claude: 75, perplexity: 71, google_ai_overview: 40, google_ai_mode: 15 },
-      },
-      'nike.com': {
-        citations: 890,
-        dominantKeywords: ['dri-fit compression technology', 'global athletic footwear', 'training leggings', 'marathon running specs'],
-        topCitedSources: ['runnersworld.com', 'complex.com', 'espn.com', 'wired.com'],
-        sentimentScore: 0.81,
-        weeklyDelta: +3.2,
-        monthlyDelta: +7.4,
-        engineDistribution: { chatgpt: 260, copilot: 240, copilot_search: 250, gemini: 235, claude: 190, perplexity: 140, google_ai_overview: 65, google_ai_mode: 30 },
-      },
-      'beyondyoga.com': {
-        citations: 380,
-        dominantKeywords: ['spacedye buttery soft leggings', 'inclusive maternity activewear', 'studio crop tanks', 'local manufacturing'],
-        topCitedSources: ['shape.com', 'popsugar.com', 'wellandgood.com', 'whowhatwear.com'],
-        sentimentScore: 0.76,
-        weeklyDelta: +1.2,
-        monthlyDelta: +3.9,
-        engineDistribution: { chatgpt: 110, copilot: 95, copilot_search: 100, gemini: 105, claude: 70, perplexity: 60, google_ai_overview: 30, google_ai_mode: 15 },
-      },
-      'gymshark.com': {
-        citations: 620,
-        dominantKeywords: ['seamless gym leggings', 'powerlifting athletic wear', 'weightlifting shorts', 'tiktok fitness drops'],
-        topCitedSources: ['menshealth.com', 'barbend.com', 'tiktok.com', 't-nation.com'],
-        sentimentScore: 0.74,
-        weeklyDelta: +0.8,
-        monthlyDelta: +4.2,
-        engineDistribution: { chatgpt: 180, copilot: 165, copilot_search: 170, gemini: 160, claude: 125, perplexity: 95, google_ai_overview: 40, google_ai_mode: 20 },
-      },
-      'salesforce.com': {
-        citations: 920,
-        dominantKeywords: ['agentforce autonomous ai', 'enterprise crm benchmarks', 'data cloud analytics', 'workflow integration'],
-        topCitedSources: ['techcrunch.com', 'gartner.com', 'forbes.com', 'zdnet.com'],
-        sentimentScore: 0.78,
-        weeklyDelta: +2.8,
-        monthlyDelta: +5.5,
-        engineDistribution: { chatgpt: 270, copilot: 250, copilot_search: 260, gemini: 240, claude: 195, perplexity: 150, google_ai_overview: 70, google_ai_mode: 35 },
-      },
-      'hubspot.com': {
-        citations: 740,
-        dominantKeywords: ['inbound marketing suite', 'customer success hub', 'smb crm comparison', 'marketing automation'],
-        topCitedSources: ['venturebeat.com', 'forbes.com', 'searchengineland.com', 'g2.com'],
-        sentimentScore: 0.82,
-        weeklyDelta: +1.9,
-        monthlyDelta: +6.1,
-        engineDistribution: { chatgpt: 215, copilot: 200, copilot_search: 205, gemini: 195, claude: 155, perplexity: 115, google_ai_overview: 50, google_ai_mode: 25 },
-      },
-    };
-
-    const totalBrandCitations = 1420 + dbCitations.length * 15;
-    let rawEntries: CompetitorSovEntry[] = [
-      {
-        id: 'brand-self',
-        name: brandName,
-        domain: brandDomain,
-        isCurrentBrand: true,
-        isUnlisted: false,
-        rank: 1,
-        previousRank: 2,
-        totalCitations: totalBrandCitations,
-        citationShare: 0,
-        sovScore: 88.5,
-        weeklyDelta: +4.2,
-        monthlyDelta: +9.1,
-        engineBreakdown: {
-          chatgpt: { citations: 420, share: 0 },
-          copilot: { citations: 395, share: 0 },
-          copilot_search: { citations: 410, share: 0 },
-          gemini: { citations: 380, share: 0 },
-          claude: { citations: 290, share: 0 },
-          perplexity: { citations: 190, share: 0 },
-          google_ai_overview: { citations: 90, share: 0 },
-          google_ai_mode: { citations: 50, share: 0 },
-        },
-        dominantKeywords: isConsumer
-          ? ['best quality activewear', 'customer satisfaction reviews', 'technical commuter trousers', 'daily comfort gear']
-          : [`best ${industry.toLowerCase()} solutions`, `${brandName.toLowerCase()} platform review`, 'generative search rankings', 'enterprise reliability benchmarks'],
-        topCitedSources: isConsumer
-          ? ['nytimes.com/wirecutter', 'runnersworld.com', 'goodhousekeeping.com', 'vogue.com']
-          : ['techcrunch.com', 'forbes.com', 'gartner.com', 'github.com'],
-        sentimentScore: 0.84,
-      },
-    ];
-
-    resolvedCompetitors.forEach((comp, idx) => {
-      const lowerDomain = comp.domain.toLowerCase();
-      const presetKey = Object.keys(competitorPresets).find(
-        (k) => lowerDomain.includes(k) || comp.name.toLowerCase().includes(k.split('.')[0])
-      );
-      const preset = presetKey ? competitorPresets[presetKey] : null;
-
-      const totalCits = preset
-        ? preset.citations
-        : Math.max(280, Math.round(950 - idx * 140 + (comp.isUnlisted ? 60 : 0)));
-
-      const engineDist = preset?.engineDistribution || {
-        chatgpt: Math.round(totalCits * 0.29),
-        copilot: Math.round(totalCits * 0.27),
-        copilot_search: Math.round(totalCits * 0.28),
-        gemini: Math.round(totalCits * 0.26),
-        claude: Math.round(totalCits * 0.20),
-        perplexity: Math.round(totalCits * 0.15),
-        google_ai_overview: Math.round(totalCits * 0.07),
-        google_ai_mode: Math.round(totalCits * 0.03),
-      };
-
-      rawEntries.push({
-        id: `comp-${comp.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
-        name: comp.name,
-        domain: comp.domain,
-        isCurrentBrand: false,
-        isUnlisted: comp.isUnlisted || false,
-        rank: idx + 2,
-        previousRank: idx + 2,
-        totalCitations: totalCits,
-        citationShare: 0,
-        sovScore: 50,
-        weeklyDelta: preset?.weeklyDelta ?? (idx % 2 === 0 ? +1.8 : -1.2),
-        monthlyDelta: preset?.monthlyDelta ?? (idx % 2 === 0 ? +4.5 : -2.1),
-        engineBreakdown: {
-          chatgpt: { citations: engineDist.chatgpt, share: 0 },
-          copilot: { citations: engineDist.copilot, share: 0 },
-          copilot_search: { citations: engineDist.copilot_search, share: 0 },
-          gemini: { citations: engineDist.gemini, share: 0 },
-          claude: { citations: engineDist.claude, share: 0 },
-          perplexity: { citations: engineDist.perplexity, share: 0 },
-          google_ai_overview: { citations: engineDist.google_ai_overview, share: 0 },
-          google_ai_mode: { citations: engineDist.google_ai_mode, share: 0 },
-        },
-        dominantKeywords:
-          preset?.dominantKeywords ||
-          (isConsumer
-            ? [`${comp.name} collections`, 'alternative athleisure options', 'fabric review', 'everyday activewear']
-            : [`alternatives to ${comp.name}`, `${comp.name} feature comparison`, 'enterprise implementation', 'pricing guide']),
-        topCitedSources:
-          preset?.topCitedSources ||
-          (isConsumer
-            ? ['whowhatwear.com', 'shape.com', 'wsj.com', 'reddit.com/r/reviews']
-            : ['techcrunch.com', 'cio.com', 'zdnet.com', 'medium.com']),
-        sentimentScore: preset?.sentimentScore || 0.75,
-      });
-    });
-
-    // Compute shares across each engine
     const engines = [
       'chatgpt',
       'copilot',
@@ -363,6 +188,106 @@ export async function GET(request: NextRequest) {
       'google_ai_mode',
     ] as const;
 
+    const createEmptyEngineBreakdown = () => ({
+      chatgpt: { citations: 0, share: 0 },
+      copilot: { citations: 0, share: 0 },
+      copilot_search: { citations: 0, share: 0 },
+      gemini: { citations: 0, share: 0 },
+      claude: { citations: 0, share: 0 },
+      perplexity: { citations: 0, share: 0 },
+      google_ai_overview: { citations: 0, share: 0 },
+      google_ai_mode: { citations: 0, share: 0 },
+    });
+
+    const brandEntry: CompetitorSovEntry = {
+      id: 'brand-self',
+      name: brandName,
+      domain: brandDomain,
+      isCurrentBrand: true,
+      isUnlisted: false,
+      rank: 1,
+      previousRank: 1,
+      totalCitations: 0,
+      citationShare: 0,
+      sovScore: 0,
+      weeklyDelta: 0,
+      monthlyDelta: 0,
+      engineBreakdown: createEmptyEngineBreakdown(),
+      dominantKeywords: [],
+      topCitedSources: [],
+      sentimentScore: 0,
+    };
+
+    const competitorEntries: CompetitorSovEntry[] = resolvedCompetitors.map((comp, idx) => ({
+      id: `comp-${comp.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+      name: comp.name,
+      domain: comp.domain,
+      isCurrentBrand: false,
+      isUnlisted: comp.isUnlisted || false,
+      rank: idx + 2,
+      previousRank: idx + 2,
+      totalCitations: 0,
+      citationShare: 0,
+      sovScore: 0,
+      weeklyDelta: 0,
+      monthlyDelta: 0,
+      engineBreakdown: createEmptyEngineBreakdown(),
+      dominantKeywords: [],
+      topCitedSources: [],
+      sentimentScore: 0,
+    }));
+
+    let rawEntries: CompetitorSovEntry[] = [brandEntry, ...competitorEntries];
+
+    if (dbCitations.length > 0) {
+      const brandDomainClean = (brandDomain || '').toLowerCase().replace(/^www\./, '');
+      const brandNameLower = (brandName || '').toLowerCase();
+
+      dbCitations.forEach((cit) => {
+        const citDomain = (cit.domain || '').toLowerCase().replace(/^www\./, '');
+        const citUrl = (cit.url || '').toLowerCase();
+        const citEngine = (cit.engine || '').toLowerCase() as typeof engines[number];
+
+        const isBrand =
+          (brandDomainClean && (citDomain.includes(brandDomainClean) || citUrl.includes(brandDomainClean))) ||
+          (brandNameLower && citUrl.includes(brandNameLower));
+
+        if (isBrand) {
+          brandEntry.totalCitations += 1;
+          if (engines.includes(citEngine)) {
+            brandEntry.engineBreakdown[citEngine].citations += 1;
+          }
+          if (citDomain && !brandEntry.topCitedSources.includes(citDomain)) {
+            brandEntry.topCitedSources.push(citDomain);
+          }
+        } else {
+          for (const comp of competitorEntries) {
+            const compDomainClean = (comp.domain || '').toLowerCase().replace(/^www\./, '');
+            const compNameLower = comp.name.toLowerCase();
+            if (
+              (compDomainClean && (citDomain.includes(compDomainClean) || citUrl.includes(compDomainClean))) ||
+              (compNameLower && citUrl.includes(compNameLower))
+            ) {
+              comp.totalCitations += 1;
+              if (engines.includes(citEngine)) {
+                comp.engineBreakdown[citEngine].citations += 1;
+              }
+              if (citDomain && !comp.topCitedSources.includes(citDomain)) {
+                comp.topCitedSources.push(citDomain);
+              }
+              break;
+            }
+          }
+        }
+      });
+    }
+
+    const totalIndustryCitations = rawEntries.reduce(
+      (sum, e) => sum + e.totalCitations,
+      0
+    );
+
+    // Compute shares across each engine
     engines.forEach((eng) => {
       const sum = rawEntries.reduce(
         (acc, e) => acc + (e.engineBreakdown[eng]?.citations || 0),
@@ -375,28 +300,21 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    // Overall metrics across all engines
-    const totalIndustryCitations = rawEntries.reduce(
-      (sum, e) => sum + e.totalCitations,
-      0
-    );
-
     rawEntries.forEach((entry) => {
       entry.citationShare =
         totalIndustryCitations > 0
           ? Number(((entry.totalCitations / totalIndustryCitations) * 100).toFixed(1))
           : 0;
-      entry.sovScore = Math.min(99, Math.round(entry.citationShare * 2.2 + 5));
+      entry.sovScore = totalIndustryCitations > 0 ? Math.min(100, Math.round(entry.citationShare)) : 0;
     });
 
-    rawEntries.sort((a, b) => b.totalCitations - a.totalCitations);
-    rawEntries.forEach((entry, idx) => {
-      entry.rank = idx + 1;
-      entry.previousRank = Math.max(
-        1,
-        entry.rank + (entry.weeklyDelta > 0 ? 1 : entry.weeklyDelta < 0 ? -1 : 0)
-      );
-    });
+    if (totalIndustryCitations > 0) {
+      rawEntries.sort((a, b) => b.totalCitations - a.totalCitations);
+      rawEntries.forEach((entry, idx) => {
+        entry.rank = idx + 1;
+        entry.previousRank = idx + 1;
+      });
+    }
 
     if (selectedEngine !== 'all') {
       const eng = selectedEngine as keyof CompetitorSovEntry['engineBreakdown'];
@@ -415,18 +333,20 @@ export async function GET(request: NextRequest) {
           ...entry,
           totalCitations: engCitations,
           citationShare: newShare,
-          sovScore: Math.round(newShare * 2.2),
+          sovScore: totalEngineCitations > 0 ? Math.round(newShare) : 0,
         };
       });
 
-      rawEntries.sort((a, b) => b.totalCitations - a.totalCitations);
-      rawEntries = rawEntries.map((entry, idx) => ({
-        ...entry,
-        rank: idx + 1,
-      }));
+      if (totalEngineCitations > 0) {
+        rawEntries.sort((a, b) => b.totalCitations - a.totalCitations);
+        rawEntries = rawEntries.map((entry, idx) => ({
+          ...entry,
+          rank: idx + 1,
+        }));
+      }
     }
 
-    const brandEntry = rawEntries.find((e) => e.isCurrentBrand) || rawEntries[0];
+    const brandEntryResult = rawEntries.find((e) => e.isCurrentBrand) || rawEntries[0];
     const leaderEntry = rawEntries[0];
     const activeTotalCitations = rawEntries.reduce((sum, e) => sum + e.totalCitations, 0);
 
@@ -434,19 +354,19 @@ export async function GET(request: NextRequest) {
       success: true,
       brandName,
       domain: brandDomain,
-      industry: activeProject.brand_kit?.industry || 'Premium Athleisure & Athletic Apparel',
+      industry,
       availableVerticals,
       selectedVertical,
       selectedEngine,
       timeframe,
       metrics: {
         totalIndustryCitations: activeTotalCitations,
-        brandRank: brandEntry.rank,
-        brandSovShare: brandEntry.citationShare,
-        brandSovDeltaWeekly: brandEntry.weeklyDelta,
-        marketLeaderName: leaderEntry.name,
-        marketLeaderShare: leaderEntry.citationShare,
-        activeTrackedPrompts: 38,
+        brandRank: brandEntryResult ? brandEntryResult.rank : 1,
+        brandSovShare: brandEntryResult ? brandEntryResult.citationShare : 0,
+        brandSovDeltaWeekly: brandEntryResult ? brandEntryResult.weeklyDelta : 0,
+        marketLeaderName: activeTotalCitations > 0 && leaderEntry ? leaderEntry.name : brandName,
+        marketLeaderShare: activeTotalCitations > 0 && leaderEntry ? leaderEntry.citationShare : 0,
+        activeTrackedPrompts,
       },
       leaderboard: rawEntries,
       lastCalculatedAt: new Date().toISOString(),
