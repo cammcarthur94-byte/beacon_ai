@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { parseActiveProjectCookie } from '@/lib/project-utils';
-import { saveLocalPersona } from '@/lib/personas-store';
 
 export interface AuthActionResult {
   error?: string;
@@ -149,34 +148,6 @@ export async function signInWithEmail(
         maxAge: 60 * 60 * 24 * 7,
       });
 
-      saveLocalPersona(
-        {
-          id: 'persona-alex-chen',
-          project_id: 'project-gymshark-dtc',
-          name: 'Alex Chen',
-          role_title: 'Dedicated Gym Lifter',
-          name_title: 'Alex Chen, Dedicated Gym Lifter',
-          age_demographics: '24-32 years old, trains 5-6 days/week, functional fitness & powerlifting',
-          background:
-            'Dedicated gym athlete who values workout performance, aesthetic fit, and high durability fabric.',
-          goals:
-            'Find squat-proof seamless gym leggings and sweat-wicking shirts that maintain shape and comfort through heavy workouts.',
-          pain_points:
-            'Waistbands slipping down during squats, thin fabric turning sheer, chafing seams, and fast fabric pilling.',
-          information_sources:
-            'Fitness YouTube reviews, Reddit r/gym, TikTok athletic wear roundups, AI search engines.',
-          buying_objections:
-            'Skeptical of durability compared to premium luxury brands like Lululemon, concerned about sizing consistency across drops.',
-          created_at: new Date().toISOString(),
-          system_prompt: '',
-          tone_traits: [],
-          is_system: false,
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        } as any,
-        'project-gymshark-dtc'
-      );
-
       redirect('/dashboard');
     }
 
@@ -278,34 +249,6 @@ export async function signInWithEmail(
         path: '/',
         maxAge: 60 * 60 * 24 * 7,
       });
-
-      saveLocalPersona(
-        {
-          id: 'persona-sarah-jenkins',
-          project_id: 'project-datadog-saas',
-          name: 'Sarah Jenkins',
-          role_title: 'Director of Platform Engineering',
-          name_title: 'Sarah Jenkins, Director of Platform Engineering',
-          age_demographics: '35-48 years old, 15+ years experience, leads SRE and Cloud Platform teams',
-          background:
-            'Oversees 24/7 reliability of high-throughput Kubernetes microservices, manages cloud observability budget across AWS and GCP.',
-          goals:
-            'Consolidate disparate monitoring silos into one single pane of glass, lower incident MTTR below 2 minutes, and gain distributed tracing.',
-          pain_points:
-            'Severe alert fatigue across engineering teams, bill shock from custom metric overages and log volume spikes during traffic surges.',
-          information_sources:
-            'Hacker News, CNCF community, Gartner APM Magic Quadrant, SRE peer roundtables, AI search engines.',
-          buying_objections:
-            'Fear of opaque consumption pricing models scaling exponentially, vendor lock-in, and agent daemon resource overhead on production nodes.',
-          created_at: new Date().toISOString(),
-          system_prompt: '',
-          tone_traits: [],
-          is_system: false,
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        } as any,
-        'project-datadog-saas'
-      );
 
       redirect('/dashboard');
     }

@@ -329,7 +329,7 @@ export function OnboardingWizard() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="target-audience">Target Audience & Buyer Persona</Label>
+                <Label htmlFor="target-audience">Target Audience</Label>
                 <Input
                   id="target-audience"
                   placeholder="e.g. Series B+ CTOs, VP of Engineering, and Platform Architects"

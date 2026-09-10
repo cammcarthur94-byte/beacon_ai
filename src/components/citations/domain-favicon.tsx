@@ -38,6 +38,11 @@ const SIZE_MAP = {
     img: 18,
     icon: 'h-4 w-4',
   },
+  lg: {
+    container: 'h-8 w-8',
+    img: 26,
+    icon: 'h-5 w-5',
+  },
 };
 
 /**
@@ -72,6 +77,65 @@ export function CitationSourceIcon({
     default:
       return <Globe className={iconClass} />;
   }
+}
+
+/**
+ * Brand avatar: renders the brand's domain favicon and falls back to a
+ * colored initial-letter tile when no domain is known or the fetch fails.
+ */
+export function BrandAvatar({
+  name,
+  domain,
+  color = '#0f172a',
+  size = 'md',
+  className,
+}: {
+  name: string;
+  domain?: string;
+  color?: string;
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+
+  const cleanDomain = React.useMemo(() => (domain ? extractDomain(domain) : ''), [domain]);
+  const dimensions = SIZE_MAP[size] || SIZE_MAP.md;
+  const initial = name ? name.charAt(0).toUpperCase() : 'B';
+
+  if (cleanDomain && !hasError) {
+    return (
+      <div
+        className={cn(
+          'rounded-lg shrink-0 overflow-hidden flex items-center justify-center bg-white border border-slate-200/80 shadow-2xs',
+          dimensions.container,
+          className
+        )}
+      >
+        <Image
+          src={`https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=64`}
+          alt={`${name} logo`}
+          width={dimensions.img}
+          height={dimensions.img}
+          className="object-contain"
+          onError={() => setHasError(true)}
+          unoptimized
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        'rounded-lg shrink-0 text-white flex items-center justify-center font-bold',
+        dimensions.container,
+        className
+      )}
+      style={{ backgroundColor: color, fontSize: size === 'lg' ? 13 : size === 'md' ? 10 : 9 }}
+    >
+      {initial}
+    </div>
+  );
 }
 
 /**

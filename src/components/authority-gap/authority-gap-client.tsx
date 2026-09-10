@@ -146,14 +146,14 @@ export function AuthorityGapClient() {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              PR &amp; CITATION GAPS
+              PR OPPORTUNITIES
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-            Missing Authority Targets
+            Untapped Brand Mentions
           </h1>
           <p className="text-sm text-slate-600 max-w-3xl">
-            Discover high-authority publisher websites that currently recommend your competitors in AI search results while omitting your brand, and turn those gaps into PR opportunities.
+            Discover high-influence websites that recommend your competitors in AI searches, but leave you out. Reach out to these publishers to turn missed mentions into new PR wins.
           </p>
         </div>
 
@@ -178,7 +178,7 @@ export function AuthorityGapClient() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-                Missing Authority Targets
+                Missed Opportunities
               </span>
               <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
                 <Globe2 className="h-4 w-4" />
@@ -192,8 +192,7 @@ export function AuthorityGapClient() {
                 High Priority
               </span>
             </div>
-            <p className="mt-2 text-xs text-slate-500">
-              Websites citing competitors where your brand has 0 mentions
+            <p className="mt-2 text-xs text-slate-500">                High-value websites mentioning competitors, but not you.
             </p>
           </CardContent>
         </Card>
@@ -203,7 +202,7 @@ export function AuthorityGapClient() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-                Avg. Target Domain Authority
+                Average Publisher Influence
               </span>
               <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
                 <ShieldCheck className="h-4 w-4" />
@@ -213,13 +212,13 @@ export function AuthorityGapClient() {
               <span className="text-3xl font-bold tracking-tight text-slate-900">
                 {data?.summary.avgDomainAuthority ?? 87}
               </span>
-              <span className="text-xs font-normal text-slate-500">/ 100 DA</span>
+              <span className="text-xs font-normal text-slate-500">/ 100</span>
               <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                 Top Tier
               </span>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              High search engine trust &amp; AI recommendation authority
+              How much AI engines trust these websites (out of 100).
             </p>
           </CardContent>
         </Card>
@@ -229,7 +228,7 @@ export function AuthorityGapClient() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-                Top Competitor Lead
+                Top Competitor Threat
               </span>
               <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
                 <TrendingUp className="h-4 w-4" />
@@ -246,7 +245,7 @@ export function AuthorityGapClient() {
               </span>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Primary brand to displace in editorial roundups
+              The main competitor stealing the spotlight on these sites.
             </p>
           </CardContent>
         </Card>
@@ -256,7 +255,7 @@ export function AuthorityGapClient() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-                Estimated Recommendation Opportunity
+                Potential AI Growth
               </span>
               <div className="h-8 w-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
                 <Sparkles className="h-4 w-4" />
@@ -268,7 +267,7 @@ export function AuthorityGapClient() {
               </span>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Projected recommendation rate gain once opportunities are addressed
+              Expected boost in AI recommendations if you secure these mentions.
             </p>
           </CardContent>
         </Card>
@@ -299,7 +298,7 @@ export function AuthorityGapClient() {
 
           {/* Right dropdowns */}
           <div className="flex items-center gap-2.5 flex-wrap">
-            {/* Minimum DA Dropdown */}
+            {/* Minimum Influence Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -311,24 +310,24 @@ export function AuthorityGapClient() {
                   )}
                 >
                   <ShieldCheck className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
-                  {minDa === 0 ? 'Min DA: All' : `Min DA: ${minDa}+`}
+                  {minDa === 0 ? 'Min. Influence: All' : `Min. Influence: ${minDa}+`}
                   <ChevronDown className="h-3 w-3 ml-1.5 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44 text-xs font-sans">
-                <DropdownMenuLabel>Domain Authority</DropdownMenuLabel>
+                <DropdownMenuLabel>Publisher Influence</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setMinDa(0)} className={cn(minDa === 0 && 'font-semibold text-emerald-700')}>
-                  All Authorities
+                  All Influence Scores
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setMinDa(80)} className={cn(minDa === 80 && 'font-semibold text-emerald-700')}>
-                  DA 80+ (High Authority)
+                  Influence 80+ (Strong)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setMinDa(85)} className={cn(minDa === 85 && 'font-semibold text-emerald-700')}>
-                  DA 85+ (Tier 1 Authority)
+                  Influence 85+ (Top Publishers)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setMinDa(90)} className={cn(minDa === 90 && 'font-semibold text-emerald-700')}>
-                  DA 90+ (National / Top Pubs)
+                  Influence 90+ (National / Top Publishers)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -448,10 +447,10 @@ export function AuthorityGapClient() {
         <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h3 className="text-sm font-semibold text-slate-900">
-              Prioritized Authority Gaps ({filteredGaps.length} Targets)
+              Top Publishers to Pitch ({filteredGaps.length} Targets)
             </h3>
             <p className="text-xs text-slate-500">
-              Ranked by Growth Opportunity Score (Domain Authority × Competitor Coverage)
+              Ranked by potential impact on your AI visibility.
             </p>
           </div>
           <div className="text-xs text-slate-400">
@@ -464,22 +463,22 @@ export function AuthorityGapClient() {
             <TableHeader className="bg-slate-50/80 border-b border-slate-200">
               <TableRow>
                 <TableHead className="w-[260px] text-xs font-semibold text-slate-600 py-3.5 pl-6">
-                  Target Publication / Domain
+                  Publisher / Website
                 </TableHead>
                 <TableHead className="w-[100px] text-xs font-semibold text-slate-600 text-center">
                   Source Type
                 </TableHead>
                 <TableHead className="w-[110px] text-xs font-semibold text-slate-600 text-center">
-                  Authority (DA)
+                  Influence Score
                 </TableHead>
                 <TableHead className="w-[200px] text-xs font-semibold text-slate-600">
-                  Competitors Cited
+                  Competitors Mentioned
                 </TableHead>
                 <TableHead className="w-[120px] text-xs font-semibold text-slate-600 text-center">
                   Opportunity
                 </TableHead>
                 <TableHead className="min-w-[280px] text-xs font-semibold text-slate-600 pr-6">
-                  Editorial Context & Target Topic
+                  Topic & Context
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -498,8 +497,8 @@ export function AuthorityGapClient() {
                   <TableCell colSpan={6} className="h-48 text-center text-slate-500 text-xs">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <ShieldCheck className="h-8 w-8 text-slate-300" />
-                      <p className="font-semibold text-slate-700">No matching authority gaps found</p>
-                      <p className="text-slate-400">Try adjusting your filters or search keywords</p>
+                      <p className="font-semibold text-slate-700">Great job! No major competitor gaps detected right now.</p>
+                      <p className="text-slate-400">Try expanding your competitor list or adjusting your filters to uncover new PR targets.</p>
                       <Button
                         variant="outline"
                         size="sm"
@@ -563,7 +562,7 @@ export function AuthorityGapClient() {
                         )}
                       </TableCell>
 
-                      {/* Domain Authority */}
+                      {/* Publisher Influence */}
                       <TableCell className="text-center py-4">
                         <div className="inline-flex flex-col items-center">
                           <div className="flex items-center gap-1">
@@ -588,7 +587,7 @@ export function AuthorityGapClient() {
                         </div>
                       </TableCell>
 
-                      {/* Competitors Cited */}
+                      {/* Competitors Mentioned */}
                       <TableCell className="py-4">
                         <div className="flex flex-wrap gap-1.5">
                           {item.competitorsCited.map((comp) => (
@@ -613,7 +612,7 @@ export function AuthorityGapClient() {
                         </div>
                       </TableCell>
 
-                      {/* Editorial Context & Target Topic */}
+                      {/* Topic & Context */}
                       <TableCell className="py-4">
                         <div className="flex flex-col gap-1 max-w-sm">
                           <span className="text-xs font-semibold text-slate-800 line-clamp-1">

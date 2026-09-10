@@ -15,21 +15,18 @@ import {
   ShieldAlert,
   Sparkles,
   Bot,
-  UserCheck,
   CheckCircle2,
   Tag,
   AlertCircle,
   HelpCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Persona, HallucinationAlert, EntityMention } from '@/types/database.types';
+import type { HallucinationAlert, EntityMention } from '@/types/database.types';
 
 interface MultiTurnVisualizerProps {
   projectId: string;
   brandName: string;
   domain: string;
-  availablePersonas?: Persona[];
-  preselectedPersona?: Persona | null;
 }
 
 interface TurnStep {
@@ -53,12 +50,7 @@ export function MultiTurnVisualizer({
   projectId,
   brandName,
   domain,
-  availablePersonas = [],
-  preselectedPersona,
 }: MultiTurnVisualizerProps) {
-  const [selectedPersonaId, setSelectedPersonaId] = useState<string>(
-    preselectedPersona?.id || (availablePersonas.length > 0 ? availablePersonas[0].id : '')
-  );
   const [selectedEngine, setSelectedEngine] = useState<string>('chatgpt');
   const [isRunningAll, setIsRunningAll] = useState(false);
 
@@ -86,15 +78,6 @@ export function MultiTurnVisualizer({
       status: 'idle',
     },
   ]);
-
-  const activePersona =
-    availablePersonas.find((p) => p.id === selectedPersonaId) ||
-    (availablePersonas.length > 0
-      ? availablePersonas[0]
-      : {
-          name: 'General Shopper',
-          role_title: 'Standard Buyer',
-        });
 
   // Run a single turn
   const runTurn = async (turnIndex: number, currentSteps = steps) => {
@@ -126,7 +109,6 @@ export function MultiTurnVisualizer({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: promptToRun,
-          personaId: selectedPersonaId,
           conversationHistory,
           engine: selectedEngine,
           projectId,
@@ -166,7 +148,7 @@ export function MultiTurnVisualizer({
 
   const handleRunAllTurns = async () => {
     setIsRunningAll(true);
-    toast.info(`Testing follow-up questions from ${activePersona.name}'s perspective...`);
+    toast.info('Testing follow-up questions...');
 
     let current = steps;
     for (let i = 1; i <= 3; i++) {
@@ -261,30 +243,6 @@ export function MultiTurnVisualizer({
 
       {/* CONFIGURATION ROW */}
       <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 flex flex-wrap items-center justify-between gap-4">
-        {/* Customer Persona Picker */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-800">
-            <UserCheck className="h-4 w-4 text-zinc-700" />
-            <span>Customer Profile:</span>
-          </div>
-          <select
-            value={selectedPersonaId}
-            onChange={(e) => setSelectedPersonaId(e.target.value)}
-            disabled={isRunningAll}
-            className="text-xs font-medium bg-white border border-zinc-300 rounded-lg px-3 py-1.5 text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950 cursor-pointer shadow-2xs"
-          >
-            {availablePersonas.length > 0 ? (
-              availablePersonas.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.role_title || 'Target Buyer'})
-                </option>
-              ))
-            ) : (
-              <option value="">Standard Shopper (No persona created yet)</option>
-            )}
-          </select>
-        </div>
-
         {/* AI Engine Picker */}
         <div className="flex items-center gap-3">
           <span className="text-xs font-semibold text-zinc-800">Test On AI Tool:</span>
@@ -466,7 +424,7 @@ export function MultiTurnVisualizer({
                     </div>
                     <div className="bg-zinc-100 rounded-2xl rounded-tl-sm px-4 py-2.5 max-w-2xl text-xs text-zinc-900 leading-relaxed font-medium">
                       <span className="text-[10px] font-mono text-zinc-500 block mb-0.5 font-bold uppercase">
-                        {activePersona.name} asked:
+                        Shopper asked:
                       </span>
                       {step.customPrompt || step.defaultPrompt}
                     </div>

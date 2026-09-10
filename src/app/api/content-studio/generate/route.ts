@@ -183,9 +183,9 @@ Excerpt / Context: The article currently features exhaustive head-to-head testin
 
     if (hasGoogleKey) {
       const researchCandidates = [
+        'gemini-3.8-flash',
         'gemini-3-flash-preview',
         'gemini-3.6-flash',
-        'gemini-3.1-flash-lite',
         'gemini-2.5-pro',
       ];
       for (const modelId of researchCandidates) {
@@ -332,9 +332,9 @@ Return ONLY a valid JSON array of exactly 3 objects. Every object MUST include n
     // High-performance Gemini backup with full structured schema
     if (angles.length === 0 && hasGoogleKey) {
       const googleCandidates = [
+        'gemini-3.8-flash',
         'gemini-3-flash-preview',
         'gemini-3.6-flash',
-        'gemini-3.1-flash-lite',
       ];
 
       for (const modelId of googleCandidates) {

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
@@ -9,6 +10,7 @@ import type { SourceDistributionDataPoint } from '@/components/citations/source-
 import type { CitationVelocityDataPoint } from '@/components/citations/citation-velocity-chart';
 import type { DomainCitationRow } from '@/components/citations/citations-ledger-table';
 import { parseActiveProjectCookie, isLegacyMockProject } from '@/lib/project-utils';
+import { isOwnedDomain } from '@/lib/citations/categorizer';
 import { getDemoPrompts, generateContextualAuditRuns } from '@/lib/demo-prompts';
 
 export default async function CitationsPage() {
@@ -124,6 +126,7 @@ export default async function CitationsPage() {
         lastDate: string;
         sourceType: CitationSourceType;
         items: any[];
+        isOwned: boolean;
       }
     >();
     const sourceCountMap: Record<CitationSourceType, number> = {
@@ -137,6 +140,7 @@ export default async function CitationsPage() {
 
     for (const c of dbCitations) {
       const st = (c.source_type as CitationSourceType) || 'other';
+      const owned = isOwnedDomain(c.domain, project.domain);
       sourceCountMap[st] = (sourceCountMap[st] || 0) + 1;
 
       const existing = domainMap.get(c.domain);
@@ -147,6 +151,7 @@ export default async function CitationsPage() {
           lastDate: c.created_at,
           sourceType: st,
           items: [c],
+          isOwned: owned,
         });
       } else {
         existing.count++;
@@ -204,6 +209,7 @@ export default async function CitationsPage() {
       return {
         domain,
         sourceType: val.sourceType,
+        isOwned: val.isOwned,
         totalMentions: val.count,
         recentUrl: val.recentUrl,
         lastCitedAt: val.lastDate,
@@ -234,13 +240,14 @@ export default async function CitationsPage() {
   return (
     <AppSidebarLayout project={project}>
       <div className="p-6 lg:p-10 max-w-[1400px] w-full mx-auto">
-        <CitationsClient
-          initialMetrics={metrics}
-          initialSourceDistribution={sourceDistribution}
-          initialVelocity={velocity}
-          initialDomainRows={domainRows}
-          brandName={brandName}
-        />
+        <React.Suspense fallback={<div className="h-40 animate-pulse bg-slate-50 rounded-2xl" />}>
+          <CitationsClient
+            initialMetrics={metrics}
+            initialSourceDistribution={sourceDistribution}
+            initialVelocity={velocity}
+            initialDomainRows={domainRows}
+          />
+        </React.Suspense>
       </div>
     </AppSidebarLayout>
   );

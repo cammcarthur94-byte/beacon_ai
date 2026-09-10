@@ -35,7 +35,7 @@ import {
   type BatchPromptInput,
 } from '@/app/audits/actions';
 import { EngineIcon, getEngineMeta } from '@/components/ui/engine-badge';
-import type { SearchIntent, BrandAssociation, AuditFrequency, Persona } from '@/types/database.types';
+import type { SearchIntent, BrandAssociation, AuditFrequency } from '@/types/database.types';
 
 interface GeneratePromptModalProps {
   open: boolean;
@@ -108,35 +108,6 @@ export function GeneratePromptModal({
   const [searchIntent, setSearchIntent] = useState<SearchIntent | 'all'>('all');
   const [brandAssociation, setBrandAssociation] = useState<BrandAssociation | 'both'>('both');
   const [selectedEngines, setSelectedEngines] = useState<string[]>(DEFAULT_ENGINES);
-  const [personas, setPersonas] = useState<Persona[]>([]);
-  const [selectedPersonaId, setSelectedPersonaId] = useState<string>('all');
-  const [isLoadingPersonas, setIsLoadingPersonas] = useState(false);
-
-  // Fetch personas whenever modal opens or projectId changes
-  const fetchPersonas = React.useCallback(async () => {
-    setIsLoadingPersonas(true);
-    try {
-      const url = projectId ? `/api/personas?projectId=${encodeURIComponent(projectId)}` : '/api/personas';
-      const r = await fetch(url);
-      const d = await r.json();
-      if (Array.isArray(d?.personas)) {
-        setPersonas(d.personas);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setIsLoadingPersonas(false);
-    }
-  }, [projectId]);
-
-  React.useEffect(() => {
-    if (open) {
-      fetchPersonas();
-    }
-  }, [open, fetchPersonas]);
-
-  const activePersona = selectedPersonaId !== 'all' ? personas.find((p) => p.id === selectedPersonaId) : null;
-
   // Price level & quota calculations
   const rawTier = (tier || 'starter').toLowerCase();
   const defaultLimit = rawTier === 'enterprise' ? 500 : rawTier === 'growth' || rawTier === 'pro' ? 100 : 20;
@@ -181,7 +152,6 @@ export function GeneratePromptModal({
           searchIntent,
           brandAssociation,
           count: countToFetch,
-          personaId: selectedPersonaId !== 'all' ? selectedPersonaId : undefined,
         });
 
         if (res.error) {
@@ -380,101 +350,12 @@ export function GeneratePromptModal({
               </p>
             </div>
 
-            {/* Target Customer Persona */}
-            <div className="space-y-2 pt-1">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <span>2. Buyer Persona Perspective</span>
-                  {personas.length > 0 && (
-                    <Badge variant="outline" className="text-[10px] font-medium py-0 px-1.5 text-emerald-700 border-emerald-200 bg-emerald-50">
-                      {personas.length} Saved
-                    </Badge>
-                  )}
-                  {isLoadingPersonas && (
-                    <Loader2 className="h-3 w-3 animate-spin text-slate-400" />
-                  )}
-                </label>
-                <Link
-                  href="/personas"
-                  className="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium hover:underline flex items-center gap-1"
-                >
-                  Manage Personas &rarr;
-                </Link>
-              </div>
-
-              <select
-                value={selectedPersonaId}
-                onChange={(e) => setSelectedPersonaId(e.target.value)}
-                className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer shadow-2xs"
-              >
-                <option value="all">Default (General Category Shopper - Unsegmented)</option>
-                {personas.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name_title || (p.role_title ? `${p.name} — ${p.role_title}` : p.name)}
-                  </option>
-                ))}
-              </select>
-
-              {/* Persona Context Card when persona selected */}
-              {activePersona && (
-                <div className="p-3 rounded-lg border border-emerald-200/90 bg-emerald-50/50 space-y-2 text-xs animate-in fade-in duration-150">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-emerald-900 flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      Active Persona: {activePersona.name_title || activePersona.name}
-                    </span>
-                    {activePersona.age_demographics && (
-                      <span className="text-[10px] text-emerald-800 font-medium bg-emerald-100/70 px-2 py-0.5 rounded">
-                        {activePersona.age_demographics}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-700 pt-1 border-t border-emerald-100">
-                    {activePersona.pain_points && (
-                      <div className="space-y-0.5">
-                        <span className="font-semibold text-slate-900 block text-[10px] uppercase tracking-wider text-rose-700">
-                          Target Pain Points
-                        </span>
-                        <p className="line-clamp-2 leading-relaxed text-slate-700 bg-white/80 p-1.5 rounded border border-emerald-100/80">
-                          {activePersona.pain_points}
-                        </p>
-                      </div>
-                    )}
-                    {activePersona.goals && (
-                      <div className="space-y-0.5">
-                        <span className="font-semibold text-slate-900 block text-[10px] uppercase tracking-wider text-emerald-700">
-                          Core Goals
-                        </span>
-                        <p className="line-clamp-2 leading-relaxed text-slate-700 bg-white/80 p-1.5 rounded border border-emerald-100/80">
-                          {activePersona.goals}
-                        </p>
-                      </div>
-                    )}
-                    {activePersona.buying_objections && (
-                      <div className="space-y-0.5 sm:col-span-2">
-                        <span className="font-semibold text-slate-900 block text-[10px] uppercase tracking-wider text-amber-700">
-                          Buying Objections & Hesitations
-                        </span>
-                        <p className="line-clamp-2 leading-relaxed text-slate-700 bg-white/80 p-1.5 rounded border border-emerald-100/80">
-                          {activePersona.buying_objections}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-emerald-700 font-medium italic">
-                    ✓ AI will generate search queries specifically tailored to this buyer&apos;s pain points, hesitations, and evaluation criteria.
-                  </p>
-                </div>
-              )}
-            </div>
-
             {/* Intent & Association Preferences */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               {/* Intent */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                  3. Search Intent Preference
+                  2. Search Intent Preference
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {INTENTS.map((i) => (
@@ -498,7 +379,7 @@ export function GeneratePromptModal({
               {/* Association */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                  4. Brand Association
+                  3. Brand Association
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {ASSOCIATIONS.map((a) => (

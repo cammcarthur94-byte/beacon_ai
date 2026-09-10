@@ -97,14 +97,14 @@ export function SentimentDonutChart(props: SentimentDonutChartProps) {
     );
   }
 
-  // Reference image color palette:
-  // Green (#84C373) for Positive, Sky Blue (#4FA3E3) for Neutral, Warm Orange (#EE8A30) for Critical
+  // App-wide sentiment palette (matches semantic badges & chart theme tokens):
+  // Emerald (--chart-emerald) for Positive, Slate-400 for Neutral, Rose (--chart-rose) for Critical
   const normalizedData = React.useMemo(() => {
     return data.map((d) => {
       let color = d.color;
-      if (d.category === 'positive') color = '#84C373'; // Reference Soft Green
-      else if (d.category === 'neutral') color = '#4FA3E3'; // Reference Sky Blue
-      else if (d.category === 'negative') color = '#EE8A30'; // Reference Warm Orange
+      if (d.category === 'positive') color = 'var(--chart-emerald)';
+      else if (d.category === 'neutral') color = '#94a3b8';
+      else if (d.category === 'negative') color = 'var(--chart-rose)';
       return { ...d, color };
     });
   }, [data]);

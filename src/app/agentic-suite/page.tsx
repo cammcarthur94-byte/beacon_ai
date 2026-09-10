@@ -3,12 +3,12 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { AppSidebarLayout } from '@/components/layout/app-sidebar-layout';
 import { AgenticSuiteClient } from '@/components/agentic-suite/agentic-suite-client';
-import type { BrandKit, Persona } from '@/types/database.types';
+import type { BrandKit } from '@/types/database.types';
 import { parseActiveProjectCookie, isLegacyMockProject } from '@/lib/project-utils';
 
 export const metadata = {
-  title: 'Buyer Personas & AI Search | Beacon',
-  description: 'Manage buyer personas, test follow-up questions, and configure your AI search profile.',
+  title: 'AI Tools | Beacon',
+  description: 'Test follow-up questions and configure your AI search profile.',
 };
 
 export default async function AgenticSuitePage() {
@@ -17,7 +17,6 @@ export default async function AgenticSuitePage() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   let project: { id: string; name: string; domain: string; tier: string; brand_kit?: BrandKit } | null = null;
-  let personas: Persona[] = [];
 
   // 1. Fetch from Supabase
   if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
@@ -36,16 +35,6 @@ export default async function AgenticSuitePage() {
 
       if (dbProject && !isLegacyMockProject(dbProject)) {
         project = dbProject as any;
-
-        const { data: dbPersonas } = await supabase
-          .from('personas')
-          .select('*')
-          .eq('project_id', project!.id)
-          .order('created_at', { ascending: false });
-
-        if (dbPersonas) {
-          personas = dbPersonas as any;
-        }
       }
     }
   }
@@ -69,7 +58,6 @@ export default async function AgenticSuitePage() {
           projectId={project.id}
           brandName={project.name}
           domain={project.domain}
-          initialPersonas={personas}
         />
       </div>
     </AppSidebarLayout>

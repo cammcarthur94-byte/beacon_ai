@@ -13,9 +13,9 @@ import { openai } from '@ai-sdk/openai';
  */
 export const BEACON_MODELS = {
   CONTENT_CREATION: {
-    id: 'gemini-3.1-flash-lite',
+    id: 'gemini-3.8-flash',
     provider: 'google',
-    displayName: 'Gemini 3.1 Flash',
+    displayName: 'Gemini 3.8 Flash',
     role: 'AEO Content, Recommendations & Outreach Email Generator',
     fallbackIds: ['gemini-3-flash-preview', 'gemini-2.5-flash'] as const,
   },
@@ -27,7 +27,7 @@ export const BEACON_MODELS = {
     fallbackIds: ['claude-haiku-4-5-20251001', 'claude-3-5-haiku-latest'] as const,
   },
   PROMPT_CREATION: {
-    googleModelId: 'gemini-3.1-flash-lite',
+    googleModelId: 'gemini-3.8-flash',
     openaiModelId: 'gpt-4o-mini',
     role: 'GEO Search Prompt Synthesizer',
   },
@@ -43,7 +43,7 @@ export const BEACON_MODELS = {
     provider: 'google',
     displayName: 'Gemini 2.5 Pro',
     role: 'Source Material Analysis & Argument Extraction',
-    fallbackIds: ['gemini-1.5-pro', 'gemini-3.1-flash-lite'] as const,
+    fallbackIds: ['gemini-1.5-pro', 'gemini-3.8-flash'] as const,
   },
   CONTENT_STUDIO_COPYWRITER: {
     id: 'claude-haiku-4-5',

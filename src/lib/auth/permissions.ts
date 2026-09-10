@@ -41,7 +41,7 @@ export const PERMISSION_DEFINITIONS: Record<
   },
   view_telemetry: {
     label: 'View Dashboard & Telemetry',
-    description: 'Access read-only Share of Voice leaderboards, citation maps, and model responses.',
+    description: 'Access read-only Share of Voice views, citation maps, and model responses.',
     category: 'audits',
   },
 };

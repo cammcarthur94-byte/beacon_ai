@@ -32,6 +32,11 @@ export function extractDomain(rawUrl: string): string {
  * Categorizes a domain/URL into one of the 6 canonical GEO source types:
  * 'news' | 'forum' | 'blog' | 'documentation' | 'social' | 'other'
  */
+export function isOwnedDomain(domain: string, brandDomain?: string): boolean {
+  if (!domain || !brandDomain) return false;
+  return extractDomain(domain) === extractDomain(brandDomain);
+}
+
 export function categorizeSource(domain: string, url: string = ''): CitationSourceType {
   const d = domain.toLowerCase();
   const u = url.toLowerCase();

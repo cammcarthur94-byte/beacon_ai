@@ -13,8 +13,8 @@ import type { AuditFrequency, BrandKit, SearchIntent, BrandAssociation } from '@
 import { extractDomain, categorizeSource } from '@/lib/citations/categorizer';
 import { checkTierAccess, isTierEligibleForGoogleAi } from '@/lib/billing/tier-access';
 import { getTierAuditLimit, normalizeTier } from '@/lib/billing/tier-utils';
+import { enforcePromptQuota, enforceAnswersQuota } from '@/lib/billing/usage-enforcement';
 import { getDemoPrompts, generateContextualAuditRuns } from '@/lib/demo-prompts';
-import { findLocalPersonaById } from '@/lib/personas-store';
 import { parseActiveProjectCookie } from '@/lib/project-utils';
 
 function getActiveProjectFromCookie(cookieStore: any) {
@@ -110,6 +110,21 @@ export async function createPromptAudit(formData: FormData) {
         };
       }
     }
+  }
+
+  // ── STRICT PLAN HARD-CAP (plan architecture: Basic 100 / Starter 450 / Pro 1,050) ──
+  // Resolves the workspace plan and this month's usage counters. The DB
+  // triggers in supabase/migrations/*_plan_architecture_usage_caps.sql are the
+  // authoritative backstop; this check gives a clean 402-style verdict first.
+  const promptQuota = await enforcePromptQuota(projectId || undefined);
+  if (!promptQuota.allowed) {
+    return {
+      error: promptQuota.reason,
+      code: promptQuota.code,
+      quota: promptQuota.quota,
+      used: promptQuota.used,
+      limit: promptQuota.limit,
+    };
   }
 
   // Fallback for local development if cloud credentials aren't set
@@ -541,6 +556,18 @@ export async function triggerInstantRun(promptId: string) {
       }
     }
 
+    // ── STRICT PLAN HARD-CAP: answers analyzed (Basic 3,000 / Starter 13,500 / Pro 31,500) ──
+    const answerQuota = await enforceAnswersQuota(project.id);
+    if (!answerQuota.allowed) {
+      return {
+        error: answerQuota.reason,
+        code: answerQuota.code,
+        quota: answerQuota.quota,
+        used: answerQuota.used,
+        limit: answerQuota.limit,
+      };
+    }
+
     const evaluations = await executeMultiEngineAudit({
       queryText: prompt.query_text,
       brandName: project.name,
@@ -615,7 +642,6 @@ export async function generateAiPrompts(params: {
   searchIntent?: SearchIntent | 'all';
   brandAssociation?: BrandAssociation | 'both';
   count?: number;
-  personaId?: string;
 }): Promise<{ prompts: GeneratedPromptSuggestion[]; error?: string }> {
   const cookieStore = await cookies();
   const supabase = await createClient();
@@ -697,63 +723,16 @@ export async function generateAiPrompts(params: {
   const intent = params.searchIntent || 'all';
   const association = params.brandAssociation || 'both';
 
-  // Resolve buyer persona perspective if specified
-  let personaInstruction = '';
-  let resolvedPersona: any = null;
-
-  if (params.personaId) {
-    if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
-      try {
-        const { data: pData } = await supabase
-          .from('personas')
-          .select('id, name, role_title, name_title, system_prompt, tone_traits, age_demographics, background, goals, pain_points, information_sources, buying_objections')
-          .eq('id', params.personaId)
-          .maybeSingle();
-        if (pData) resolvedPersona = pData;
-      } catch (pErr) {
-        console.warn('Persona query skipped for prompt generation:', pErr);
-      }
-    }
-
-    if (!resolvedPersona) {
-      resolvedPersona = findLocalPersonaById(params.personaId, projectId);
-    }
-
-    if (resolvedPersona) {
-      const personaDisplayName =
-        resolvedPersona.name_title ||
-        (resolvedPersona.role_title ? `${resolvedPersona.name} — ${resolvedPersona.role_title}` : resolvedPersona.name);
-
-      personaInstruction = `\n======================================================
-TARGET BUYER PERSONA PROFILE:
-- Name/Title: ${personaDisplayName}
-${resolvedPersona.age_demographics ? `- Age & Demographics: ${resolvedPersona.age_demographics}` : ''}
-${resolvedPersona.background ? `- Background: ${resolvedPersona.background}` : ''}
-${resolvedPersona.goals ? `- Core Goals: ${resolvedPersona.goals}` : ''}
-${resolvedPersona.pain_points ? `- Critical Pain Points: ${resolvedPersona.pain_points}` : ''}
-${resolvedPersona.information_sources ? `- Information Sources: ${resolvedPersona.information_sources}` : ''}
-${resolvedPersona.buying_objections ? `- Buying Objections & Hesitations: ${resolvedPersona.buying_objections}` : ''}
-======================================================
-MANDATORY PERSONA REQUIREMENTS:
-Every single search query generated MUST be asked directly from this buyer persona's point of view:
-1. Pain Points: Directly weave their specific frustrations and challenges ("${resolvedPersona.pain_points || 'their main friction points'}") into conversational queries.
-2. Goals: Incorporate what they are trying to achieve ("${resolvedPersona.goals || 'their desired outcome'}").
-3. Buying Objections: Formulate queries that probe their specific hesitations and perceived risks ("${resolvedPersona.buying_objections || 'price, durability, complexity'}").
-4. Authenticity: Word the prompts in the realistic phrasing of someone with this background and demographic profile.`;
-    }
-  }
-
-  // 1. Primary AI Prompt Generation (Gemini 3.1 Flash with Preview fallback)
+  // 1. Primary AI Prompt Generation (Gemini 3.8 Flash with Preview fallback)
   const hasGoogleKey = Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY);
 
   if (hasGoogleKey) {
-    const candidates = ['gemini-3.1-flash-lite', 'gemini-3-flash-preview'];
+    const candidates = ['gemini-3.8-flash', 'gemini-3-flash-preview'];
     for (const candidate of candidates) {
       try {
         const model = google(candidate);
         const systemPrompt = `You are Beacon's Generative Engine Optimization (GEO) strategist.
 Generate ${count} high-impact, realistic search query prompts that prospective buyers ask conversational search engines (ChatGPT, Perplexity, Gemini, Claude).
-${resolvedPersona ? `CRITICAL REQUIREMENT: The user selected buyer persona "${resolvedPersona.name_title || resolvedPersona.name}". Every single search query MUST be formulated directly from this persona's point of view, explicitly addressing their pain points, buying objections, and goals.` : ''}
 ${categories.length > 1 ? `IMPORTANT: Distribute the queries across these chosen categories: ${categoryLabel}.` : ''}
 Respond strictly with a valid JSON array of objects with the following schema:
 [
@@ -763,7 +742,7 @@ Respond strictly with a valid JSON array of objects with the following schema:
     "search_intent": "commercial" | "transactional" | "informational" | "navigational",
     "brand_association": "branded" | "unbranded",
     "recommended_frequency": "daily" | "weekly",
-    "rationale": "1-sentence explaining how this addresses the persona's pain points, objections, or goals"
+    "rationale": "1-sentence explaining how this search query helps evaluate brand visibility"
   }
 ]`;
 
@@ -772,14 +751,14 @@ Brand: ${brandName} (${domain})
 Industry: ${brandKit.industry || 'Consumer Retail'}
 Core Offerings: ${brandKit.core_offerings || 'Key products'}
 Target Audience: ${brandKit.target_audience || 'Prospective customers'}
-Competitors: ${brandKit.competitors?.map((c) => c.name).join(', ') || 'Key market rivals'}${personaInstruction}
+Competitors: ${brandKit.competitors?.map((c) => c.name).join(', ') || 'Key market rivals'}
 
 Parameters:
 - Categories Focus: ${categoryLabel} (distribute the ${count} prompts across these chosen categories)
 - Search Intent Preference: ${intent === 'all' ? 'Diverse mix of commercial, transactional, informational' : intent}
 - Brand Association Preference: ${association === 'both' ? 'Mix of branded and unbranded queries' : association}
 
-Generate exactly ${count} realistic buyer queries${resolvedPersona ? ` specifically from this buyer persona perspective addressing their pain points and objections` : ''}. Output strictly a JSON array without markdown formatting or code fences.`;
+Generate exactly ${count} realistic buyer queries. Output strictly a JSON array without markdown formatting or code fences.`;
 
         const result = await generateText({
           model,
@@ -979,83 +958,7 @@ Generate exactly ${count} realistic buyer queries${resolvedPersona ? ` specifica
     ],
   };
 
-  if (resolvedPersona) {
-    const pName =
-      resolvedPersona.name_title ||
-      (resolvedPersona.role_title ? `${resolvedPersona.name} — ${resolvedPersona.role_title}` : resolvedPersona.name);
-    const pPain = resolvedPersona.pain_points || 'inconsistent quality and high pricing';
-    const pGoals = resolvedPersona.goals || 'reliable performance and long-term durability';
-    const pObj = resolvedPersona.buying_objections || 'steep cost and uncertain reliability';
-    const pDemographics = resolvedPersona.age_demographics || 'savvy buyers';
 
-    const cleanPain = pPain.split(/[.,;\n]/)[0].trim() || pPain.slice(0, 50);
-    const cleanGoals = pGoals.split(/[.,;\n]/)[0].trim() || pGoals.slice(0, 50);
-    const cleanObj = pObj.split(/[.,;\n]/)[0].trim() || pObj.slice(0, 50);
-
-    const personaGenerators: Array<() => {
-      text: string;
-      intent: SearchIntent;
-      assoc: BrandAssociation;
-      freq: AuditFrequency;
-      rationale: string;
-    }> = [
-      () => ({
-        text: `${brandName} vs ${comp1}: which actually solves ${cleanPain}?`,
-        intent: 'commercial',
-        assoc: 'branded',
-        freq: 'daily',
-        rationale: `Directly targets ${pName}'s core pain point ("${cleanPain}") comparing ${brandName} with ${comp1}.`,
-      }),
-      () => ({
-        text: `Is ${brandName} worth it if my primary concern is ${cleanObj}?`,
-        intent: 'commercial',
-        assoc: 'branded',
-        freq: 'daily',
-        rationale: `Probes ${pName}'s primary buying objection ("${cleanObj}") during AI engine evaluations.`,
-      }),
-      () => ({
-        text: `Best ${item1} for ${pDemographics} looking to achieve ${cleanGoals}`,
-        intent: 'informational',
-        assoc: 'unbranded',
-        freq: 'weekly',
-        rationale: `Captures high-intent discovery queries from ${pName} seeking ${cleanGoals}.`,
-      }),
-      () => ({
-        text: `${brandName} customer reviews: how well does it address ${cleanPain} compared to ${comp2}?`,
-        intent: 'commercial',
-        assoc: 'branded',
-        freq: 'daily',
-        rationale: `Evaluates real user sentiment regarding ${pName}'s specific friction points.`,
-      }),
-      () => ({
-        text: `Why ${pDemographics} choose ${brandName} over ${comp1} for ${cleanGoals}`,
-        intent: 'transactional',
-        assoc: 'branded',
-        freq: 'weekly',
-        rationale: `Measures conversion-stage credibility signals overcoming ${cleanObj} for this persona.`,
-      }),
-    ];
-
-    const personaGenerated: GeneratedPromptSuggestion[] = [];
-    for (let idx = 0; idx < count; idx++) {
-      const gen = personaGenerators[idx % personaGenerators.length];
-      const data = gen();
-      const finalIntent = intent !== 'all' ? intent : data.intent;
-      const finalAssoc = association !== 'both' ? association : data.assoc;
-
-      personaGenerated.push({
-        id: `synth-persona-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 6)}`,
-        query_text: data.text,
-        category: categories[idx % categories.length],
-        search_intent: finalIntent,
-        brand_association: finalAssoc,
-        recommended_frequency: data.freq,
-        rationale: data.rationale,
-      });
-    }
-
-    return { prompts: personaGenerated };
-  }
 
   // Gather templates from all selected categories
   const selectedCategoryTemplates = categories.flatMap(

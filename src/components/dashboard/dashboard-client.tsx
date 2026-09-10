@@ -383,9 +383,9 @@ export function DashboardClientView({
     const negPct = Math.max(0, 100 - posPct - neuPct);
 
     return [
-      { name: 'Positive Sentiment', category: 'positive' as const, value: posPct, color: '#10b981' },
+      { name: 'Positive Sentiment', category: 'positive' as const, value: posPct, color: 'var(--chart-emerald)' },
       { name: 'Neutral Sentiment', category: 'neutral' as const, value: neuPct, color: '#94a3b8' },
-      { name: 'Critical / Negative', category: 'negative' as const, value: negPct, color: '#475569' },
+      { name: 'Critical / Negative', category: 'negative' as const, value: negPct, color: 'var(--chart-rose)' },
     ];
   }, [
     initialSentimentSlices,

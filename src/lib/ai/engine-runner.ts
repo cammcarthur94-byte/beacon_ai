@@ -180,7 +180,7 @@ async function pingEngine(
       });
       rawOutput = response.text;
     } else if (engine.toLowerCase() === 'gemini' && process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      const candidates = ['gemini-3.1-flash-lite', BEACON_MODELS.SEARCH_GROUNDING.id, 'gemini-3-flash-preview', 'gemini-1.5-pro'];
+      const candidates = ['gemini-3.8-flash', BEACON_MODELS.SEARCH_GROUNDING.id, 'gemini-3-flash-preview', 'gemini-1.5-pro'];
       let lastCandidateErr: unknown = null;
       for (const candidate of candidates) {
         try {

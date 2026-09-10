@@ -63,26 +63,6 @@ export interface ContentDraft {
   updated_at: string;
 }
 
-export interface Persona {
-  id: string;
-  project_id?: string | null;
-  name: string;
-  role_title: string;
-  name_title?: string | null;
-  age_demographics?: string | null;
-  background?: string | null;
-  goals?: string | null;
-  pain_points?: string | null;
-  information_sources?: string | null;
-  buying_objections?: string | null;
-  system_prompt: string;
-  tone_traits: string[];
-  is_system: boolean;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface BrandTruth {
   id: string;
   project_id: string;

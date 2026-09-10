@@ -117,10 +117,10 @@ export function AuditResultsClient({
             <span>Back to Prompts</span>
           </Link>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-            Audit Execution &amp; Model Comparison
+            Prompt Results &amp; Model Comparison
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-normal">
-            Verbatim AI search engine answers, cross-model consensus, and autonomous remediation.
+            Compare how AI engines answer: &ldquo;{prompt.query_text}&rdquo;
           </p>
         </div>
 
@@ -173,14 +173,13 @@ export function AuditResultsClient({
         <Card className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-slate-500 block uppercase tracking-wider">
-              Average Recommendation Rate
+              Average Prompt Visibility
             </span>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-slate-900 tracking-tight tabular-nums">
                 {averageSOV}%
-              </span>
-              <span className="text-xs font-semibold text-emerald-700">
-                Across {totalRuns} models
+              </span>                <span className="text-xs font-semibold text-emerald-700">
+                Across {totalRuns} engines
               </span>
             </div>
           </div>

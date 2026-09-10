@@ -2,19 +2,25 @@
 
 import * as React from 'react';
 import { useState, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CitationMetricsCards, type CitationSummaryMetrics } from './citation-metrics-cards';
 import { SourceDistributionChart, type SourceDistributionDataPoint } from './source-distribution-chart';
 import { CitationVelocityChart, type CitationVelocityDataPoint } from './citation-velocity-chart';
 import { CitationsLedgerTable, type DomainCitationRow } from './citations-ledger-table';
-import { Calendar, X } from 'lucide-react';
+import { Calendar, Globe, LayoutGrid } from 'lucide-react';
 import type { CitationSourceType } from '@/types/database.types';
 import { getSourceTypeMeta } from '@/lib/citations/categorizer';
+
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+
+export type CitationViewType = 'overview' | 'domains';
+
 interface CitationsClientProps {
   initialMetrics: CitationSummaryMetrics;
   initialSourceDistribution: SourceDistributionDataPoint[];
   initialVelocity: CitationVelocityDataPoint[];
   initialDomainRows: DomainCitationRow[];
-  brandName: string;
 }
 
 export function CitationsClient({
@@ -22,12 +28,22 @@ export function CitationsClient({
   initialSourceDistribution,
   initialVelocity,
   initialDomainRows,
-  brandName,
 }: CitationsClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentViewParam = (searchParams.get('view') || 'overview') as CitationViewType;
+  const activeView: CitationViewType = ['overview', 'domains'].includes(currentViewParam)
+    ? currentViewParam
+    : 'overview';
+
+  const setView = (view: CitationViewType) => {
+    const url = view === 'overview' ? '/citations' : `/citations?view=${view}`;
+    router.push(url);
+  };
+
   const [dateRange, setDateRange] = useState<'7d' | '30d' | 'all'>('30d');
 
   // Cross-filter state shared between the pie chart, ledger table & derived charts.
-  // Supports multi-slice selection: clicking slices/legend rows toggles categories in/out.
   const [activeSourceTypes, setActiveSourceTypes] = useState<CitationSourceType[]>([]);
 
   const handleToggleSourceType = (type: CitationSourceType) => {
@@ -66,7 +82,6 @@ export function CitationsClient({
       selectedDistList.reduce((acc, curr) => acc + curr.percentage, 0)
     );
 
-    // Identify top category among the selected set
     let topType: CitationSourceType = activeSourceTypes[0];
     let topCount = 0;
     selectedDistList.forEach((d) => {
@@ -87,8 +102,6 @@ export function CitationsClient({
     };
   }, [initialMetrics, initialSourceDistribution, activeSourceTypes, dateRange, filteredDomainRows]);
 
-  // Adjust velocity data based on date range AND the active source type cross-filter
-  // (scales each period proportionally to the selected sources' combined share of citations)
   const filteredVelocity = useMemo(() => {
     let base = initialVelocity;
     if (dateRange === '7d') {
@@ -112,13 +125,13 @@ export function CitationsClient({
   }, [initialVelocity, initialSourceDistribution, activeSourceTypes, dateRange, initialMetrics.totalCitations]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-sans">
       {/* GA4-STYLE FILTER BAR */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-5">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              SOURCES &amp; CITATIONS
+            <span className="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold">
+              Reports &gt; Citations
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-950 tracking-tight">
@@ -130,60 +143,52 @@ export function CitationsClient({
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-          {/* Active cross-filter chips (click to toggle off or clear all) */}
-          {activeSourceTypes.length > 0 && (
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {activeSourceTypes.map((type) => {
-                const meta = getSourceTypeMeta(type);
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => handleToggleSourceType(type)}
-                    title={`Remove ${meta.label} filter`}
-                    className="inline-flex items-center gap-1.5 text-xs bg-slate-900 text-white font-medium px-2.5 py-1.5 rounded-lg shadow-2xs cursor-pointer hover:bg-slate-800 transition-colors group"
-                  >
-                    <span
-                      className="h-2 w-2 rounded-full shrink-0"
-                      style={{ backgroundColor: meta.color }}
-                    />
-                    <span>{meta.label}</span>
-                    <X className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100 ml-0.5" />
-                  </button>
-                );
-              })}
-              {activeSourceTypes.length > 1 && (
+          {/* View Mode Pills (Overview, All Domains) */}
+          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl border border-slate-200">
+            {[
+              { id: 'overview', label: 'Overview', icon: LayoutGrid },
+              { id: 'domains', label: 'All Domains', icon: Globe },
+            ].map((v) => {
+              const Icon = v.icon;
+              return (
                 <button
+                  key={v.id}
                   type="button"
-                  onClick={handleClearSourceTypes}
-                  className="text-xs text-slate-500 hover:text-slate-950 font-medium underline cursor-pointer px-1 py-1 transition-colors"
+                  onClick={() => setView(v.id as CitationViewType)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer',
+                    activeView === v.id
+                      ? 'bg-white text-sky-700 shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-950'
+                  )}
                 >
-                  Clear All
+                  <Icon className="h-3.5 w-3.5" />
+                  <span>{v.label}</span>
                 </button>
-              )}
-            </div>
-          )}
+              );
+            })}
+          </div>
 
           {/* Date Range Selector */}
-          <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 shadow-2xs font-sans">
+          <div className="flex items-center gap-1 bg-white p-1 rounded-2xl border border-slate-200 shadow-2xs font-sans">
             <div className="flex items-center gap-1.5 px-2 text-slate-400">
               <Calendar className="h-3.5 w-3.5" />
             </div>
             {(
               [
-                { id: '7d', label: 'Last 7 Days' },
-                { id: '30d', label: 'Last 30 Days' },
-                { id: 'all', label: 'All Time' },
+                { id: '7d', label: '7D' },
+                { id: '30d', label: '30D' },
+                { id: 'all', label: 'All' },
               ] as const
             ).map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => setDateRange(item.id)}
-                className={`text-xs px-3 py-1.5 rounded-md transition-all cursor-pointer font-medium border-2 ${
+                className={`text-xs px-2.5 py-1 rounded-xl transition-all cursor-pointer font-medium ${
                   dateRange === item.id
-                    ? 'border-emerald-500 bg-emerald-50/60 text-emerald-950 font-bold shadow-xs'
-                    : 'border-transparent text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+                    ? 'bg-slate-900 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
                 }`}
               >
                 {item.label}
@@ -193,34 +198,62 @@ export function CitationsClient({
         </div>
       </div>
 
-      {/* 1. TOP METRIC SCORECARDS (Cross-filters with multi-slice donut chart) */}
-      <CitationMetricsCards
-        metrics={filteredMetrics}
-        activeSourceTypes={activeSourceTypes}
-        onClearFilter={handleClearSourceTypes}
-      />
+      {/* OVERVIEW VIEW */}
+      {activeView === 'overview' && (
+        <div className="space-y-8 animate-in fade-in-50 duration-150">
+          {/* 1. TOP METRIC SCORECARDS */}
+          <CitationMetricsCards
+            metrics={filteredMetrics}
+            activeSourceTypes={activeSourceTypes}
+            onClearFilter={handleClearSourceTypes}
+          />
 
-      {/* 2. RECHARTS VISUALIZATIONS GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SourceDistributionChart
-          data={initialSourceDistribution}
-          totalCitations={filteredMetrics.totalCitations}
-          filterOptions={{
-            activeSourceTypes,
-            onToggleSourceType: handleToggleSourceType,
-            onClearAll: handleClearSourceTypes,
-          }}
-        />
-        <CitationVelocityChart data={filteredVelocity} />
-      </div>
+          {/* 2. RECHARTS VISUALIZATIONS GRID */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SourceDistributionChart
+              data={initialSourceDistribution}
+              totalCitations={filteredMetrics.totalCitations}
+              filterOptions={{
+                activeSourceTypes,
+                onToggleSourceType: handleToggleSourceType,
+                onClearAll: handleClearSourceTypes,
+              }}
+            />
+            <CitationVelocityChart data={filteredVelocity} />
+          </div>
 
-      {/* 3. SHADCN DATA TABLE LEDGER */}
-      <CitationsLedgerTable
-        rows={initialDomainRows}
-        activeSourceTypes={activeSourceTypes}
-        onToggleSourceType={handleToggleSourceType}
-        onClearSourceTypes={handleClearSourceTypes}
-      />
+          {/* 3. SHADCN DATA TABLE LEDGER */}
+          <CitationsLedgerTable
+            rows={initialDomainRows}
+            activeSourceTypes={activeSourceTypes}
+            onToggleSourceType={handleToggleSourceType}
+            onClearSourceTypes={handleClearSourceTypes}
+          />
+        </div>
+      )}
+
+      {/* ALL DOMAINS VIEW */}
+      {activeView === 'domains' && (
+        <div className="space-y-6 animate-in fade-in-50 duration-150">
+          <div className="p-4 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-sky-800">Domain Authority Index</span>
+              <p className="text-sm font-semibold text-sky-950">
+                {filteredMetrics.uniqueDomains} unique authoritative domains cited across search engine answers
+              </p>
+            </div>
+            <Badge className="bg-sky-600 text-white text-xs">All Domains</Badge>
+          </div>
+
+          <CitationsLedgerTable
+            rows={initialDomainRows}
+            activeSourceTypes={activeSourceTypes}
+            onToggleSourceType={handleToggleSourceType}
+            onClearSourceTypes={handleClearSourceTypes}
+          />
+        </div>
+      )}
+
     </div>
   );
 }

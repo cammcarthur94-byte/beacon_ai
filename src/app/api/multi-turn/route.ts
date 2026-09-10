@@ -8,14 +8,13 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { analyzeOutput } from '@/lib/ai/analyzer';
 import { checkHallucinations } from '@/lib/ai/hallucination-checker';
 import { extractKnowledgeGraphEntities } from '@/lib/ai/entity-extractor';
-import type { BrandKit, BrandTruth, Persona } from '@/types/database.types';
+import type { BrandKit, BrandTruth } from '@/types/database.types';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
     const {
       prompt,
-      personaId,
       conversationHistory = [],
       engine = 'chatgpt',
       projectId: explicitProjectId,
@@ -84,26 +83,8 @@ export async function POST(req: NextRequest) {
     const domain = project.domain || 'example.com';
     const competitors = project.brand_kit?.competitors || [];
 
-    // 2. Resolve Persona Context
-    let persona: Persona | null = null;
+    // 2. Generic System Instruction
     let systemInstruction = `You are a helpful and neutral AI research assistant answering buyer queries objectively. When relevant, compare leading category solutions fairly, providing specific model details, feature trade-offs, and pricing context.`;
-
-    if (personaId && supabaseUrl && !supabaseUrl.includes('placeholder')) {
-      try {
-        const { data: personaData } = await supabase
-          .from('personas')
-          .select('*')
-          .eq('id', personaId)
-          .maybeSingle();
-
-        if (personaData) {
-          persona = personaData as any;
-          systemInstruction = personaData.system_prompt;
-        }
-      } catch (err) {
-        console.warn('Failed to query persona from Supabase, using default instruction:', err);
-      }
-    }
 
     // 3. Resolve Brand Truths (Ground Truths)
     let brandTruths: BrandTruth[] = [];
@@ -195,7 +176,7 @@ export async function POST(req: NextRequest) {
           brandName,
           domain,
           competitors,
-          personaRole: persona?.role_title || 'Enterprise Evaluator',
+          personaRole: 'Enterprise Evaluator',
           engine: normalizedEngine,
         });
       }
@@ -207,7 +188,7 @@ export async function POST(req: NextRequest) {
         brandName,
         domain,
         competitors,
-        personaRole: persona?.role_title || 'Enterprise Evaluator',
+        personaRole: 'Enterprise Evaluator',
         engine: normalizedEngine,
       });
     }
@@ -249,7 +230,6 @@ export async function POST(req: NextRequest) {
             query_text: prompt,
             parent_id: parentPromptId || null,
             turn_index: turnIndex,
-            persona_id: personaId || null,
             thread_id: threadId,
           } as any)
           .select('id')
@@ -282,9 +262,6 @@ export async function POST(req: NextRequest) {
       promptId,
       resultId: generatedResultId,
       engine: normalizedEngine,
-      persona: persona
-        ? { id: persona.id, name: persona.name, role: persona.role_title }
-        : null,
       evaluation: {
         visibilityScore: evaluation.visibilityScore,
         brandMentioned: evaluation.brandMentioned,
