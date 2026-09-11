@@ -39,23 +39,35 @@ function monthlyEquivalentPrice(annualPrice: number): number {
   return Math.round(annualPrice / 12);
 }
 
-export function PricingTable() {
+export { PRICING_TIERS, ANNUAL_DISCOUNT_RATE, type PricingTier } from '@/lib/billing/plan-limits';
+
+export interface PricingTableProps {
+  /** Optional custom handler for plan selection (e.g. auth modal, analytics, or custom checkout). */
+  onSelectPlan?: (planId: PricingTier['id'], billingCycle: BillingCycle) => void | Promise<void>;
+  className?: string;
+}
+
+export function PricingTable({ onSelectPlan, className }: PricingTableProps = {}) {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
 
   const isAnnual = billingCycle === 'annual';
 
   /**
-   * Prepared for the auth + Stripe checkout flow. Replace the fetch URL or
-   * enrich the body (e.g. with the authenticated user id) as needed.
+   * Dispatches the selected planId and billingCycle to the provided handler
+   * or defaults to Beacon's /api/billing/checkout Stripe subscription flow.
    */
   const handleSelectPlan = (planId: PricingTier['id']) => async () => {
+    if (onSelectPlan) {
+      await onSelectPlan(planId, billingCycle);
+      return;
+    }
     setPendingPlanId(planId);
     try {
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId }),
+        body: JSON.stringify({ planId, billingCycle }),
       });
       if (res.ok) {
         const { url } = (await res.json()) as { url?: string };
@@ -73,7 +85,7 @@ export function PricingTable() {
   };
 
   return (
-    <section className="w-full bg-white py-16 sm:py-20">
+    <section className={cn('w-full bg-white py-16 sm:py-20', className)}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Heading */}
         <div className="mx-auto max-w-2xl text-center">
@@ -94,6 +106,7 @@ export function PricingTable() {
         <div className="mt-10 flex items-center justify-center">
           <div className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-100 p-1">
             <button
+              id="billing-cycle-monthly"
               type="button"
               onClick={() => setBillingCycle('monthly')}
               aria-pressed={!isAnnual}
@@ -107,6 +120,7 @@ export function PricingTable() {
               Monthly
             </button>
             <button
+              id="billing-cycle-annual"
               type="button"
               onClick={() => setBillingCycle('annual')}
               aria-pressed={isAnnual}
@@ -235,6 +249,7 @@ export function PricingTable() {
 
                 {/* CTA */}
                 <button
+                  id={`cta-plan-${tier.id}`}
                   type="button"
                   onClick={handleSelectPlan(tier.id)}
                   disabled={pendingPlanId === tier.id}
